@@ -1,0 +1,330 @@
+{
+  "blockers": [],
+  "created_at": "2026-05-27T19:13:17Z",
+  "current_task": null,
+  "history": [
+    {
+      "action": "complete task-001",
+      "blockers": [],
+      "iteration": 1,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-001.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-001",
+      "timestamp": "2026-05-27T19:19:44Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-002",
+      "blockers": [],
+      "iteration": 2,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-002.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-002",
+      "timestamp": "2026-05-27T19:28:17Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-003",
+      "blockers": [],
+      "iteration": 3,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-003.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-003",
+      "timestamp": "2026-05-27T19:36:49Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-004",
+      "blockers": [],
+      "iteration": 4,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-004.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-004",
+      "timestamp": "2026-05-27T19:43:44Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-005",
+      "blockers": [],
+      "iteration": 5,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-005.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-005",
+      "timestamp": "2026-05-27T19:51:30Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-006",
+      "blockers": [],
+      "iteration": 6,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-006.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-006",
+      "timestamp": "2026-05-27T19:57:07Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-007",
+      "blockers": [],
+      "iteration": 7,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-007.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-007",
+      "timestamp": "2026-05-27T20:01:56Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-008",
+      "blockers": [],
+      "iteration": 8,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-008.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-008",
+      "timestamp": "2026-05-27T20:06:16Z",
+      "verification_status": null
+    },
+    {
+      "action": "complete task-009",
+      "blockers": [],
+      "iteration": 9,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-009.md"
+      ],
+      "outcome": "completed",
+      "task_id": "task-009",
+      "timestamp": "2026-05-27T20:13:08Z",
+      "verification_status": null
+    },
+    {
+      "action": "verify onioncry-mvp",
+      "blockers": [],
+      "iteration": 10,
+      "memory_written": [
+        "memory/MEMORY.md",
+        "memory/iter-010.md"
+      ],
+      "outcome": "completed",
+      "task_id": null,
+      "timestamp": "2026-05-27T20:15:49Z",
+      "verification_status": "PASS"
+    }
+  ],
+  "iteration": 10,
+  "loop_name": "onioncry-mvp",
+  "request": {
+    "goal": "complete the OnionCry MVP with tracked codex-loop state, all tasks done, blockers closed, and make verify PASS",
+    "text": "[[CODEX_LOOP name=\"onioncry-mvp\" goal=\"complete the OnionCry MVP with tracked codex-loop state, all tasks done, blockers closed, and make verify PASS\"]]\nRead .scratch/onioncry-mvp/HANDOFF.md\nUse the codex-loop skill. Track the work under .codex/loop/onioncry-mvp."
+  },
+  "schema_version": 1,
+  "status": "complete",
+  "tasks": [
+    {
+      "acceptance": [
+        "onioncry check discovers .onioncryrc.jsonc by default and accepts --config <path>.",
+        "The config loader supports JSONC, version, project.root, project.include, project.exclude, rules, and overrides fields needed by later slices.",
+        "File selection applies include/exclude before any rule evaluation.",
+        "--format pretty and --format json are accepted, with a minimal valid result containing status, summary, and violations.",
+        "--fail-on error is the default, and --fail-on warning is accepted.",
+        "Tests cover config discovery, explicit config path, missing config, include/exclude selection, and status/exit-code behavior with an empty violation set.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:19:44Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Create the first usable OnionCry CLI path: onioncry check loads .onioncryrc.jsonc, selects files from the configured file universe, and emits a pass/fail result with pretty and JSON-capable reporting scaffolding. This slice proves the end-to-end CLI shape without implementing architecture rules yet.",
+      "id": "task-001",
+      "memory": "memory/iter-001.md",
+      "status": "completed",
+      "title": "Bootstrap CLI check"
+    },
+    {
+      "acceptance": [
+        "The scanner extracts static imports, type-only imports, re-exports, string-literal dynamic imports, and string-literal require calls.",
+        "Non-literal dynamic imports and non-literal require calls are ignored in the MVP.",
+        "Relative imports and configured aliases resolve using common TS/JS extensions and index files.",
+        "tsconfig.json, package exports, package main, project references, and .d.ts resolution are out of scope.",
+        "onion/unresolved-import reports only unresolved relative and configured-alias imports, not external package imports.",
+        "Diagnostics include file path, import specifier, and line/column when available.",
+        "Tests cover import extraction forms, alias resolution, extension/index resolution, unresolved local imports, and ignored external packages.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:28:17Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Build the scanner and resolver path that parses JavaScript and TypeScript files with oxc_parser, extracts import edges, resolves local relative and configured-alias imports, and reports unresolved local imports.",
+      "id": "task-002",
+      "memory": "memory/iter-002.md",
+      "status": "completed",
+      "title": "Detect local import graph"
+    },
+    {
+      "acceptance": [
+        "Files are classified against configured layers.*.patterns.",
+        "A file matching more than one layer produces an ambiguous classification diagnostic.",
+        "A file matching no layer produces onion/unclassified-file according to rule severity.",
+        "onion/no-layer-leak compares local resolved import edges with the source layer mayImport list.",
+        "Type-only imports and re-exports count as layer dependencies.",
+        "Unclassified files do not participate in onion/no-layer-leak.",
+        "Pretty and JSON output include fromLayer, toLayer, import string, file path, line/column when available, and an optional suggestion.",
+        "Tests cover valid layer imports, forbidden layer imports, ambiguous classification, unclassified files, and type-only imports.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:36:49Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Add layer classification and enforce onion/no-layer-leak using explicit mayImport rules. Projects can define domain, application, infra, and shared patterns and receive actionable diagnostics when local imports violate allowed layer policy.",
+      "id": "task-003",
+      "memory": "memory/iter-003.md",
+      "status": "completed",
+      "title": "Enforce layer boundaries"
+    },
+    {
+      "acceptance": [
+        "Rule values support off, warn, error, and [severity, options].",
+        "Unknown rule names and invalid severities produce clear config errors.",
+        "Overrides match files by glob and can replace rule severity/options for matching files.",
+        "Overrides apply in array order; the last matching override wins for the same rule.",
+        "Overrides do not change file universe, aliases, layers, or contexts.",
+        "status reflects the effective --fail-on threshold while summary keeps raw warning/error counts.",
+        "JSON output uses the same onion/... rule names as config.",
+        "Tests cover base rules, disabled rules, rule options, override replacement, last-override-wins, and --fail-on behavior.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:43:44Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Implement the rule configuration engine used by all checks: linter-style rule names, severities, [severity, options] values, per-file overrides, final status calculation, and JSON summary.",
+      "id": "task-004",
+      "memory": "memory/iter-004.md",
+      "status": "completed",
+      "title": "Apply linter-style rule policy"
+    },
+    {
+      "acceptance": [
+        "External package imports are distinguished from local relative and configured-alias imports.",
+        "Runtime built-ins such as node:fs, node:path, and node:crypto are treated as external imports for policy purposes.",
+        "Package matching uses normalized package names: uuid/v4 -> uuid, @scope/pkg/subpath -> @scope/pkg.",
+        "Allowlist entries support exact package names and glob patterns such as @aws-sdk/*.",
+        "Rule options support layer-specific entries with fromLayer, severity, and allow.",
+        "Layer-specific severity wins for matching entries, enabling domain: error, application: warn, and infra: off.",
+        "Local aliases are not checked by the external package allowlist.",
+        "Tests cover domain allowlisted packages, domain blocked packages, application warnings, infra off, built-ins, scoped packages, subpaths, and glob allowlist entries.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:51:30Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Implement onion/no-forbidden-imports for external package imports using default-deny allowlists in sensitive layers, including domain-safe allowlists and layer-specific severities.",
+      "id": "task-005",
+      "memory": "memory/iter-005.md",
+      "status": "completed",
+      "title": "Enforce external package policy"
+    },
+    {
+      "acceptance": [
+        "Files are classified against configured contexts.*.patterns.",
+        "A file matching more than one context produces an ambiguous classification diagnostic.",
+        "A file matching no context is allowed in the MVP.",
+        "Cross-context checks run only when both source and target files have contexts.",
+        "contextRules.default.allowSameContext allows same-context imports when true.",
+        "contextRules.default.allowCrossContext allows imports into configured public surface path segments such as contracts, events, ports, and shared.",
+        "Imports into another context internal details produce onion/no-cross-context-internal-import.",
+        "shared is not treated as a context by default.",
+        "Tests cover same-context imports, public surface imports, internal cross-context imports, contextless files, ambiguous context classification, and shared segment behavior.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T19:57:07Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Add bounded context classification and enforce onion/no-cross-context-internal-import so cross-context local imports target the imported context public surface segments rather than internal details.",
+      "id": "task-006",
+      "memory": "memory/iter-006.md",
+      "status": "completed",
+      "title": "Enforce bounded context public surface"
+    },
+    {
+      "acceptance": [
+        "Cycle detection uses resolved local import edges within the file universe.",
+        "External package imports are ignored for cycle detection.",
+        "Unresolved imports are ignored for cycle detection.",
+        "The default rule severity is warn.",
+        "Diagnostics report a canonical readable cycle path.",
+        "Overrides and --fail-on affect circular dependency reporting consistently with other rules.",
+        "Tests cover simple cycles, longer cycles, acyclic graphs, external imports, unresolved imports, and override suppression.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T20:01:56Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Add onion/circular-dependency by detecting cycles in the resolved local import graph across all analyzed local files, not only cross-layer or cross-context cycles.",
+      "id": "task-007",
+      "memory": "memory/iter-007.md",
+      "status": "completed",
+      "title": "Detect circular dependencies"
+    },
+    {
+      "acceptance": [
+        "onioncry init creates .onioncryrc.jsonc in the current project root.",
+        "Existing .onioncryrc.jsonc is not overwritten unless --force is provided.",
+        "The template includes $schema, version, project, aliases, layers, contexts, contextRules, rules, and overrides.",
+        "The template uses domain, application, infra, and shared layers with mayImport examples.",
+        "The template includes default rules: layer leak and cross-context internal import as errors; external package policy with domain: error, application: warn, infra: off; unresolved imports, circular dependencies, and unclassified files as warnings.",
+        "The template uses JSONC comments to mark TODOs for project-specific patterns, aliases, contexts, and allowlists.",
+        "Tests cover creation, no-overwrite behavior, force overwrite, and JSONC parseability after stripping comments.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T20:06:16Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Implement onioncry init to create a conservative commented .onioncryrc.jsonc starter configuration with the agreed MVP preset and project-specific TODOs.",
+      "id": "task-008",
+      "memory": "memory/iter-008.md",
+      "status": "completed",
+      "title": "Generate init template"
+    },
+    {
+      "acceptance": [
+        "onioncry explain <file> loads the effective config using the same discovery and --config behavior as check.",
+        "The command reports the file layer, context when present, public surface status, and matched patterns.",
+        "The command lists imports with resolved target paths when local resolution succeeds.",
+        "The command identifies external package imports, normalized package names, and whether package policy allows them.",
+        "The command lists unresolved local imports.",
+        "The command lists violations for the file with rule name, severity, reason, and suggestion when available.",
+        "The command exits 0 even when the explained file has violations.",
+        "Tests cover classified files, unclassified files, contextless files, external packages, unresolved imports, and files with multiple violations.",
+        "make verify passes."
+      ],
+      "completed_at": "2026-05-27T20:13:08Z",
+      "created_at": "2026-05-27T19:13:17Z",
+      "description": "Implement onioncry explain <file> as an interactive diagnostic report for one source file, showing classification, matched patterns, import resolution, package policy, unresolved imports, and violations.",
+      "id": "task-009",
+      "memory": "memory/iter-009.md",
+      "status": "completed",
+      "title": "Explain one file"
+    }
+  ],
+  "updated_at": "2026-05-27T20:15:49Z",
+  "verification": {
+    "command": "rtk make verify",
+    "evidence": "rtk make verify passed: conventional commit checks completed; cargo clippy: No issues found; cargo test: 19 passed (4 suites, 0.46s)",
+    "last_run": "2026-05-27T20:15:49Z",
+    "status": "PASS"
+  }
+}
