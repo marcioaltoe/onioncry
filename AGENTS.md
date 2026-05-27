@@ -4,7 +4,9 @@
 
 - Agent-created branches must use the active user's initials as the prefix. For Marcio Altoe, use `ma/`, for example `ma/context-plan-scaffold`.
 - Prefix repository shell commands with `rtk` when available.
+- Never create commits unless the user explicitly asks for a commit in the current turn.
 - Always use Conventional Commits for commits and PR titles.
+- Before planning, implementing, reviewing, or documenting repository work, read `CONTEXT.md` and relevant `docs/adr/` entries. Use the glossary vocabulary and flag conflicts with ADRs instead of silently overriding them.
 - You can only finish a task when `make verify` passes. If a check fails, fix it and rerun the full command.
 - Always check dependent file APIs before writing tests.
 - Never use workarounds in fixes or tests. Diagnose the root cause and test observable behavior.
