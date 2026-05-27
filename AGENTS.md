@@ -24,9 +24,22 @@
 ## Commands
 
 ```bash
+make help                 # List available targets
+make bootstrap            # Prepare the workspace and fetch Rust deps when scaffolded
 make verify               # Full repository verification
+make rust-verify          # Run Rust fmt-check, check, clippy, and tests
+make fmt                  # Format Rust code
+make fmt-check            # Check Rust formatting
+make check                # Run cargo check
+make lint                 # Run clippy with warnings denied
+make test                 # Run Rust tests
+make build                # Build the Rust project
+make doc                  # Build Rust docs without dependencies
 make check-conventions    # Validate Conventional Commit history
-make rust-verify          # Run Rust checks when Cargo.toml exists
+make check-pr-title       # Validate a PR title via TITLE="feat(cli): add command"
+make update               # Update Cargo.lock when the Rust crate exists
+make clean                # Remove Rust build artifacts
+make skills-link          # Recreate .claude/skills symlinks from .agents/skills
 ```
 
 Once the Rust crate is scaffolded, `make verify` includes:
