@@ -1,0 +1,49 @@
+name: Conventions
+
+on:
+  push:
+    branches:
+      - main
+      - "ma/**"
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  commits:
+    name: Validate commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+      - name: Validate commit messages
+        run: ./scripts/check-conventional-commits.sh
+
+      - name: Cocogitto compliance check
+        uses: cocogitto/cocogitto-action@v4
+        with:
+          command: check
+
+  pull-request-title:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: ./scripts/check-conventional-title.sh "$PR_TITLE"
