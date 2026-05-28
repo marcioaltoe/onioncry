@@ -1,11 +1,9 @@
-name: Conventions
+name: CI | Conventions
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-      - "ma/**"
-  pull_request:
     types:
       - opened
       - reopened
