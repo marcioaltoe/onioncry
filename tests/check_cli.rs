@@ -598,6 +598,25 @@ fn check_reports_missing_default_config() {
 }
 
 #[test]
+fn check_rejects_llm_with_other_output_modes() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--llm", "--format", "json"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--llm", "--tip"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("cannot be used with"));
+}
+
+#[test]
 fn check_applies_include_and_exclude_before_reporting_summary() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_minimal_config(

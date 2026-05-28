@@ -31,7 +31,11 @@ struct CheckArgs {
     fail_on: FailOnArg,
     #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
     tips: bool,
-    #[arg(long, help = "Show an LLM-optimized grouped diagnostic report")]
+    #[arg(
+        long,
+        conflicts_with_all = ["format", "tips"],
+        help = "Show an LLM-optimized grouped diagnostic report"
+    )]
     llm: bool,
 }
 
