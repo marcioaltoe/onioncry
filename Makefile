@@ -8,7 +8,7 @@ CARGO := $(RTK) cargo
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap verify rust-verify fmt fmt-check check lint test build doc \
+.PHONY: help bootstrap verify rust-verify fmt fmt-check check lint test build install doc \
   check-conventions check-pr-title update clean skills-link
 
 help: ## Show this help
@@ -83,6 +83,13 @@ build: ## Build the Rust project
 		$(CARGO) build --all-targets --all-features; \
 	else \
 		echo "No Cargo.toml yet; skipping cargo build."; \
+	fi
+
+install: build ## Build and install onioncry into Cargo bin for local testing
+	@if [ -f Cargo.toml ]; then \
+		$(CARGO) install --path . --force --locked; \
+	else \
+		echo "No Cargo.toml yet; skipping cargo install."; \
 	fi
 
 doc: ## Build Rust docs without dependencies
