@@ -11,19 +11,27 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fs;
 use std::path::Component;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 use thiserror::Error;
 use walkdir::WalkDir;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
-const RULE_UNRESOLVED_IMPORT: &str = "codesmells/unresolved-import";
 const RULE_UNCLASSIFIED_FILE: &str = "cleanarch/unclassified-file";
 const RULE_AMBIGUOUS_LAYER: &str = "cleanarch/ambiguous-layer";
 const RULE_AMBIGUOUS_CONTEXT: &str = "cleanarch/ambiguous-context";
 const RULE_NO_LAYER_LEAK: &str = "cleanarch/no-layer-leak";
 const RULE_NO_FORBIDDEN_IMPORTS: &str = "cleanarch/no-forbidden-imports";
 const RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT: &str = "cleanarch/no-cross-context-internal-import";
-const RULE_CIRCULAR_DEPENDENCY: &str = "codesmells/circular-dependency";
-const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, codesmells/unresolved-import, codesmells/circular-dependency";
+const RULE_NO_FRAMEWORK_IN_CORE: &str = "cleanarch/no-framework-in-core";
+const RULE_NO_OUTER_DATA_FORMAT_IN_CORE: &str = "cleanarch/no-outer-data-format-in-core";
+const RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT: &str =
+    "cleanarch/no-public-surface-internal-reexport";
+const RULE_NO_CONTEXT_CYCLE: &str = "cleanarch/no-context-cycle";
+const RULE_NO_UNOWNED_SCHEMA_IMPORT: &str = "cleanarch/no-unowned-schema-import";
+const RULE_NO_CONCRETE_DEPENDENCY: &str = "solid/no-concrete-dependency";
+const RULE_FEATURE_ENVY: &str = "codesmells/feature-envy";
+const RULE_SHOTGUN_SURGERY: &str = "codesmells/shotgun-surgery";
+const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/no-framework-in-core, cleanarch/no-outer-data-format-in-core, cleanarch/no-public-surface-internal-reexport, cleanarch/no-context-cycle, cleanarch/no-unowned-schema-import, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, solid/no-concrete-dependency, codesmells/feature-envy, codesmells/shotgun-surgery";
 const INIT_CONFIG_TEMPLATE: &str = r#"{
   "$schema": "./onioncry.schema.json",
   "version": 1,
@@ -99,8 +107,14 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
         }
       ]
     }],
-    "codesmells/unresolved-import": "warn",
-    "codesmells/circular-dependency": "warn",
+    "cleanarch/no-framework-in-core": "warn",
+    "cleanarch/no-outer-data-format-in-core": "warn",
+    "cleanarch/no-public-surface-internal-reexport": "warn",
+    "cleanarch/no-context-cycle": "warn",
+    "cleanarch/no-unowned-schema-import": "warn",
+    "solid/no-concrete-dependency": "warn",
+    "codesmells/feature-envy": "warn",
+    "codesmells/shotgun-surgery": "off",
     "cleanarch/unclassified-file": "warn"
   },
   // TODO: use overrides for temporary policy exceptions, not file selection.
@@ -439,7 +453,7 @@ fn collect_all_violations(
     edges: &[ImportEdge],
     rule_policy: &RulePolicy,
 ) -> Result<Vec<Violation>> {
-    let mut violations = collect_unresolved_import_violations(edges, project_root, rule_policy);
+    let mut violations = Vec::new();
     violations.extend(collect_layer_violations(
         loaded,
         project_root,
@@ -460,12 +474,53 @@ fn collect_all_violations(
         edges,
         rule_policy,
     )?);
-    violations.extend(collect_circular_dependency_violations(
+    violations.extend(collect_framework_in_core_violations(
+        loaded,
         project_root,
-        files,
         edges,
         rule_policy,
-    ));
+    )?);
+    violations.extend(collect_outer_data_format_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_public_surface_reexport_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_context_cycle_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_unowned_schema_import_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_concrete_dependency_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_feature_envy_violations(
+        loaded,
+        project_root,
+        edges,
+        rule_policy,
+    )?);
+    violations.extend(collect_shotgun_surgery_violations(
+        project_root,
+        files,
+        rule_policy,
+    )?);
     Ok(violations)
 }
 
@@ -679,26 +734,6 @@ pub fn collect_import_edges(
     Ok(edges)
 }
 
-fn collect_unresolved_import_violations(
-    edges: &[ImportEdge],
-    project_root: &Path,
-    rule_policy: &RulePolicy,
-) -> Vec<Violation> {
-    let mut violations = Vec::new();
-    for edge in edges {
-        if !matches!(edge.resolution, ImportResolution::UnresolvedLocal) {
-            continue;
-        }
-        let severity =
-            rule_policy.effective_severity(RULE_UNRESOLVED_IMPORT, project_root, &edge.source);
-        if severity == Severity::Off {
-            continue;
-        }
-        violations.push(Violation::unresolved_import(edge, severity));
-    }
-    violations
-}
-
 fn collect_layer_violations(
     loaded: &LoadedConfig,
     project_root: &Path,
@@ -873,61 +908,560 @@ fn collect_context_violations(
     Ok(violations)
 }
 
-fn collect_circular_dependency_violations(
+fn collect_framework_in_core_violations(
+    loaded: &LoadedConfig,
     project_root: &Path,
-    files: &[PathBuf],
     edges: &[ImportEdge],
     rule_policy: &RulePolicy,
-) -> Vec<Violation> {
-    let file_set = files.iter().cloned().collect::<HashSet<_>>();
-    let graph = build_local_dependency_graph(edges, &file_set);
-    let cycles = find_canonical_cycles(&graph);
+) -> Result<Vec<Violation>> {
+    if loaded.config.layers.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = LayerClassifier::new(project_root, &loaded.config.layers)?;
     let mut violations = Vec::new();
 
-    for cycle in cycles {
-        let Some(source) = cycle.first() else {
-            continue;
-        };
-        let severity =
-            rule_policy.effective_severity(RULE_CIRCULAR_DEPENDENCY, project_root, source);
-        if severity == Severity::Off {
+    for edge in edges {
+        if !matches!(edge.resolution, ImportResolution::External) {
             continue;
         }
-        violations.push(Violation::circular_dependency(
-            source,
-            &cycle,
-            project_root,
+        let severity =
+            rule_policy.effective_severity(RULE_NO_FRAMEWORK_IN_CORE, project_root, &edge.source);
+        if severity == Severity::Off {
+            continue;
+        };
+        let rule_setting =
+            rule_policy.effective_rule(RULE_NO_FRAMEWORK_IN_CORE, project_root, &edge.source);
+        let core_layers = string_set_option(
+            RULE_NO_FRAMEWORK_IN_CORE,
+            &rule_setting,
+            "coreLayers",
+            &["domain", "application"],
+        )?;
+        let framework_packages = package_pattern_option(
+            RULE_NO_FRAMEWORK_IN_CORE,
+            &rule_setting,
+            "packages",
+            &[
+                "express",
+                "fastify",
+                "hono",
+                "koa",
+                "next",
+                "react",
+                "vue",
+                "angular",
+                "@nestjs/*",
+                "drizzle-orm",
+                "prisma",
+                "@prisma/*",
+                "typeorm",
+                "sequelize",
+                "mongoose",
+                "pg",
+                "mysql2",
+                "redis",
+                "ioredis",
+            ],
+        )?;
+        let LayerClassification::Classified(from_layer) = classifier.classify(&edge.source) else {
+            continue;
+        };
+        if !core_layers.contains(from_layer) {
+            continue;
+        }
+
+        let package_name = normalized_package_name(&edge.specifier);
+        if !framework_packages.is_allowed(&package_name) {
+            continue;
+        }
+
+        violations.push(Violation::framework_in_core(
+            edge,
+            from_layer,
+            &package_name,
             severity,
         ));
     }
 
-    violations
+    Ok(violations)
 }
 
-fn build_local_dependency_graph(
+fn collect_outer_data_format_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
     edges: &[ImportEdge],
-    file_set: &HashSet<PathBuf>,
-) -> BTreeMap<PathBuf, Vec<PathBuf>> {
-    let mut graph = BTreeMap::<PathBuf, BTreeSet<PathBuf>>::new();
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.layers.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = LayerClassifier::new(project_root, &loaded.config.layers)?;
+    let mut violations = Vec::new();
 
     for edge in edges {
         let ImportResolution::Local(target) = &edge.resolution else {
             continue;
         };
-        if !file_set.contains(target) {
+        let severity = rule_policy.effective_severity(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            project_root,
+            &edge.source,
+        );
+        if severity == Severity::Off {
             continue;
         }
-        graph
-            .entry(edge.source.clone())
-            .or_default()
-            .insert(target.clone());
-        graph.entry(target.clone()).or_default();
+        let rule_setting = rule_policy.effective_rule(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            project_root,
+            &edge.source,
+        );
+        let core_layers = string_set_option(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            &rule_setting,
+            "coreLayers",
+            &["domain", "application"],
+        )?;
+        let outer_layers = string_set_option(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            &rule_setting,
+            "outerLayers",
+            &["infra"],
+        )?;
+        let format_segments = string_set_option(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            &rule_setting,
+            "formatSegments",
+            &[
+                "schema", "schemas", "dto", "dtos", "record", "records", "row", "rows",
+            ],
+        )?;
+        let format_suffixes = string_vec_option(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            &rule_setting,
+            "formatSuffixes",
+            &[
+                ".schema.ts",
+                ".schema.tsx",
+                ".schema.js",
+                ".dto.ts",
+                ".dto.tsx",
+                ".record.ts",
+                ".row.ts",
+                "config-types.ts",
+            ],
+        )?;
+        let LayerClassification::Classified(from_layer) = classifier.classify(&edge.source) else {
+            continue;
+        };
+        let LayerClassification::Classified(to_layer) = classifier.classify(target) else {
+            continue;
+        };
+        if !core_layers.contains(from_layer) || !outer_layers.contains(to_layer) {
+            continue;
+        }
+        if !path_has_any_segment(target, project_root, &format_segments)
+            && !path_ends_with_any(target, project_root, &format_suffixes)
+        {
+            continue;
+        }
+
+        violations.push(Violation::outer_data_format_in_core(
+            edge, target, from_layer, to_layer, severity,
+        ));
     }
 
-    graph
+    Ok(violations)
+}
+
+fn collect_public_surface_reexport_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.contexts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = ContextClassifier::new(project_root, &loaded.config.contexts)?;
+    let context_policy = ContextPolicy::from(&loaded.config.context_rules);
+    let mut violations = Vec::new();
+
+    for edge in edges {
+        if edge.kind != ImportKind::ReExport {
+            continue;
+        }
+        let ImportResolution::Local(target) = &edge.resolution else {
+            continue;
+        };
+        let severity = rule_policy.effective_severity(
+            RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT,
+            project_root,
+            &edge.source,
+        );
+        if severity == Severity::Off {
+            continue;
+        }
+        if !context_policy.is_public_surface(&edge.source, project_root)
+            || context_policy.is_public_surface(target, project_root)
+        {
+            continue;
+        }
+        let ContextClassification::Classified(from_context) = classifier.classify(&edge.source)
+        else {
+            continue;
+        };
+        let ContextClassification::Classified(to_context) = classifier.classify(target) else {
+            continue;
+        };
+        if from_context != to_context {
+            continue;
+        }
+
+        violations.push(Violation::public_surface_internal_reexport(
+            edge,
+            target,
+            from_context,
+            severity,
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_context_cycle_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.contexts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = ContextClassifier::new(project_root, &loaded.config.contexts)?;
+    let mut graph = BTreeMap::<PathBuf, BTreeSet<PathBuf>>::new();
+    let mut representatives = BTreeMap::<(String, String), (&ImportEdge, PathBuf)>::new();
+
+    for edge in edges {
+        let ImportResolution::Local(target) = &edge.resolution else {
+            continue;
+        };
+        let ContextClassification::Classified(from_context) = classifier.classify(&edge.source)
+        else {
+            continue;
+        };
+        let ContextClassification::Classified(to_context) = classifier.classify(target) else {
+            continue;
+        };
+        if from_context == to_context {
+            continue;
+        }
+
+        graph
+            .entry(PathBuf::from(from_context))
+            .or_default()
+            .insert(PathBuf::from(to_context));
+        graph.entry(PathBuf::from(to_context)).or_default();
+        representatives
+            .entry((from_context.to_string(), to_context.to_string()))
+            .or_insert((edge, target.clone()));
+    }
+
+    let graph = graph
         .into_iter()
-        .map(|(source, targets)| (source, targets.into_iter().collect()))
-        .collect()
+        .map(|(source, targets)| (source, targets.into_iter().collect::<Vec<_>>()))
+        .collect::<BTreeMap<_, _>>();
+    let cycles = find_canonical_cycles(&graph);
+    let mut violations = Vec::new();
+
+    for cycle in cycles {
+        if cycle.len() < 3 {
+            continue;
+        }
+        let context_path = cycle
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect::<Vec<_>>();
+        let Some(from_context) = context_path.first() else {
+            continue;
+        };
+        let Some(to_context) = context_path.get(1) else {
+            continue;
+        };
+        let Some((edge, target)) = representatives.get(&(from_context.clone(), to_context.clone()))
+        else {
+            continue;
+        };
+        let severity =
+            rule_policy.effective_severity(RULE_NO_CONTEXT_CYCLE, project_root, &edge.source);
+        if severity == Severity::Off {
+            continue;
+        }
+        violations.push(Violation::context_cycle(
+            edge,
+            target,
+            &context_path,
+            severity,
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_unowned_schema_import_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.contexts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = ContextClassifier::new(project_root, &loaded.config.contexts)?;
+    let mut violations = Vec::new();
+
+    for edge in edges {
+        let ImportResolution::Local(target) = &edge.resolution else {
+            continue;
+        };
+        let severity = rule_policy.effective_severity(
+            RULE_NO_UNOWNED_SCHEMA_IMPORT,
+            project_root,
+            &edge.source,
+        );
+        if severity == Severity::Off {
+            continue;
+        }
+        let rule_setting =
+            rule_policy.effective_rule(RULE_NO_UNOWNED_SCHEMA_IMPORT, project_root, &edge.source);
+        let schema_segments = string_set_option(
+            RULE_NO_UNOWNED_SCHEMA_IMPORT,
+            &rule_setting,
+            "schemaSegments",
+            &["schema", "schemas"],
+        )?;
+        let schema_suffixes = string_vec_option(
+            RULE_NO_UNOWNED_SCHEMA_IMPORT,
+            &rule_setting,
+            "schemaSuffixes",
+            &[
+                ".schema.ts",
+                ".schema.tsx",
+                ".schema.js",
+                ".model.ts",
+                ".model.tsx",
+            ],
+        )?;
+        if !path_has_any_segment(target, project_root, &schema_segments)
+            && !path_ends_with_any(target, project_root, &schema_suffixes)
+        {
+            continue;
+        }
+        let ContextClassification::Classified(from_context) = classifier.classify(&edge.source)
+        else {
+            continue;
+        };
+        let ContextClassification::Classified(to_context) = classifier.classify(target) else {
+            continue;
+        };
+        if from_context == to_context {
+            continue;
+        }
+
+        violations.push(Violation::unowned_schema_import(
+            edge,
+            target,
+            from_context,
+            to_context,
+            severity,
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_concrete_dependency_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.layers.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = LayerClassifier::new(project_root, &loaded.config.layers)?;
+    let mut violations = Vec::new();
+
+    for edge in edges {
+        let severity =
+            rule_policy.effective_severity(RULE_NO_CONCRETE_DEPENDENCY, project_root, &edge.source);
+        if severity == Severity::Off {
+            continue;
+        }
+        let rule_setting =
+            rule_policy.effective_rule(RULE_NO_CONCRETE_DEPENDENCY, project_root, &edge.source);
+        let core_layers = string_set_option(
+            RULE_NO_CONCRETE_DEPENDENCY,
+            &rule_setting,
+            "coreLayers",
+            &["domain", "application"],
+        )?;
+        let concrete_segments = string_set_option(
+            RULE_NO_CONCRETE_DEPENDENCY,
+            &rule_setting,
+            "concreteSegments",
+            &[
+                "adapter",
+                "adapters",
+                "controller",
+                "controllers",
+                "client",
+                "clients",
+                "provider",
+                "providers",
+                "driver",
+                "drivers",
+            ],
+        )?;
+        let concrete_suffixes = string_vec_option(
+            RULE_NO_CONCRETE_DEPENDENCY,
+            &rule_setting,
+            "concreteSuffixes",
+            &[
+                ".adapter.ts",
+                ".adapter.tsx",
+                ".controller.ts",
+                ".client.ts",
+                ".provider.ts",
+                ".repository.adapter.ts",
+            ],
+        )?;
+        let LayerClassification::Classified(from_layer) = classifier.classify(&edge.source) else {
+            continue;
+        };
+        if !core_layers.contains(from_layer) {
+            continue;
+        }
+
+        let concrete = match &edge.resolution {
+            ImportResolution::Local(target) => {
+                path_has_any_segment(target, project_root, &concrete_segments)
+                    || path_ends_with_any(target, project_root, &concrete_suffixes)
+            }
+            ImportResolution::External | ImportResolution::UnresolvedLocal => false,
+        };
+        if !concrete {
+            continue;
+        }
+        let target = match &edge.resolution {
+            ImportResolution::Local(target) => Some(target.as_path()),
+            ImportResolution::External | ImportResolution::UnresolvedLocal => None,
+        };
+        violations.push(Violation::concrete_dependency(
+            edge, target, from_layer, severity,
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_feature_envy_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if loaded.config.contexts.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let classifier = ContextClassifier::new(project_root, &loaded.config.contexts)?;
+    let mut by_source = BTreeMap::<PathBuf, FeatureImportCounts>::new();
+
+    for edge in edges {
+        let ImportResolution::Local(target) = &edge.resolution else {
+            continue;
+        };
+        let ContextClassification::Classified(from_context) = classifier.classify(&edge.source)
+        else {
+            continue;
+        };
+        let ContextClassification::Classified(to_context) = classifier.classify(target) else {
+            continue;
+        };
+        let counts = by_source
+            .entry(edge.source.clone())
+            .or_insert_with(|| FeatureImportCounts::new(from_context));
+        if from_context == to_context {
+            counts.own_context_count += 1;
+        } else {
+            counts
+                .other_context_counts
+                .entry(to_context.to_string())
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+        }
+    }
+
+    let mut violations = Vec::new();
+    for (source, counts) in by_source {
+        let severity = rule_policy.effective_severity(RULE_FEATURE_ENVY, project_root, &source);
+        if severity == Severity::Off {
+            continue;
+        }
+        let rule_setting = rule_policy.effective_rule(RULE_FEATURE_ENVY, project_root, &source);
+        let min_imports = usize_option(
+            RULE_FEATURE_ENVY,
+            &rule_setting,
+            "minImportsFromOtherContext",
+            3,
+        )?;
+        let require_more_than_own = bool_option(
+            RULE_FEATURE_ENVY,
+            &rule_setting,
+            "requireMoreThanOwnContext",
+            true,
+        )?;
+
+        for (target_context, count) in counts.other_context_counts {
+            if count < min_imports {
+                continue;
+            }
+            if require_more_than_own && count <= counts.own_context_count {
+                continue;
+            }
+            violations.push(Violation::feature_envy(
+                &source,
+                &counts.source_context,
+                &target_context,
+                count,
+                counts.own_context_count,
+                severity,
+            ));
+        }
+    }
+
+    Ok(violations)
+}
+
+fn collect_shotgun_surgery_violations(
+    project_root: &Path,
+    files: &[PathBuf],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    if files.iter().all(|file| {
+        rule_policy.effective_severity(RULE_SHOTGUN_SURGERY, project_root, file) == Severity::Off
+    }) {
+        return Ok(Vec::new());
+    }
+
+    let history = git_change_history(project_root, files);
+    shotgun_surgery_findings(project_root, files, &history, rule_policy)
 }
 
 fn find_canonical_cycles(graph: &BTreeMap<PathBuf, Vec<PathBuf>>) -> Vec<Vec<PathBuf>> {
@@ -1191,6 +1725,12 @@ enum ContextClassification<'a> {
 struct ContextPolicy {
     allow_same_context: bool,
     allow_cross_context: HashSet<String>,
+}
+
+struct FeatureImportCounts {
+    source_context: String,
+    own_context_count: usize,
+    other_context_counts: BTreeMap<String, usize>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -1580,9 +2120,6 @@ fn pretty_severity(severity: &str) -> &str {
 
 fn violation_rule_explanation(rule: &str) -> &'static str {
     match rule {
-        RULE_UNRESOLVED_IMPORT => {
-            "This relative or aliased import could not be mapped to a project source file."
-        }
         RULE_UNCLASSIFIED_FILE => {
             "Layer checks need each analyzed file to match exactly one configured architectural layer."
         }
@@ -1601,8 +2138,27 @@ fn violation_rule_explanation(rule: &str) -> &'static str {
         RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT => {
             "Cross-context imports must target the imported context's configured public surface."
         }
-        RULE_CIRCULAR_DEPENDENCY => {
-            "A cycle means these files depend on each other and cannot change independently."
+        RULE_NO_FRAMEWORK_IN_CORE => "Core layers should depend on ports, not framework packages.",
+        RULE_NO_OUTER_DATA_FORMAT_IN_CORE => {
+            "Core layers should not mention data formats owned by outer details."
+        }
+        RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT => {
+            "A public surface should expose intentional contracts, not internal implementation files."
+        }
+        RULE_NO_CONTEXT_CYCLE => {
+            "Context dependencies should form a directed acyclic ownership graph."
+        }
+        RULE_NO_UNOWNED_SCHEMA_IMPORT => {
+            "A context should not depend directly on another context's storage schema."
+        }
+        RULE_NO_CONCRETE_DEPENDENCY => {
+            "Core layers should depend on abstractions rather than concrete details."
+        }
+        RULE_FEATURE_ENVY => {
+            "A file that mostly imports another context may contain behavior owned by that context."
+        }
+        RULE_SHOTGUN_SURGERY => {
+            "Files that repeatedly change with many companions may hide scattered responsibilities."
         }
         _ => "This finding violates the configured OnionCry architecture policy.",
     }
@@ -1672,28 +2228,6 @@ impl LoadedConfig {
 }
 
 impl Violation {
-    fn unresolved_import(edge: &ImportEdge, severity: Severity) -> Self {
-        Self {
-            rule: RULE_UNRESOLVED_IMPORT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!("could not resolve local import {}", edge.specifier),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: None,
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: None,
-            matched_layers: None,
-            matched_contexts: None,
-        }
-    }
-
     fn unclassified_file(file: &Path, severity: Severity) -> Self {
         Self {
             rule: RULE_UNCLASSIFIED_FILE.to_string(),
@@ -1808,6 +2342,72 @@ impl Violation {
         }
     }
 
+    fn framework_in_core(
+        edge: &ImportEdge,
+        from_layer: &str,
+        package_name: &str,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_NO_FRAMEWORK_IN_CORE.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "{from_layer} may not depend on framework package {package_name} through {}",
+                edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: Some(package_name.to_string()),
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: Some(from_layer.to_string()),
+            to_layer: None,
+            from_context: None,
+            to_context: None,
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(
+                "depend on a core-owned port and move framework code to an outer layer".to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn outer_data_format_in_core(
+        edge: &ImportEdge,
+        target: &Path,
+        from_layer: &str,
+        to_layer: &str,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_NO_OUTER_DATA_FORMAT_IN_CORE.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "{from_layer} may not import {to_layer} data format through {}",
+                edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: Some(from_layer.to_string()),
+            to_layer: Some(to_layer.to_string()),
+            from_context: None,
+            to_context: None,
+            target_file: Some(target.display().to_string()),
+            cycle_path: None,
+            suggestion: Some(
+                "define a core-owned type or mapper instead of importing outer data formats"
+                    .to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
     fn ambiguous_context(file: &Path, matched_contexts: Vec<String>, severity: Severity) -> Self {
         Self {
             rule: RULE_AMBIGUOUS_CONTEXT.to_string(),
@@ -1874,21 +2474,182 @@ impl Violation {
         }
     }
 
-    fn circular_dependency(
-        source: &Path,
-        cycle: &[PathBuf],
-        project_root: &Path,
+    fn public_surface_internal_reexport(
+        edge: &ImportEdge,
+        target: &Path,
+        context: &str,
         severity: Severity,
     ) -> Self {
-        let cycle_path = cycle
-            .iter()
-            .map(|path| project_relative_display(project_root, path))
-            .collect::<Vec<_>>();
         Self {
-            rule: RULE_CIRCULAR_DEPENDENCY.to_string(),
+            rule: RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT.to_string(),
             severity: severity.as_str().to_string(),
-            message: format!("circular dependency: {}", cycle_path.join(" -> ")),
-            file: source.display().to_string(),
+            message: format!(
+                "{context} public surface may not re-export internal detail through {}",
+                edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: None,
+            to_layer: None,
+            from_context: Some(context.to_string()),
+            to_context: Some(context.to_string()),
+            target_file: Some(target.display().to_string()),
+            cycle_path: None,
+            suggestion: Some(
+                "move the contract into the public surface or stop re-exporting it".to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn context_cycle(
+        edge: &ImportEdge,
+        target: &Path,
+        context_path: &[String],
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_NO_CONTEXT_CYCLE.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!("context dependency cycle: {}", context_path.join(" -> ")),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: None,
+            to_layer: None,
+            from_context: context_path.first().cloned(),
+            to_context: context_path.get(1).cloned(),
+            target_file: Some(target.display().to_string()),
+            cycle_path: Some(context_path.to_vec()),
+            suggestion: Some(
+                "extract a public contract or shared kernel so context dependencies point one way"
+                    .to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn unowned_schema_import(
+        edge: &ImportEdge,
+        target: &Path,
+        from_context: &str,
+        to_context: &str,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_NO_UNOWNED_SCHEMA_IMPORT.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "{from_context} may not import {to_context} owned schema through {}",
+                edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: None,
+            to_layer: None,
+            from_context: Some(from_context.to_string()),
+            to_context: Some(to_context.to_string()),
+            target_file: Some(target.display().to_string()),
+            cycle_path: None,
+            suggestion: Some(
+                "depend on the owning context contract instead of importing its storage schema"
+                    .to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn concrete_dependency(
+        edge: &ImportEdge,
+        target: Option<&Path>,
+        from_layer: &str,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_NO_CONCRETE_DEPENDENCY.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "{from_layer} may not depend on concrete detail through {}",
+                edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: Some(from_layer.to_string()),
+            to_layer: None,
+            from_context: None,
+            to_context: None,
+            target_file: target.map(|target| target.display().to_string()),
+            cycle_path: None,
+            suggestion: Some(
+                "depend on an abstraction owned by the core layer and bind the concrete detail outside"
+                    .to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn feature_envy(
+        file: &Path,
+        from_context: &str,
+        to_context: &str,
+        import_count: usize,
+        own_context_count: usize,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_FEATURE_ENVY.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "{from_context} file imports {import_count} dependencies from {to_context} and {own_context_count} from its own context"
+            ),
+            file: file.display().to_string(),
+            import_specifier: None,
+            package_name: None,
+            line: None,
+            column: None,
+            from_layer: None,
+            to_layer: None,
+            from_context: Some(from_context.to_string()),
+            to_context: Some(to_context.to_string()),
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(
+                "move the behavior closer to the context it uses or depend on a smaller public contract"
+                    .to_string(),
+            ),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn shotgun_surgery(
+        file: &Path,
+        commit_count: usize,
+        related_file_count: usize,
+        severity: Severity,
+    ) -> Self {
+        Self {
+            rule: RULE_SHOTGUN_SURGERY.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "file changed in {commit_count} commits with {related_file_count} recurring companion files"
+            ),
+            file: file.display().to_string(),
             import_specifier: None,
             package_name: None,
             line: None,
@@ -1898,9 +2659,9 @@ impl Violation {
             from_context: None,
             to_context: None,
             target_file: None,
-            cycle_path: Some(cycle_path),
+            cycle_path: None,
             suggestion: Some(
-                "break the cycle by moving shared contracts or reversing one dependency"
+                "look for scattered responsibilities and extract a boundary that changes together"
                     .to_string(),
             ),
             matched_layers: None,
@@ -2047,6 +2808,262 @@ impl PackageAllowlist {
     fn is_allowed(&self, package_name: &str) -> bool {
         self.patterns.is_match(package_name)
     }
+}
+
+impl FeatureImportCounts {
+    fn new(source_context: &str) -> Self {
+        Self {
+            source_context: source_context.to_string(),
+            own_context_count: 0,
+            other_context_counts: BTreeMap::new(),
+        }
+    }
+}
+
+fn options_object<'a>(
+    rule: &str,
+    setting: &'a RuleSetting,
+) -> Result<Option<&'a Map<String, Value>>> {
+    match &setting.options {
+        None => Ok(None),
+        Some(Value::Object(options)) => Ok(Some(options)),
+        Some(_) => Err(OnionCryError::InvalidRuleValue {
+            rule: rule.to_string(),
+            message: "expected rule options object".to_string(),
+        }),
+    }
+}
+
+fn string_vec_option(
+    rule: &str,
+    setting: &RuleSetting,
+    key: &str,
+    default: &[&str],
+) -> Result<Vec<String>> {
+    let Some(options) = options_object(rule, setting)? else {
+        return Ok(default.iter().map(|value| (*value).to_string()).collect());
+    };
+    let Some(value) = options.get(key) else {
+        return Ok(default.iter().map(|value| (*value).to_string()).collect());
+    };
+
+    match value {
+        Value::String(value) => Ok(vec![value.clone()]),
+        Value::Array(items) => items
+            .iter()
+            .map(|item| {
+                item.as_str()
+                    .map(str::to_string)
+                    .ok_or_else(|| OnionCryError::InvalidRuleValue {
+                        rule: rule.to_string(),
+                        message: format!("{key} entries must be strings"),
+                    })
+            })
+            .collect(),
+        _ => Err(OnionCryError::InvalidRuleValue {
+            rule: rule.to_string(),
+            message: format!("{key} must be a string or array of strings"),
+        }),
+    }
+}
+
+fn string_set_option(
+    rule: &str,
+    setting: &RuleSetting,
+    key: &str,
+    default: &[&str],
+) -> Result<HashSet<String>> {
+    Ok(string_vec_option(rule, setting, key, default)?
+        .into_iter()
+        .collect())
+}
+
+fn package_pattern_option(
+    rule: &str,
+    setting: &RuleSetting,
+    key: &str,
+    default: &[&str],
+) -> Result<PackageAllowlist> {
+    PackageAllowlist::from_patterns(&string_vec_option(rule, setting, key, default)?)
+}
+
+fn usize_option(rule: &str, setting: &RuleSetting, key: &str, default: usize) -> Result<usize> {
+    let Some(options) = options_object(rule, setting)? else {
+        return Ok(default);
+    };
+    let Some(value) = options.get(key) else {
+        return Ok(default);
+    };
+    let Some(value) = value.as_u64() else {
+        return Err(OnionCryError::InvalidRuleValue {
+            rule: rule.to_string(),
+            message: format!("{key} must be a positive integer"),
+        });
+    };
+    usize::try_from(value).map_err(|_| OnionCryError::InvalidRuleValue {
+        rule: rule.to_string(),
+        message: format!("{key} is too large"),
+    })
+}
+
+fn bool_option(rule: &str, setting: &RuleSetting, key: &str, default: bool) -> Result<bool> {
+    let Some(options) = options_object(rule, setting)? else {
+        return Ok(default);
+    };
+    let Some(value) = options.get(key) else {
+        return Ok(default);
+    };
+    value
+        .as_bool()
+        .ok_or_else(|| OnionCryError::InvalidRuleValue {
+            rule: rule.to_string(),
+            message: format!("{key} must be true or false"),
+        })
+}
+
+fn path_has_any_segment(path: &Path, project_root: &Path, segments: &HashSet<String>) -> bool {
+    let relative_path = path.strip_prefix(project_root).unwrap_or(path);
+    relative_path.components().any(|component| {
+        let Component::Normal(segment) = component else {
+            return false;
+        };
+        segment.to_str().is_some_and(|segment| {
+            segments.contains(segment) || segments.contains(&segment.to_ascii_lowercase())
+        })
+    })
+}
+
+fn path_ends_with_any(path: &Path, project_root: &Path, suffixes: &[String]) -> bool {
+    let relative_path = path
+        .strip_prefix(project_root)
+        .unwrap_or(path)
+        .display()
+        .to_string()
+        .to_ascii_lowercase();
+    suffixes
+        .iter()
+        .any(|suffix| relative_path.ends_with(&suffix.to_ascii_lowercase()))
+}
+
+fn git_change_history(project_root: &Path, files: &[PathBuf]) -> Vec<Vec<PathBuf>> {
+    let file_set = files
+        .iter()
+        .map(|file| project_relative_display(project_root, file))
+        .collect::<HashSet<_>>();
+    let Ok(output) = Command::new("git")
+        .arg("-C")
+        .arg(project_root)
+        .arg("log")
+        .arg("--name-only")
+        .arg("--pretty=format:--onioncry-commit--")
+        .arg("--")
+        .output()
+    else {
+        return Vec::new();
+    };
+    if !output.status.success() {
+        return Vec::new();
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut commits = Vec::new();
+    let mut current = BTreeSet::<PathBuf>::new();
+
+    for line in stdout.lines() {
+        let line = line.trim();
+        if line == "--onioncry-commit--" {
+            if current.len() > 1 {
+                commits.push(current.into_iter().collect());
+            }
+            current = BTreeSet::new();
+            continue;
+        }
+        if line.is_empty() || !file_set.contains(line) {
+            continue;
+        }
+        current.insert(normalize_path(&project_root.join(line)));
+    }
+
+    if current.len() > 1 {
+        commits.push(current.into_iter().collect());
+    }
+
+    commits
+}
+
+fn shotgun_surgery_findings(
+    project_root: &Path,
+    files: &[PathBuf],
+    history: &[Vec<PathBuf>],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let file_set = files.iter().cloned().collect::<HashSet<_>>();
+    let mut change_counts = BTreeMap::<PathBuf, usize>::new();
+    let mut cochanges = BTreeMap::<PathBuf, BTreeMap<PathBuf, usize>>::new();
+
+    for commit in history {
+        let changed = commit
+            .iter()
+            .filter(|file| file_set.contains(*file))
+            .cloned()
+            .collect::<Vec<_>>();
+        for file in &changed {
+            *change_counts.entry(file.clone()).or_default() += 1;
+        }
+        for (index, file) in changed.iter().enumerate() {
+            for other in changed.iter().skip(index + 1) {
+                *cochanges
+                    .entry(file.clone())
+                    .or_default()
+                    .entry(other.clone())
+                    .or_default() += 1;
+                *cochanges
+                    .entry(other.clone())
+                    .or_default()
+                    .entry(file.clone())
+                    .or_default() += 1;
+            }
+        }
+    }
+
+    let mut violations = Vec::new();
+    for file in files {
+        let severity = rule_policy.effective_severity(RULE_SHOTGUN_SURGERY, project_root, file);
+        if severity == Severity::Off {
+            continue;
+        }
+        let rule_setting = rule_policy.effective_rule(RULE_SHOTGUN_SURGERY, project_root, file);
+        let min_commit_count =
+            usize_option(RULE_SHOTGUN_SURGERY, &rule_setting, "minCommitCount", 4)?;
+        let min_related_files =
+            usize_option(RULE_SHOTGUN_SURGERY, &rule_setting, "minRelatedFiles", 3)?;
+        let min_pair_commit_count =
+            usize_option(RULE_SHOTGUN_SURGERY, &rule_setting, "minPairCommitCount", 2)?;
+        let commit_count = *change_counts.get(file).unwrap_or(&0);
+        if commit_count < min_commit_count {
+            continue;
+        }
+        let related_files = cochanges
+            .get(file)
+            .map(|related| {
+                related
+                    .iter()
+                    .filter(|(_, count)| **count >= min_pair_commit_count)
+                    .count()
+            })
+            .unwrap_or(0);
+        if related_files < min_related_files {
+            continue;
+        }
+        violations.push(Violation::shotgun_surgery(
+            file,
+            commit_count,
+            related_files,
+            severity,
+        ));
+    }
+
+    Ok(violations)
 }
 
 impl ContextClassifier {
@@ -2274,7 +3291,6 @@ fn parse_external_package_layer_policy(
 
 fn canonical_rule_name(rule: &str) -> Result<&'static str> {
     let canonical = match rule {
-        RULE_UNRESOLVED_IMPORT | "onion/unresolved-import" => RULE_UNRESOLVED_IMPORT,
         RULE_UNCLASSIFIED_FILE | "onion/unclassified-file" => RULE_UNCLASSIFIED_FILE,
         RULE_AMBIGUOUS_LAYER | "onion/ambiguous-layer" => RULE_AMBIGUOUS_LAYER,
         RULE_AMBIGUOUS_CONTEXT | "onion/ambiguous-context" => RULE_AMBIGUOUS_CONTEXT,
@@ -2283,7 +3299,20 @@ fn canonical_rule_name(rule: &str) -> Result<&'static str> {
         RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT | "onion/no-cross-context-internal-import" => {
             RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT
         }
-        RULE_CIRCULAR_DEPENDENCY | "onion/circular-dependency" => RULE_CIRCULAR_DEPENDENCY,
+        RULE_NO_FRAMEWORK_IN_CORE | "onion/no-framework-in-core" => RULE_NO_FRAMEWORK_IN_CORE,
+        RULE_NO_OUTER_DATA_FORMAT_IN_CORE | "onion/no-outer-data-format-in-core" => {
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE
+        }
+        RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT | "onion/no-public-surface-internal-reexport" => {
+            RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT
+        }
+        RULE_NO_CONTEXT_CYCLE | "onion/no-context-cycle" => RULE_NO_CONTEXT_CYCLE,
+        RULE_NO_UNOWNED_SCHEMA_IMPORT | "onion/no-unowned-schema-import" => {
+            RULE_NO_UNOWNED_SCHEMA_IMPORT
+        }
+        RULE_NO_CONCRETE_DEPENDENCY | "onion/no-concrete-dependency" => RULE_NO_CONCRETE_DEPENDENCY,
+        RULE_FEATURE_ENVY => RULE_FEATURE_ENVY,
+        RULE_SHOTGUN_SURGERY => RULE_SHOTGUN_SURGERY,
         _ => {
             return Err(OnionCryError::UnknownRule {
                 rule: rule.to_string(),
@@ -2334,9 +3363,15 @@ fn default_rule_severity(rule: &str) -> Severity {
         RULE_AMBIGUOUS_CONTEXT => Severity::Error,
         RULE_NO_FORBIDDEN_IMPORTS => Severity::Error,
         RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT => Severity::Error,
-        RULE_UNRESOLVED_IMPORT | RULE_UNCLASSIFIED_FILE | RULE_CIRCULAR_DEPENDENCY => {
-            Severity::Warn
-        }
+        RULE_UNCLASSIFIED_FILE => Severity::Warn,
+        RULE_NO_FRAMEWORK_IN_CORE
+        | RULE_NO_OUTER_DATA_FORMAT_IN_CORE
+        | RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT
+        | RULE_NO_CONTEXT_CYCLE
+        | RULE_NO_UNOWNED_SCHEMA_IMPORT
+        | RULE_NO_CONCRETE_DEPENDENCY
+        | RULE_FEATURE_ENVY
+        | RULE_SHOTGUN_SURGERY => Severity::Off,
         _ => Severity::Warn,
     }
 }

@@ -3,6 +3,7 @@ use predicates::prelude::*;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;
+use std::process::Command as ProcessCommand;
 use tempfile::TempDir;
 
 fn onioncry() -> Command {
@@ -14,6 +15,26 @@ fn write_file(path: &Path, contents: &str) {
         fs::create_dir_all(parent).expect("test parent directory should be creatable");
     }
     fs::write(path, contents).expect("test file should be writable");
+}
+
+fn git(workspace: &Path, args: &[&str]) {
+    let output = ProcessCommand::new("git")
+        .current_dir(workspace)
+        .arg("-c")
+        .arg("user.name=OnionCry Test")
+        .arg("-c")
+        .arg("user.email=onioncry@example.test")
+        .arg("-c")
+        .arg("commit.gpgsign=false")
+        .args(args)
+        .output()
+        .expect("git should run");
+    assert!(
+        output.status.success(),
+        "git command failed: {}\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 fn strip_full_line_jsonc_comments(contents: &str) -> String {
@@ -232,7 +253,69 @@ fn write_context_policy_config(path: &Path) {
     );
 }
 
-fn write_cycle_policy_config(path: &Path) {
+fn write_architecture_rules_config(path: &Path) {
+    write_file(
+        path,
+        r#"{
+  "version": 1,
+  "project": {
+    "root": ".",
+    "include": ["src/**/*.ts"],
+    "exclude": []
+  },
+  "layers": {
+    "application": {
+      "patterns": ["src/**/application/**"],
+      "mayImport": ["application", "domain", "shared"]
+    },
+    "domain": {
+      "patterns": ["src/**/domain/**"],
+      "mayImport": ["domain", "shared"]
+    },
+    "infra": {
+      "patterns": ["src/**/infra/**"],
+      "mayImport": ["infra", "application", "domain", "shared"]
+    },
+    "shared": {
+      "patterns": ["src/shared/**"],
+      "mayImport": ["shared"]
+    }
+  },
+  "contexts": {
+    "sales": {
+      "patterns": ["src/sales/**"]
+    },
+    "billing": {
+      "patterns": ["src/billing/**"]
+    }
+  },
+  "contextRules": {
+    "default": {
+      "allowSameContext": true,
+      "allowCrossContext": ["contracts", "events", "ports", "shared"]
+    }
+  },
+  "rules": {
+    "cleanarch/no-layer-leak": "off",
+    "cleanarch/no-forbidden-imports": "off",
+    "cleanarch/unclassified-file": "off",
+    "cleanarch/no-framework-in-core": "error",
+    "cleanarch/no-outer-data-format-in-core": "error",
+    "cleanarch/no-public-surface-internal-reexport": "error",
+    "cleanarch/no-context-cycle": "error",
+    "cleanarch/no-unowned-schema-import": "error",
+    "solid/no-concrete-dependency": "warn",
+    "codesmells/feature-envy": ["warn", {
+      "minImportsFromOtherContext": 3,
+      "requireMoreThanOwnContext": true
+    }]
+  },
+  "overrides": []
+}"#,
+    );
+}
+
+fn write_shotgun_policy_config(path: &Path) {
     write_file(
         path,
         r#"{
@@ -243,17 +326,13 @@ fn write_cycle_policy_config(path: &Path) {
     "exclude": []
   },
   "rules": {
-    "codesmells/circular-dependency": "warn",
-    "codesmells/unresolved-import": "off"
+    "codesmells/shotgun-surgery": ["warn", {
+      "minCommitCount": 2,
+      "minRelatedFiles": 2,
+      "minPairCommitCount": 2
+    }]
   },
-  "overrides": [
-    {
-      "files": ["src/suppressed/**"],
-      "rules": {
-        "codesmells/circular-dependency": "off"
-      }
-    }
-  ]
+  "overrides": []
 }"#,
     );
 }
@@ -313,7 +392,6 @@ fn write_explain_config(path: &Path) {
         }
       ]
     }],
-    "codesmells/unresolved-import": "warn",
     "cleanarch/unclassified-file": "warn"
   },
   "overrides": []
@@ -394,8 +472,16 @@ fn init_creates_parseable_mvp_template() {
     assert!(config.contains(r#""severity": "warn""#));
     assert!(config.contains(r#""fromLayer": "infra""#));
     assert!(config.contains(r#""severity": "off""#));
-    assert!(config.contains(r#""codesmells/unresolved-import": "warn""#));
-    assert!(config.contains(r#""codesmells/circular-dependency": "warn""#));
+    assert!(!config.contains("codesmells/unresolved-import"));
+    assert!(!config.contains("codesmells/circular-dependency"));
+    assert!(config.contains(r#""cleanarch/no-framework-in-core": "warn""#));
+    assert!(config.contains(r#""cleanarch/no-outer-data-format-in-core": "warn""#));
+    assert!(config.contains(r#""cleanarch/no-public-surface-internal-reexport": "warn""#));
+    assert!(config.contains(r#""cleanarch/no-context-cycle": "warn""#));
+    assert!(config.contains(r#""cleanarch/no-unowned-schema-import": "warn""#));
+    assert!(config.contains(r#""solid/no-concrete-dependency": "warn""#));
+    assert!(config.contains(r#""codesmells/feature-envy": "warn""#));
+    assert!(config.contains(r#""codesmells/shotgun-surgery": "off""#));
     assert!(config.contains(r#""cleanarch/unclassified-file": "warn""#));
 
     let stripped = strip_full_line_jsonc_comments(&config);
@@ -674,7 +760,7 @@ export const second = repo;
 }
 
 #[test]
-fn check_reports_unresolved_local_imports_with_source_locations() {
+fn check_delegates_unresolved_local_import_diagnostics_to_general_linters() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_minimal_config(
         &workspace.path().join(".onioncryrc.jsonc"),
@@ -695,40 +781,23 @@ const ignoredRequire = require(name);
 "#,
     );
 
-    let result = run_json_check(&workspace, &["check", "--format", "json"]);
-    let violations = result["violations"]
-        .as_array()
-        .expect("violations should be an array");
+    let check = run_json_check(&workspace, &["check", "--format", "json"]);
+    assert_eq!(check["status"], "pass");
+    assert_eq!(check["summary"]["warningCount"], 0);
+    assert_eq!(check["violations"].as_array().unwrap().len(), 0);
 
-    assert_eq!(result["status"], "pass");
-    assert_eq!(result["summary"]["warningCount"], 5);
-    assert_eq!(violations.len(), 5);
-
-    let specifiers = violations
-        .iter()
-        .map(|violation| violation["importSpecifier"].as_str().unwrap_or_default())
-        .collect::<Vec<_>>();
-    assert_eq!(
-        specifiers,
-        vec![
-            "./missing-static",
-            "./missing-type",
-            "./missing-reexport",
-            "./missing-dynamic",
-            "./missing-require"
-        ]
+    let explain = run_json_explain(
+        &workspace,
+        &["explain", "src/application/use-case.ts", "--format", "json"],
     );
-    assert!(violations.iter().all(|violation| {
-        violation["rule"] == "codesmells/unresolved-import"
-            && violation["severity"] == "warn"
-            && violation["line"].as_u64().is_some_and(|line| line > 0)
-            && violation["column"]
-                .as_u64()
-                .is_some_and(|column| column > 0)
-            && violation["file"]
-                .as_str()
-                .is_some_and(|file| file.ends_with("src/application/use-case.ts"))
-    }));
+    let imports = explain["imports"]
+        .as_array()
+        .expect("imports should be an array");
+    let unresolved_count = imports
+        .iter()
+        .filter(|import| import["resolution"] == "unresolvedLocal")
+        .count();
+    assert_eq!(unresolved_count, 5);
 }
 
 #[test]
@@ -1244,150 +1313,131 @@ export const tool = secret;
 }
 
 #[test]
-fn check_detects_circular_dependencies_and_honors_rule_policy() {
+fn check_enforces_architecture_specific_rules_not_delegated_to_oxlint() {
     let workspace = TempDir::new().expect("workspace should be creatable");
-    write_cycle_policy_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_architecture_rules_config(&workspace.path().join(".onioncryrc.jsonc"));
     write_file(
-        &workspace.path().join("src/simple/a.ts"),
-        r#"import { b } from "./b";
-export const a = b;
+        &workspace.path().join("src/sales/application/use-case.ts"),
+        r#"import express from "express";
+import { OrderRow } from "../infra/schemas/order.schema";
+import { adapter } from "../infra/adapters/order.adapter";
+import { BillingApi } from "../../billing/contracts/api";
+import { CustomerSchema } from "../../billing/contracts/customer.schema";
+export const run = [express, OrderRow, adapter, BillingApi, CustomerSchema];
 "#,
     );
     write_file(
-        &workspace.path().join("src/simple/b.ts"),
-        r#"import { a } from "./a";
-export const b = a;
+        &workspace.path().join("src/sales/application/envy.ts"),
+        r#"import { BillingApi } from "../../billing/contracts/api";
+import { BillingEvent } from "../../billing/events/created";
+import { BillingPort } from "../../billing/ports/repository";
+export const envy = [BillingApi, BillingEvent, BillingPort];
 "#,
     );
     write_file(
-        &workspace.path().join("src/long/a.ts"),
-        r#"import { b } from "./b";
-export const a = b;
+        &workspace
+            .path()
+            .join("src/sales/infra/schemas/order.schema.ts"),
+        "export const OrderRow = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/sales/infra/adapters/order.adapter.ts"),
+        "export const adapter = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/sales/contracts/index.ts"),
+        r#"export { secret } from "../internal/model";
 "#,
     );
     write_file(
-        &workspace.path().join("src/long/b.ts"),
-        r#"import { c } from "./c";
-export const b = c;
+        &workspace.path().join("src/sales/contracts/api.ts"),
+        "export const SalesApi = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/sales/internal/model.ts"),
+        "export const secret = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/billing/application/use-case.ts"),
+        r#"import { SalesApi } from "../../sales/contracts/api";
+export const bill = SalesApi;
 "#,
     );
     write_file(
-        &workspace.path().join("src/long/c.ts"),
-        r#"import { a } from "./a";
-export const c = a;
-"#,
+        &workspace.path().join("src/billing/contracts/api.ts"),
+        "export const BillingApi = 1;\n",
     );
     write_file(
-        &workspace.path().join("src/acyclic/a.ts"),
-        r#"import { b } from "./b";
-export const a = b;
-"#,
+        &workspace
+            .path()
+            .join("src/billing/contracts/customer.schema.ts"),
+        "export const CustomerSchema = 1;\n",
     );
     write_file(
-        &workspace.path().join("src/acyclic/b.ts"),
-        "export const b = 1;\n",
+        &workspace.path().join("src/billing/events/created.ts"),
+        "export const BillingEvent = 1;\n",
     );
     write_file(
-        &workspace.path().join("src/ignored/external.ts"),
-        r#"import react from "react";
-export const external = react;
-"#,
-    );
-    write_file(
-        &workspace.path().join("src/ignored/unresolved.ts"),
-        r#"import { missing } from "./missing";
-export const unresolved = missing;
-"#,
-    );
-    write_file(
-        &workspace.path().join("src/suppressed/a.ts"),
-        r#"import { b } from "./b";
-export const a = b;
-"#,
-    );
-    write_file(
-        &workspace.path().join("src/suppressed/b.ts"),
-        r#"import { a } from "./a";
-export const b = a;
-"#,
+        &workspace.path().join("src/billing/ports/repository.ts"),
+        "export const BillingPort = 1;\n",
     );
 
-    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
     let violations = result["violations"]
         .as_array()
         .expect("violations should be an array");
-
-    assert_eq!(result["status"], "pass");
-    assert_eq!(result["summary"]["fileCount"], 11);
-    assert_eq!(result["summary"]["warningCount"], 2);
-    assert_eq!(result["summary"]["errorCount"], 0);
-    assert_eq!(violations.len(), 2);
-    assert!(violations.iter().all(|violation| {
-        violation["rule"] == "codesmells/circular-dependency"
-            && violation["severity"] == "warn"
-            && violation["message"]
-                .as_str()
-                .is_some_and(|message| message.contains(" -> "))
-    }));
-
-    let mut cycle_paths = violations
+    let rules = violations
         .iter()
-        .map(|violation| {
-            violation["cyclePath"]
-                .as_array()
-                .expect("cyclePath should be an array")
-                .iter()
-                .map(|path| {
-                    path.as_str()
-                        .expect("cycle path entries should be strings")
-                        .to_string()
-                })
-                .collect::<Vec<_>>()
-        })
+        .map(|violation| violation["rule"].as_str().unwrap_or_default())
         .collect::<Vec<_>>();
-    cycle_paths.sort();
 
-    assert_eq!(
-        cycle_paths,
-        vec![
-            vec![
-                "src/long/a.ts".to_string(),
-                "src/long/b.ts".to_string(),
-                "src/long/c.ts".to_string(),
-                "src/long/a.ts".to_string(),
-            ],
-            vec![
-                "src/simple/a.ts".to_string(),
-                "src/simple/b.ts".to_string(),
-                "src/simple/a.ts".to_string(),
-            ],
-        ]
-    );
-
-    let warning_failure = run_json_check_failure(
-        &workspace,
-        &["check", "--format", "json", "--fail-on", "warning"],
-    );
-
-    assert_eq!(warning_failure["status"], "fail");
-    assert_eq!(warning_failure["summary"]["warningCount"], 2);
-    assert_eq!(warning_failure["summary"]["errorCount"], 0);
+    assert_eq!(result["status"], "fail");
+    assert!(rules.contains(&"cleanarch/no-framework-in-core"));
+    assert!(rules.contains(&"cleanarch/no-outer-data-format-in-core"));
+    assert!(rules.contains(&"cleanarch/no-public-surface-internal-reexport"));
+    assert!(rules.contains(&"cleanarch/no-context-cycle"));
+    assert!(rules.contains(&"cleanarch/no-unowned-schema-import"));
+    assert!(rules.contains(&"solid/no-concrete-dependency"));
+    assert!(rules.contains(&"codesmells/feature-envy"));
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "cleanarch/no-context-cycle"
+            && violation["cyclePath"]
+                .as_array()
+                .is_some_and(|cycle| cycle.first() == cycle.last())
+    }));
 }
 
 #[test]
-fn check_reports_one_representative_cycle_per_strong_component() {
+fn check_reports_shotgun_surgery_from_git_history_when_enabled() {
     let workspace = TempDir::new().expect("workspace should be creatable");
-    write_cycle_policy_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_shotgun_policy_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(&workspace.path().join("src/a.ts"), "export const a = 0;\n");
+    write_file(&workspace.path().join("src/b.ts"), "export const b = 0;\n");
+    write_file(&workspace.path().join("src/c.ts"), "export const c = 0;\n");
+    write_file(&workspace.path().join("src/d.ts"), "export const d = 0;\n");
+    git(workspace.path(), &["init"]);
+    git(workspace.path(), &["add", "."]);
+    git(workspace.path(), &["commit", "-m", "initial"]);
 
-    for index in 0..8 {
-        let imports = (0..8)
-            .filter(|target| *target != index)
-            .map(|target| format!("import {{ n{target} }} from \"./n{target}\";"))
-            .collect::<Vec<_>>()
-            .join("\n");
+    for index in 1..=2 {
         write_file(
-            &workspace.path().join(format!("src/dense/n{index}.ts")),
-            &format!("{imports}\nexport const n{index} = {index};\n"),
+            &workspace.path().join("src/a.ts"),
+            &format!("export const a = {index};\n"),
+        );
+        write_file(
+            &workspace.path().join("src/b.ts"),
+            &format!("export const b = {index};\n"),
+        );
+        write_file(
+            &workspace.path().join("src/c.ts"),
+            &format!("export const c = {index};\n"),
+        );
+        git(workspace.path(), &["add", "."]);
+        git(
+            workspace.path(),
+            &["commit", "-m", &format!("change {index}")],
         );
     }
 
@@ -1397,15 +1447,13 @@ fn check_reports_one_representative_cycle_per_strong_component() {
         .expect("violations should be an array");
 
     assert_eq!(result["status"], "pass");
-    assert_eq!(result["summary"]["warningCount"], 1);
-    assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0]["rule"], "codesmells/circular-dependency");
-
-    let cycle_path = violations[0]["cyclePath"]
-        .as_array()
-        .expect("cyclePath should be an array");
-    assert!(cycle_path.len() >= 3);
-    assert_eq!(cycle_path.first(), cycle_path.last());
+    assert_eq!(result["summary"]["warningCount"], 3);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "codesmells/shotgun-surgery"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("recurring companion files"))
+    }));
 }
 
 #[test]
@@ -1497,7 +1545,7 @@ export const order = [useCase, BillingApi, secret, id, v4, express, missing];
     assert!(rules.contains(&"cleanarch/no-layer-leak"));
     assert!(rules.contains(&"cleanarch/no-cross-context-internal-import"));
     assert!(rules.contains(&"cleanarch/no-forbidden-imports"));
-    assert!(rules.contains(&"codesmells/unresolved-import"));
+    assert!(!rules.contains(&"codesmells/unresolved-import"));
     assert!(
         violations
             .iter()
