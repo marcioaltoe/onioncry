@@ -82,8 +82,8 @@ fn write_layer_config(path: &Path) {
     }
   },
   "rules": {
-    "onion/no-layer-leak": "error",
-    "onion/unclassified-file": "warn"
+    "cleanarch/no-layer-leak": "error",
+    "cleanarch/unclassified-file": "warn"
   },
   "overrides": []
 }"#,
@@ -111,33 +111,33 @@ fn write_rule_policy_config(path: &Path) {
     }
   },
   "rules": {
-    "onion/no-layer-leak": ["error", { "note": "base policy" }],
-    "onion/unclassified-file": "off"
+    "cleanarch/no-layer-leak": ["error", { "note": "base policy" }],
+    "cleanarch/unclassified-file": "off"
   },
   "overrides": [
     {
       "files": ["src/domain/legacy.ts"],
       "rules": {
-        "onion/no-layer-leak": "off"
+        "cleanarch/no-layer-leak": "off"
       }
     },
     {
       "files": ["src/domain/strict.ts"],
       "rules": {
-        "onion/no-layer-leak": "off"
+        "cleanarch/no-layer-leak": "off"
       }
     },
     {
       "files": ["src/domain/strict.ts"],
       "rules": {
-        "onion/no-layer-leak": "warn"
+        "cleanarch/no-layer-leak": "warn"
       }
     },
     {
       "files": ["src/excluded/**"],
       "rules": {
-        "onion/no-layer-leak": "error",
-        "onion/unclassified-file": "error"
+        "cleanarch/no-layer-leak": "error",
+        "cleanarch/unclassified-file": "error"
       }
     }
   ]
@@ -173,9 +173,9 @@ fn write_external_package_policy_config(path: &Path) {
     }
   },
   "rules": {
-    "onion/no-layer-leak": "error",
-    "onion/unclassified-file": "off",
-    "onion/no-forbidden-imports": ["error", {
+    "cleanarch/no-layer-leak": "error",
+    "cleanarch/unclassified-file": "off",
+    "cleanarch/no-forbidden-imports": ["error", {
       "layers": [
         {
           "fromLayer": "domain",
@@ -225,7 +225,7 @@ fn write_context_policy_config(path: &Path) {
     }
   },
   "rules": {
-    "onion/no-cross-context-internal-import": "error"
+    "cleanarch/no-cross-context-internal-import": "error"
   },
   "overrides": []
 }"#,
@@ -243,14 +243,14 @@ fn write_cycle_policy_config(path: &Path) {
     "exclude": []
   },
   "rules": {
-    "onion/circular-dependency": "warn",
-    "onion/unresolved-import": "off"
+    "codesmells/circular-dependency": "warn",
+    "codesmells/unresolved-import": "off"
   },
   "overrides": [
     {
       "files": ["src/suppressed/**"],
       "rules": {
-        "onion/circular-dependency": "off"
+        "codesmells/circular-dependency": "off"
       }
     }
   ]
@@ -297,9 +297,9 @@ fn write_explain_config(path: &Path) {
     }
   },
   "rules": {
-    "onion/no-layer-leak": "error",
-    "onion/no-cross-context-internal-import": "error",
-    "onion/no-forbidden-imports": ["error", {
+    "cleanarch/no-layer-leak": "error",
+    "cleanarch/no-cross-context-internal-import": "error",
+    "cleanarch/no-forbidden-imports": ["error", {
       "layers": [
         {
           "fromLayer": "domain",
@@ -313,8 +313,8 @@ fn write_explain_config(path: &Path) {
         }
       ]
     }],
-    "onion/unresolved-import": "warn",
-    "onion/unclassified-file": "warn"
+    "codesmells/unresolved-import": "warn",
+    "cleanarch/unclassified-file": "warn"
   },
   "overrides": []
 }"#,
@@ -386,17 +386,17 @@ fn init_creates_parseable_mvp_template() {
     assert!(config.contains(r#""infra""#));
     assert!(config.contains(r#""shared""#));
     assert!(config.contains(r#""mayImport": ["domain", "shared"]"#));
-    assert!(config.contains(r#""onion/no-layer-leak": "error""#));
-    assert!(config.contains(r#""onion/no-cross-context-internal-import": "error""#));
+    assert!(config.contains(r#""cleanarch/no-layer-leak": "error""#));
+    assert!(config.contains(r#""cleanarch/no-cross-context-internal-import": "error""#));
     assert!(config.contains(r#""fromLayer": "domain""#));
     assert!(config.contains(r#""severity": "error""#));
     assert!(config.contains(r#""fromLayer": "application""#));
     assert!(config.contains(r#""severity": "warn""#));
     assert!(config.contains(r#""fromLayer": "infra""#));
     assert!(config.contains(r#""severity": "off""#));
-    assert!(config.contains(r#""onion/unresolved-import": "warn""#));
-    assert!(config.contains(r#""onion/circular-dependency": "warn""#));
-    assert!(config.contains(r#""onion/unclassified-file": "warn""#));
+    assert!(config.contains(r#""codesmells/unresolved-import": "warn""#));
+    assert!(config.contains(r#""codesmells/circular-dependency": "warn""#));
+    assert!(config.contains(r#""cleanarch/unclassified-file": "warn""#));
 
     let stripped = strip_full_line_jsonc_comments(&config);
     let parsed: Value =
@@ -437,7 +437,7 @@ fn init_does_not_overwrite_existing_config_unless_forced() {
         .success();
 
     let forced = fs::read_to_string(&config_path).expect("forced config should be readable");
-    assert!(forced.contains(r#""onion/no-layer-leak": "error""#));
+    assert!(forced.contains(r#""cleanarch/no-layer-leak": "error""#));
     assert_ne!(forced, "existing config\n");
 }
 
@@ -564,6 +564,116 @@ fn check_accepts_warning_failure_threshold_with_empty_violations() {
 }
 
 #[test]
+fn check_pretty_output_uses_clickable_locations_and_explanations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    let source_file = workspace.path().join("src/application/use-case.ts");
+    let target_file = workspace.path().join("src/infra/repo.ts");
+    write_file(
+        &source_file,
+        r#"import { repo } from "../infra/repo";
+export const run = repo;
+"#,
+    );
+    write_file(&target_file, "export const repo = 1;\n");
+
+    let output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check"])
+        .assert()
+        .failure()
+        .get_output()
+        .stdout
+        .clone();
+    let pretty = String::from_utf8(output).expect("pretty output should be utf-8");
+
+    assert!(pretty.contains(&source_file.display().to_string()));
+    assert!(pretty.contains("  1:"));
+    assert!(pretty.contains(
+        "error   application may not import infra through ../infra/repo  cleanarch/no-layer-leak"
+    ));
+    assert!(!pretty.contains("why:"));
+    assert!(!pretty.contains("import: ../infra/repo"));
+    assert!(!pretty.contains("target: "));
+    assert!(!pretty.contains("help:"));
+    assert!(!pretty.contains("tip:"));
+    assert!(pretty.contains("1 problem (1 error, 0 warnings)"));
+    assert!(pretty.contains("2 files checked"));
+    assert!(pretty.trim_end().ends_with("status: fail"));
+
+    let output_with_tips = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--tip"])
+        .assert()
+        .failure()
+        .get_output()
+        .stdout
+        .clone();
+    let pretty_with_tips =
+        String::from_utf8(output_with_tips).expect("pretty output should be utf-8");
+
+    assert!(pretty_with_tips.contains(
+        "why: Layer rules only allow imports declared in the importing layer's mayImport policy."
+    ));
+    assert!(pretty_with_tips.contains("import: ../infra/repo"));
+    assert!(pretty_with_tips.contains("target: "));
+    assert!(pretty_with_tips.contains("src/infra/repo.ts"));
+    assert!(pretty_with_tips.contains("tip: add \"infra\" to layers.application.mayImport"));
+}
+
+#[test]
+fn check_llm_output_groups_repeated_diagnostics_by_fingerprint() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    let first_file = workspace.path().join("src/application/first-use-case.ts");
+    let second_file = workspace.path().join("src/application/second-use-case.ts");
+    let target_file = workspace.path().join("src/infra/repo.ts");
+    write_file(
+        &first_file,
+        r#"import { repo } from "../infra/repo";
+export const first = repo;
+"#,
+    );
+    write_file(
+        &second_file,
+        r#"import { repo } from "../infra/repo";
+export const second = repo;
+"#,
+    );
+    write_file(&target_file, "export const repo = 1;\n");
+
+    let output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--llm"])
+        .assert()
+        .failure()
+        .get_output()
+        .stdout
+        .clone();
+    let llm = String::from_utf8(output).expect("llm output should be utf-8");
+
+    assert!(llm.contains("onioncry-llm-report v1"));
+    assert!(llm.contains("status: fail"));
+    assert!(llm.contains("filesChecked: 3"));
+    assert!(llm.contains("problemCount: 2"));
+    assert!(llm.contains("groupCount: 1"));
+    assert!(llm.contains("count: 2"));
+    assert!(llm.contains("severity: error"));
+    assert!(llm.contains("rule: cleanarch/no-layer-leak"));
+    assert!(llm.contains("message: application may not import infra through ../infra/repo"));
+    assert!(llm.contains(
+        "why: Layer rules only allow imports declared in the importing layer's mayImport policy."
+    ));
+    assert!(llm.contains("import: ../infra/repo"));
+    assert!(llm.contains("layers: application -> infra"));
+    assert!(llm.contains("target: "));
+    assert!(llm.contains("src/infra/repo.ts"));
+    assert!(llm.contains("tip: add \"infra\" to layers.application.mayImport"));
+    assert!(llm.contains("src/application/first-use-case.ts:1:"));
+    assert!(llm.contains("src/application/second-use-case.ts:1:"));
+}
+
+#[test]
 fn check_reports_unresolved_local_imports_with_source_locations() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_minimal_config(
@@ -609,7 +719,7 @@ const ignoredRequire = require(name);
         ]
     );
     assert!(violations.iter().all(|violation| {
-        violation["rule"] == "onion/unresolved-import"
+        violation["rule"] == "codesmells/unresolved-import"
             && violation["severity"] == "warn"
             && violation["line"].as_u64().is_some_and(|line| line > 0)
             && violation["column"]
@@ -634,6 +744,8 @@ fn check_resolves_relative_alias_extension_and_index_imports() {
     write_file(
         &workspace.path().join("src/application/use-case.ts"),
         r#"import type { Thing } from "./types";
+import type { Gateway } from "./erp-gateway.port";
+import type { Env } from "@app/application/env.schema";
 export * from "./contracts";
 const lazy = import("./dynamic");
 const common = require("@app/infra/repo");
@@ -642,6 +754,14 @@ const common = require("@app/infra/repo");
     write_file(
         &workspace.path().join("src/application/types.ts"),
         "export type Thing = {};\n",
+    );
+    write_file(
+        &workspace.path().join("src/application/erp-gateway.port.ts"),
+        "export type Gateway = {};\n",
+    );
+    write_file(
+        &workspace.path().join("src/application/env.schema.ts"),
+        "export type Env = {};\n",
     );
     write_file(
         &workspace.path().join("src/application/contracts/index.ts"),
@@ -721,7 +841,7 @@ export type Order = { useCase?: UseCase };
     assert_eq!(result["summary"]["errorCount"], 2);
     assert_eq!(violations.len(), 2);
     assert!(violations.iter().all(|violation| {
-        violation["rule"] == "onion/no-layer-leak"
+        violation["rule"] == "cleanarch/no-layer-leak"
             && violation["severity"] == "error"
             && violation["fromLayer"] == "domain"
             && violation["toLayer"] == "application"
@@ -755,7 +875,7 @@ fn check_reports_ambiguous_and_unclassified_layer_files() {
     }
   },
   "rules": {
-    "onion/unclassified-file": "warn"
+    "cleanarch/unclassified-file": "warn"
   },
   "overrides": []
 }"#,
@@ -776,7 +896,7 @@ fn check_reports_ambiguous_and_unclassified_layer_files() {
 
     assert_eq!(result["status"], "fail");
     assert!(violations.iter().any(|violation| {
-        violation["rule"] == "onion/ambiguous-layer"
+        violation["rule"] == "cleanarch/ambiguous-layer"
             && violation["severity"] == "error"
             && violation["file"]
                 .as_str()
@@ -786,7 +906,7 @@ fn check_reports_ambiguous_and_unclassified_layer_files() {
                 .is_some_and(|layers| layers.len() == 2)
     }));
     assert!(violations.iter().any(|violation| {
-        violation["rule"] == "onion/unclassified-file"
+        violation["rule"] == "cleanarch/unclassified-file"
             && violation["severity"] == "warn"
             && violation["file"]
                 .as_str()
@@ -832,7 +952,7 @@ export const ignored = run;
     assert_eq!(result["summary"]["warningCount"], 1);
     assert_eq!(result["summary"]["errorCount"], 0);
     assert_eq!(result["summary"]["violationCount"], 1);
-    assert_eq!(result["violations"][0]["rule"], "onion/no-layer-leak");
+    assert_eq!(result["violations"][0]["rule"], "cleanarch/no-layer-leak");
     assert_eq!(result["violations"][0]["severity"], "warn");
     assert!(
         result["violations"][0]["file"]
@@ -848,6 +968,49 @@ export const ignored = run;
     assert_eq!(warning_failure["status"], "fail");
     assert_eq!(warning_failure["summary"]["warningCount"], 1);
     assert_eq!(warning_failure["summary"]["errorCount"], 0);
+}
+
+#[test]
+fn check_accepts_legacy_onion_rule_names_as_aliases() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_file(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"{
+  "version": 1,
+  "project": {
+    "root": ".",
+    "include": ["src/**/*.ts"],
+    "exclude": []
+  },
+  "layers": {
+    "domain": {
+      "patterns": ["src/domain/**"],
+      "mayImport": ["domain"]
+    },
+    "application": {
+      "patterns": ["src/application/**"],
+      "mayImport": ["application", "domain"]
+    }
+  },
+  "rules": {
+    "onion/no-layer-leak": "error"
+  },
+  "overrides": []
+}"#,
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        r#"import { run } from "../application/use-case";
+export const order = run;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        "export const run = () => undefined;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    assert_eq!(result["violations"][0]["rule"], "cleanarch/no-layer-leak");
 }
 
 #[test]
@@ -894,7 +1057,7 @@ fn check_rejects_unknown_rules_and_invalid_severities() {
     "exclude": []
   },
   "rules": {
-    "onion/no-layer-leak": "info"
+    "cleanarch/no-layer-leak": "info"
   },
   "overrides": []
 }"#,
@@ -913,7 +1076,7 @@ fn check_rejects_unknown_rules_and_invalid_severities() {
         .failure()
         .stderr(
             predicate::str::contains("invalid severity")
-                .and(predicate::str::contains("onion/no-layer-leak"))
+                .and(predicate::str::contains("cleanarch/no-layer-leak"))
                 .and(predicate::str::contains("off, warn, or error")),
         );
 }
@@ -981,7 +1144,7 @@ export const repo = [pg, path];
     assert!(packages.contains(&("error", "domain", "@vendor/tool")));
     assert!(packages.contains(&("warn", "application", "axios")));
     assert!(violations.iter().all(|violation| {
-        violation["rule"] == "onion/no-forbidden-imports"
+        violation["rule"] == "cleanarch/no-forbidden-imports"
             && violation["line"].as_u64().is_some_and(|line| line > 0)
             && violation["column"]
                 .as_u64()
@@ -1056,7 +1219,7 @@ export const tool = secret;
     assert_eq!(violations.len(), 2);
 
     assert!(violations.iter().any(|violation| {
-        violation["rule"] == "onion/no-cross-context-internal-import"
+        violation["rule"] == "cleanarch/no-cross-context-internal-import"
             && violation["severity"] == "error"
             && violation["fromContext"] == "sales"
             && violation["toContext"] == "billing"
@@ -1069,7 +1232,7 @@ export const tool = secret;
                 .is_some_and(|suggestion| suggestion.contains("public surface"))
     }));
     assert!(violations.iter().any(|violation| {
-        violation["rule"] == "onion/ambiguous-context"
+        violation["rule"] == "cleanarch/ambiguous-context"
             && violation["severity"] == "error"
             && violation["file"]
                 .as_str()
@@ -1160,7 +1323,7 @@ export const b = a;
     assert_eq!(result["summary"]["errorCount"], 0);
     assert_eq!(violations.len(), 2);
     assert!(violations.iter().all(|violation| {
-        violation["rule"] == "onion/circular-dependency"
+        violation["rule"] == "codesmells/circular-dependency"
             && violation["severity"] == "warn"
             && violation["message"]
                 .as_str()
@@ -1209,6 +1372,40 @@ export const b = a;
     assert_eq!(warning_failure["status"], "fail");
     assert_eq!(warning_failure["summary"]["warningCount"], 2);
     assert_eq!(warning_failure["summary"]["errorCount"], 0);
+}
+
+#[test]
+fn check_reports_one_representative_cycle_per_strong_component() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_cycle_policy_config(&workspace.path().join(".onioncryrc.jsonc"));
+
+    for index in 0..8 {
+        let imports = (0..8)
+            .filter(|target| *target != index)
+            .map(|target| format!("import {{ n{target} }} from \"./n{target}\";"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        write_file(
+            &workspace.path().join(format!("src/dense/n{index}.ts")),
+            &format!("{imports}\nexport const n{index} = {index};\n"),
+        );
+    }
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["warningCount"], 1);
+    assert_eq!(violations.len(), 1);
+    assert_eq!(violations[0]["rule"], "codesmells/circular-dependency");
+
+    let cycle_path = violations[0]["cyclePath"]
+        .as_array()
+        .expect("cyclePath should be an array");
+    assert!(cycle_path.len() >= 3);
+    assert_eq!(cycle_path.first(), cycle_path.last());
 }
 
 #[test]
@@ -1297,10 +1494,10 @@ export const order = [useCase, BillingApi, secret, id, v4, express, missing];
         .map(|violation| violation["rule"].as_str().unwrap_or_default())
         .collect::<Vec<_>>();
 
-    assert!(rules.contains(&"onion/no-layer-leak"));
-    assert!(rules.contains(&"onion/no-cross-context-internal-import"));
-    assert!(rules.contains(&"onion/no-forbidden-imports"));
-    assert!(rules.contains(&"onion/unresolved-import"));
+    assert!(rules.contains(&"cleanarch/no-layer-leak"));
+    assert!(rules.contains(&"cleanarch/no-cross-context-internal-import"));
+    assert!(rules.contains(&"cleanarch/no-forbidden-imports"));
+    assert!(rules.contains(&"codesmells/unresolved-import"));
     assert!(
         violations
             .iter()
@@ -1333,5 +1530,8 @@ export const script = react;
     assert_eq!(result["imports"][0]["resolution"], "external");
     assert_eq!(result["imports"][0]["packageName"], "react");
     assert!(result["imports"][0]["packageAllowed"].is_null());
-    assert_eq!(result["violations"][0]["rule"], "onion/unclassified-file");
+    assert_eq!(
+        result["violations"][0]["rule"],
+        "cleanarch/unclassified-file"
+    );
 }

@@ -15,25 +15,15 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
-const RULE_UNRESOLVED_IMPORT: &str = "onion/unresolved-import";
-const RULE_UNCLASSIFIED_FILE: &str = "onion/unclassified-file";
-const RULE_AMBIGUOUS_LAYER: &str = "onion/ambiguous-layer";
-const RULE_AMBIGUOUS_CONTEXT: &str = "onion/ambiguous-context";
-const RULE_NO_LAYER_LEAK: &str = "onion/no-layer-leak";
-const RULE_NO_FORBIDDEN_IMPORTS: &str = "onion/no-forbidden-imports";
-const RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT: &str = "onion/no-cross-context-internal-import";
-const RULE_CIRCULAR_DEPENDENCY: &str = "onion/circular-dependency";
-const KNOWN_RULE_NAMES: &[&str] = &[
-    RULE_UNRESOLVED_IMPORT,
-    RULE_UNCLASSIFIED_FILE,
-    RULE_AMBIGUOUS_LAYER,
-    RULE_AMBIGUOUS_CONTEXT,
-    RULE_NO_LAYER_LEAK,
-    RULE_NO_FORBIDDEN_IMPORTS,
-    RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT,
-    RULE_CIRCULAR_DEPENDENCY,
-];
-const KNOWN_RULE_NAMES_DISPLAY: &str = "onion/unresolved-import, onion/unclassified-file, onion/ambiguous-layer, onion/ambiguous-context, onion/no-layer-leak, onion/no-forbidden-imports, onion/no-cross-context-internal-import, onion/circular-dependency";
+const RULE_UNRESOLVED_IMPORT: &str = "codesmells/unresolved-import";
+const RULE_UNCLASSIFIED_FILE: &str = "cleanarch/unclassified-file";
+const RULE_AMBIGUOUS_LAYER: &str = "cleanarch/ambiguous-layer";
+const RULE_AMBIGUOUS_CONTEXT: &str = "cleanarch/ambiguous-context";
+const RULE_NO_LAYER_LEAK: &str = "cleanarch/no-layer-leak";
+const RULE_NO_FORBIDDEN_IMPORTS: &str = "cleanarch/no-forbidden-imports";
+const RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT: &str = "cleanarch/no-cross-context-internal-import";
+const RULE_CIRCULAR_DEPENDENCY: &str = "codesmells/circular-dependency";
+const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, codesmells/unresolved-import, codesmells/circular-dependency";
 const INIT_CONFIG_TEMPLATE: &str = r#"{
   "$schema": "./onioncry.schema.json",
   "version": 1,
@@ -85,9 +75,9 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
     }
   },
   "rules": {
-    "onion/no-layer-leak": "error",
-    "onion/no-cross-context-internal-import": "error",
-    "onion/no-forbidden-imports": ["error", {
+    "cleanarch/no-layer-leak": "error",
+    "cleanarch/no-cross-context-internal-import": "error",
+    "cleanarch/no-forbidden-imports": ["error", {
       "layers": [
         {
           "fromLayer": "domain",
@@ -109,9 +99,9 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
         }
       ]
     }],
-    "onion/unresolved-import": "warn",
-    "onion/circular-dependency": "warn",
-    "onion/unclassified-file": "warn"
+    "codesmells/unresolved-import": "warn",
+    "codesmells/circular-dependency": "warn",
+    "cleanarch/unclassified-file": "warn"
   },
   // TODO: use overrides for temporary policy exceptions, not file selection.
   "overrides": []
@@ -941,54 +931,188 @@ fn build_local_dependency_graph(
 }
 
 fn find_canonical_cycles(graph: &BTreeMap<PathBuf, Vec<PathBuf>>) -> Vec<Vec<PathBuf>> {
-    let mut cycles = Vec::new();
-    let nodes = graph.keys().cloned().collect::<Vec<_>>();
-
-    for start in nodes {
-        let mut stack = vec![start.clone()];
-        let mut in_stack = HashSet::from([start.clone()]);
-        find_cycles_from(
-            &start,
-            &start,
-            graph,
-            &mut stack,
-            &mut in_stack,
-            &mut cycles,
-        );
-    }
-
+    let components = TarjanState::new(graph).strongly_connected_components();
+    let mut cycles = components
+        .into_iter()
+        .filter_map(|component| representative_cycle(graph, component))
+        .collect::<Vec<_>>();
+    cycles.sort();
     cycles
 }
 
-fn find_cycles_from(
-    start: &PathBuf,
-    current: &PathBuf,
+struct TarjanState<'a> {
+    graph: &'a BTreeMap<PathBuf, Vec<PathBuf>>,
+    next_index: usize,
+    indexes: BTreeMap<PathBuf, usize>,
+    lowlinks: BTreeMap<PathBuf, usize>,
+    stack: Vec<PathBuf>,
+    on_stack: HashSet<PathBuf>,
+    components: Vec<Vec<PathBuf>>,
+}
+
+impl<'a> TarjanState<'a> {
+    fn new(graph: &'a BTreeMap<PathBuf, Vec<PathBuf>>) -> Self {
+        Self {
+            graph,
+            next_index: 0,
+            indexes: BTreeMap::new(),
+            lowlinks: BTreeMap::new(),
+            stack: Vec::new(),
+            on_stack: HashSet::new(),
+            components: Vec::new(),
+        }
+    }
+
+    fn strongly_connected_components(mut self) -> Vec<Vec<PathBuf>> {
+        for node in self.graph.keys() {
+            if !self.indexes.contains_key(node) {
+                self.visit(node.clone());
+            }
+        }
+        self.components
+    }
+
+    fn visit(&mut self, node: PathBuf) {
+        let index = self.next_index;
+        self.next_index += 1;
+        self.indexes.insert(node.clone(), index);
+        self.lowlinks.insert(node.clone(), index);
+        self.stack.push(node.clone());
+        self.on_stack.insert(node.clone());
+
+        if let Some(targets) = self.graph.get(&node) {
+            for target in targets {
+                if !self.graph.contains_key(target) {
+                    continue;
+                }
+                if !self.indexes.contains_key(target) {
+                    self.visit(target.clone());
+                    let target_lowlink = *self
+                        .lowlinks
+                        .get(target)
+                        .expect("visited target should have a lowlink");
+                    let node_lowlink = *self
+                        .lowlinks
+                        .get(&node)
+                        .expect("visited node should have a lowlink");
+                    self.lowlinks
+                        .insert(node.clone(), node_lowlink.min(target_lowlink));
+                } else if self.on_stack.contains(target) {
+                    let target_index = *self
+                        .indexes
+                        .get(target)
+                        .expect("indexed target should have an index");
+                    let node_lowlink = *self
+                        .lowlinks
+                        .get(&node)
+                        .expect("visited node should have a lowlink");
+                    self.lowlinks
+                        .insert(node.clone(), node_lowlink.min(target_index));
+                }
+            }
+        }
+
+        let node_lowlink = *self
+            .lowlinks
+            .get(&node)
+            .expect("visited node should have a lowlink");
+        if node_lowlink != index {
+            return;
+        }
+
+        let mut component = Vec::new();
+        loop {
+            let member = self
+                .stack
+                .pop()
+                .expect("root component should have stack members");
+            self.on_stack.remove(&member);
+            component.push(member.clone());
+            if member == node {
+                break;
+            }
+        }
+        component.sort();
+        self.components.push(component);
+    }
+}
+
+fn representative_cycle(
     graph: &BTreeMap<PathBuf, Vec<PathBuf>>,
-    stack: &mut Vec<PathBuf>,
-    in_stack: &mut HashSet<PathBuf>,
-    cycles: &mut Vec<Vec<PathBuf>>,
-) {
-    let Some(targets) = graph.get(current) else {
-        return;
-    };
+    component: Vec<PathBuf>,
+) -> Option<Vec<PathBuf>> {
+    if component.len() == 1 {
+        let node = component.first()?;
+        return graph.get(node).and_then(|targets| {
+            targets
+                .contains(node)
+                .then(|| vec![node.clone(), node.clone()])
+        });
+    }
+
+    let component_set = component.iter().cloned().collect::<HashSet<_>>();
+    component
+        .iter()
+        .find_map(|start| representative_cycle_from(graph, start, &component_set))
+}
+
+fn representative_cycle_from(
+    graph: &BTreeMap<PathBuf, Vec<PathBuf>>,
+    start: &PathBuf,
+    component: &HashSet<PathBuf>,
+) -> Option<Vec<PathBuf>> {
+    let mut targets = graph.get(start)?.clone();
+    targets.retain(|target| component.contains(target) && target != start);
+    targets.sort();
 
     for target in targets {
-        if target == start && stack.len() > 1 {
-            let mut cycle = stack.clone();
-            cycle.push(start.clone());
-            cycles.push(cycle);
-            continue;
+        let mut cycle = vec![start.clone(), target.clone()];
+        let mut visited = HashSet::from([start.clone(), target]);
+        if close_cycle(graph, start, component, &mut cycle, &mut visited) {
+            return Some(cycle);
         }
-        if target < start || in_stack.contains(target) {
-            continue;
-        }
-
-        stack.push(target.clone());
-        in_stack.insert(target.clone());
-        find_cycles_from(start, target, graph, stack, in_stack, cycles);
-        in_stack.remove(target);
-        stack.pop();
     }
+
+    None
+}
+
+fn close_cycle(
+    graph: &BTreeMap<PathBuf, Vec<PathBuf>>,
+    start: &PathBuf,
+    component: &HashSet<PathBuf>,
+    cycle: &mut Vec<PathBuf>,
+    visited: &mut HashSet<PathBuf>,
+) -> bool {
+    let Some(current) = cycle.last().cloned() else {
+        return false;
+    };
+    let Some(targets) = graph.get(&current) else {
+        return false;
+    };
+    let mut targets = targets
+        .iter()
+        .filter(|target| component.contains(*target))
+        .cloned()
+        .collect::<Vec<_>>();
+    targets.sort();
+
+    for target in targets {
+        if &target == start {
+            cycle.push(start.clone());
+            return true;
+        }
+        if !visited.insert(target.clone()) {
+            continue;
+        }
+        cycle.push(target.clone());
+        if close_cycle(graph, start, component, cycle, visited) {
+            return true;
+        }
+        cycle.pop();
+        visited.remove(&target);
+    }
+
+    false
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1143,43 +1267,29 @@ pub fn build_report(file_count: usize, violations: &[Violation], fail_on: FailOn
     }
 }
 
-pub fn render_pretty(report: &CheckReport) -> String {
-    let mut output = format!(
-        "status: {}\nfiles: {}\nwarnings: {}\nerrors: {}\nviolations: {}\n",
-        report.status.as_str(),
-        report.summary.file_count,
-        report.summary.warning_count,
-        report.summary.error_count,
-        report.summary.violation_count
-    );
-    for violation in &report.violations {
-        output.push_str(&format!(
-            "{} {} {}",
-            violation.severity, violation.rule, violation.file
-        ));
-        if let Some(import_specifier) = &violation.import_specifier {
-            output.push_str(&format!(" import {import_specifier}"));
+pub fn render_pretty(report: &CheckReport, include_tips: bool) -> String {
+    let mut output = String::new();
+
+    let mut current_file: Option<&str> = None;
+    for violation in sorted_violations(&report.violations) {
+        if current_file != Some(violation.file.as_str()) {
+            if current_file.is_some() {
+                output.push('\n');
+            }
+            current_file = Some(violation.file.as_str());
+            output.push_str(&violation.file);
+            output.push('\n');
         }
-        if let Some(package_name) = &violation.package_name {
-            output.push_str(&format!(" package {package_name}"));
-        }
-        if let (Some(from_layer), Some(to_layer)) = (&violation.from_layer, &violation.to_layer) {
-            output.push_str(&format!(" {from_layer}->{to_layer}"));
-        }
-        if let (Some(from_context), Some(to_context)) =
-            (&violation.from_context, &violation.to_context)
-        {
-            output.push_str(&format!(" {from_context}->{to_context}"));
-        }
-        output.push_str(&format!(": {}\n", violation.message));
-        if let Some(suggestion) = &violation.suggestion {
-            output.push_str(&format!("suggestion: {suggestion}\n"));
-        }
+        output.push_str(&render_pretty_violation(violation, include_tips));
     }
+    if !output.is_empty() {
+        output.push('\n');
+    }
+    output.push_str(&render_pretty_summary(report));
     output
 }
 
-pub fn render_explain_pretty(report: &ExplainReport) -> String {
+pub fn render_explain_pretty(report: &ExplainReport, include_tips: bool) -> String {
     let mut output = format!(
         "file: {}\nlayer: {}\ncontext: {}\npublicSurface: {}\n",
         report.file,
@@ -1208,16 +1318,294 @@ pub fn render_explain_pretty(report: &ExplainReport) -> String {
 
     output.push_str("violations:\n");
     for violation in &report.violations {
+        output.push_str(&render_pretty_violation(violation, include_tips));
+    }
+
+    output
+}
+
+fn render_pretty_summary(report: &CheckReport) -> String {
+    format!(
+        "{} {} ({} {}, {} {})\n{} {}\nstatus: {}\n",
+        report.summary.violation_count,
+        pluralize(report.summary.violation_count, "problem", "problems"),
+        report.summary.error_count,
+        pluralize(report.summary.error_count, "error", "errors"),
+        report.summary.warning_count,
+        pluralize(report.summary.warning_count, "warning", "warnings"),
+        report.summary.file_count,
+        pluralize(report.summary.file_count, "file checked", "files checked"),
+        report.status.as_str()
+    )
+}
+
+pub fn render_llm(report: &CheckReport) -> String {
+    let groups = llm_groups(report);
+    let mut output = format!(
+        "onioncry-llm-report v1\nstatus: {}\nfilesChecked: {}\nproblemCount: {}\nerrorCount: {}\nwarningCount: {}\ngroupCount: {}\n",
+        report.status.as_str(),
+        report.summary.file_count,
+        report.summary.violation_count,
+        report.summary.error_count,
+        report.summary.warning_count,
+        groups.len()
+    );
+
+    for (index, group) in groups.iter().enumerate() {
         output.push_str(&format!(
-            "- {} {}: {}\n",
-            violation.severity, violation.rule, violation.message
+            "\ngroup {}\ncount: {}\nseverity: {}\nrule: {}\nmessage: {}\nwhy: {}\n",
+            index + 1,
+            group.violations.len(),
+            group.key.severity,
+            group.key.rule,
+            group.key.message,
+            violation_rule_explanation(&group.key.rule)
         ));
-        if let Some(suggestion) = &violation.suggestion {
-            output.push_str(&format!("  suggestion: {suggestion}\n"));
+        if let Some(import_specifier) = &group.key.import_specifier {
+            output.push_str(&format!("import: {import_specifier}\n"));
+        }
+        if let Some(package_name) = &group.key.package_name {
+            output.push_str(&format!("package: {package_name}\n"));
+        }
+        if let (Some(from_layer), Some(to_layer)) = (&group.key.from_layer, &group.key.to_layer) {
+            output.push_str(&format!("layers: {from_layer} -> {to_layer}\n"));
+        }
+        if let (Some(from_context), Some(to_context)) =
+            (&group.key.from_context, &group.key.to_context)
+        {
+            output.push_str(&format!("contexts: {from_context} -> {to_context}\n"));
+        }
+        if let Some(target_file) = &group.key.target_file {
+            output.push_str(&format!("target: {target_file}\n"));
+        }
+        if let Some(cycle_path) = &group.key.cycle_path {
+            output.push_str(&format!("cycle: {}\n", cycle_path.join(" -> ")));
+        }
+        if let Some(matched_layers) = &group.key.matched_layers {
+            output.push_str(&format!("matchedLayers: {}\n", matched_layers.join(", ")));
+        }
+        if let Some(matched_contexts) = &group.key.matched_contexts {
+            output.push_str(&format!(
+                "matchedContexts: {}\n",
+                matched_contexts.join(", ")
+            ));
+        }
+        if let Some(suggestion) = &group.key.suggestion {
+            output.push_str(&format!("tip: {suggestion}\n"));
+        }
+        output.push_str("locations:\n");
+        for violation in &group.violations {
+            output.push_str(&format!(
+                "- {}:{}:{}\n",
+                violation.file,
+                pretty_line(violation),
+                pretty_column(violation)
+            ));
         }
     }
 
     output
+}
+
+struct LlmGroup<'a> {
+    key: LlmGroupKey,
+    violations: Vec<&'a Violation>,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct LlmGroupKey {
+    rule: String,
+    severity: String,
+    message: String,
+    import_specifier: Option<String>,
+    package_name: Option<String>,
+    from_layer: Option<String>,
+    to_layer: Option<String>,
+    from_context: Option<String>,
+    to_context: Option<String>,
+    target_file: Option<String>,
+    cycle_path: Option<Vec<String>>,
+    suggestion: Option<String>,
+    matched_layers: Option<Vec<String>>,
+    matched_contexts: Option<Vec<String>>,
+}
+
+impl LlmGroupKey {
+    fn from_violation(violation: &Violation) -> Self {
+        Self {
+            rule: violation.rule.clone(),
+            severity: violation.severity.clone(),
+            message: violation.message.clone(),
+            import_specifier: violation.import_specifier.clone(),
+            package_name: violation.package_name.clone(),
+            from_layer: violation.from_layer.clone(),
+            to_layer: violation.to_layer.clone(),
+            from_context: violation.from_context.clone(),
+            to_context: violation.to_context.clone(),
+            target_file: violation.target_file.clone(),
+            cycle_path: violation.cycle_path.clone(),
+            suggestion: violation.suggestion.clone(),
+            matched_layers: violation.matched_layers.clone(),
+            matched_contexts: violation.matched_contexts.clone(),
+        }
+    }
+}
+
+fn llm_groups(report: &CheckReport) -> Vec<LlmGroup<'_>> {
+    let mut grouped: BTreeMap<LlmGroupKey, Vec<&Violation>> = BTreeMap::new();
+    for violation in &report.violations {
+        grouped
+            .entry(LlmGroupKey::from_violation(violation))
+            .or_default()
+            .push(violation);
+    }
+
+    let mut groups = grouped
+        .into_iter()
+        .map(|(key, mut violations)| {
+            violations.sort_by(|left, right| {
+                left.file
+                    .cmp(&right.file)
+                    .then_with(|| pretty_line(left).cmp(&pretty_line(right)))
+                    .then_with(|| pretty_column(left).cmp(&pretty_column(right)))
+            });
+            LlmGroup { key, violations }
+        })
+        .collect::<Vec<_>>();
+
+    groups.sort_by(|left, right| {
+        severity_rank(&left.key.severity)
+            .cmp(&severity_rank(&right.key.severity))
+            .then_with(|| right.violations.len().cmp(&left.violations.len()))
+            .then_with(|| left.key.rule.cmp(&right.key.rule))
+            .then_with(|| left.key.message.cmp(&right.key.message))
+    });
+    groups
+}
+
+fn severity_rank(severity: &str) -> usize {
+    match severity {
+        "error" => 0,
+        "warn" => 1,
+        _ => 2,
+    }
+}
+
+fn sorted_violations(violations: &[Violation]) -> Vec<&Violation> {
+    let mut sorted = violations.iter().collect::<Vec<_>>();
+    sorted.sort_by(|left, right| {
+        left.file
+            .cmp(&right.file)
+            .then_with(|| pretty_line(left).cmp(&pretty_line(right)))
+            .then_with(|| pretty_column(left).cmp(&pretty_column(right)))
+            .then_with(|| left.rule.cmp(&right.rule))
+    });
+    sorted
+}
+
+fn render_pretty_violation(violation: &Violation, include_tips: bool) -> String {
+    let mut output = format!(
+        "  {}:{}  {:<7} {}  {}\n",
+        pretty_line(violation),
+        pretty_column(violation),
+        pretty_severity(&violation.severity),
+        violation.message,
+        violation.rule
+    );
+
+    if !include_tips {
+        return output;
+    }
+
+    output.push_str(&format!(
+        "    why: {}\n",
+        violation_rule_explanation(&violation.rule)
+    ));
+    if let Some(import_specifier) = &violation.import_specifier {
+        output.push_str(&format!("    import: {import_specifier}\n"));
+    }
+    if let Some(package_name) = &violation.package_name {
+        output.push_str(&format!("    package: {package_name}\n"));
+    }
+    if let (Some(from_layer), Some(to_layer)) = (&violation.from_layer, &violation.to_layer) {
+        output.push_str(&format!("    layers: {from_layer} -> {to_layer}\n"));
+    }
+    if let (Some(from_context), Some(to_context)) = (&violation.from_context, &violation.to_context)
+    {
+        output.push_str(&format!("    contexts: {from_context} -> {to_context}\n"));
+    }
+    if let Some(target_file) = &violation.target_file {
+        output.push_str(&format!("    target: {target_file}\n"));
+    }
+    if let Some(cycle_path) = &violation.cycle_path {
+        output.push_str(&format!("    cycle: {}\n", cycle_path.join(" -> ")));
+    }
+    if let Some(matched_layers) = &violation.matched_layers {
+        output.push_str(&format!(
+            "    matched layers: {}\n",
+            matched_layers.join(", ")
+        ));
+    }
+    if let Some(matched_contexts) = &violation.matched_contexts {
+        output.push_str(&format!(
+            "    matched contexts: {}\n",
+            matched_contexts.join(", ")
+        ));
+    }
+    if let Some(suggestion) = &violation.suggestion {
+        output.push_str(&format!("    tip: {suggestion}\n"));
+    }
+
+    output
+}
+
+fn pluralize<'a>(count: usize, singular: &'a str, plural: &'a str) -> &'a str {
+    if count == 1 { singular } else { plural }
+}
+
+fn pretty_line(violation: &Violation) -> usize {
+    violation.line.unwrap_or(1)
+}
+
+fn pretty_column(violation: &Violation) -> usize {
+    violation.column.unwrap_or(1)
+}
+
+fn pretty_severity(severity: &str) -> &str {
+    match severity {
+        "warn" => "warning",
+        other => other,
+    }
+}
+
+fn violation_rule_explanation(rule: &str) -> &'static str {
+    match rule {
+        RULE_UNRESOLVED_IMPORT => {
+            "This relative or aliased import could not be mapped to a project source file."
+        }
+        RULE_UNCLASSIFIED_FILE => {
+            "Layer checks need each analyzed file to match exactly one configured architectural layer."
+        }
+        RULE_AMBIGUOUS_LAYER => {
+            "Overlapping layer patterns make it unclear which dependency policy applies to this file."
+        }
+        RULE_AMBIGUOUS_CONTEXT => {
+            "Overlapping context patterns make it unclear which ownership boundary applies to this file."
+        }
+        RULE_NO_LAYER_LEAK => {
+            "Layer rules only allow imports declared in the importing layer's mayImport policy."
+        }
+        RULE_NO_FORBIDDEN_IMPORTS => {
+            "External packages are closed by default in sensitive layers unless explicitly allowed."
+        }
+        RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT => {
+            "Cross-context imports must target the imported context's configured public surface."
+        }
+        RULE_CIRCULAR_DEPENDENCY => {
+            "A cycle means these files depend on each other and cannot change independently."
+        }
+        _ => "This finding violates the configured OnionCry architecture policy.",
+    }
 }
 
 fn boundary_summary(boundary: &BoundaryExplanation) -> String {
@@ -1278,7 +1666,7 @@ impl LoadedConfig {
                 })
             })
             .collect::<Vec<_>>();
-        aliases.sort_by(|left, right| right.prefix.len().cmp(&left.prefix.len()));
+        aliases.sort_by_key(|alias| std::cmp::Reverse(alias.prefix.len()));
         aliases
     }
 }
@@ -1413,7 +1801,7 @@ impl Violation {
             target_file: None,
             cycle_path: None,
             suggestion: Some(format!(
-                "add {package_name:?} to the onion/no-forbidden-imports allowlist for {from_layer} only if this package is domain-safe for that layer"
+                "add {package_name:?} to the cleanarch/no-forbidden-imports allowlist for {from_layer} only if this package is domain-safe for that layer"
             )),
             matched_layers: None,
             matched_contexts: None,
@@ -1782,8 +2170,8 @@ fn severity_from_str(value: &str) -> Option<Severity> {
 fn parse_rule_map(rules: &Map<String, Value>) -> Result<BTreeMap<String, RuleSetting>> {
     let mut parsed_rules = BTreeMap::new();
     for (rule, value) in rules {
-        validate_rule_name(rule)?;
-        parsed_rules.insert(rule.clone(), parse_rule_setting(rule, value)?);
+        let canonical_rule = canonical_rule_name(rule)?;
+        parsed_rules.insert(canonical_rule.to_string(), parse_rule_setting(rule, value)?);
     }
     Ok(parsed_rules)
 }
@@ -1884,15 +2272,27 @@ fn parse_external_package_layer_policy(
     })
 }
 
-fn validate_rule_name(rule: &str) -> Result<()> {
-    if KNOWN_RULE_NAMES.contains(&rule) {
-        Ok(())
-    } else {
-        Err(OnionCryError::UnknownRule {
-            rule: rule.to_string(),
-            expected: KNOWN_RULE_NAMES_DISPLAY,
-        })
-    }
+fn canonical_rule_name(rule: &str) -> Result<&'static str> {
+    let canonical = match rule {
+        RULE_UNRESOLVED_IMPORT | "onion/unresolved-import" => RULE_UNRESOLVED_IMPORT,
+        RULE_UNCLASSIFIED_FILE | "onion/unclassified-file" => RULE_UNCLASSIFIED_FILE,
+        RULE_AMBIGUOUS_LAYER | "onion/ambiguous-layer" => RULE_AMBIGUOUS_LAYER,
+        RULE_AMBIGUOUS_CONTEXT | "onion/ambiguous-context" => RULE_AMBIGUOUS_CONTEXT,
+        RULE_NO_LAYER_LEAK | "onion/no-layer-leak" => RULE_NO_LAYER_LEAK,
+        RULE_NO_FORBIDDEN_IMPORTS | "onion/no-forbidden-imports" => RULE_NO_FORBIDDEN_IMPORTS,
+        RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT | "onion/no-cross-context-internal-import" => {
+            RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT
+        }
+        RULE_CIRCULAR_DEPENDENCY | "onion/circular-dependency" => RULE_CIRCULAR_DEPENDENCY,
+        _ => {
+            return Err(OnionCryError::UnknownRule {
+                rule: rule.to_string(),
+                expected: KNOWN_RULE_NAMES_DISPLAY,
+            });
+        }
+    };
+
+    Ok(canonical)
 }
 
 fn normalized_package_name(specifier: &str) -> String {
@@ -2085,12 +2485,10 @@ fn resolve_local_candidate(candidate: &Path) -> Option<PathBuf> {
         return Some(normalize_path(candidate));
     }
 
-    if candidate.extension().is_none() {
-        for extension in SOURCE_EXTENSIONS {
-            let with_extension = candidate.with_extension(extension);
-            if with_extension.is_file() {
-                return Some(normalize_path(&with_extension));
-            }
+    for extension in SOURCE_EXTENSIONS {
+        let with_extension = append_extension(candidate, extension);
+        if with_extension.is_file() {
+            return Some(normalize_path(&with_extension));
         }
     }
 
@@ -2102,6 +2500,13 @@ fn resolve_local_candidate(candidate: &Path) -> Option<PathBuf> {
     }
 
     None
+}
+
+fn append_extension(path: &Path, extension: &str) -> PathBuf {
+    let mut path_with_extension = path.as_os_str().to_os_string();
+    path_with_extension.push(".");
+    path_with_extension.push(extension);
+    PathBuf::from(path_with_extension)
 }
 
 fn line_column(source: &str, byte_index: usize) -> (usize, usize) {

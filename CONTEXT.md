@@ -101,11 +101,11 @@ A rule severity chosen according to the importing layer. OnionCry may treat the 
 _Avoid_: one-size-fits-all severity
 
 **Rule**:
-A named architecture check that can be turned off or reported as a warning or error. Rule names use the `onion/...` namespace, such as `onion/no-layer-leak`.
+A named architecture check that can be turned off or reported as a warning or error. Rule names use intent-specific namespaces, such as `cleanarch/...`, `codesmells/...`, and future families such as `solid/...`.
 _Avoid_: numbered rule code as the primary name
 
 **Violation**:
-A reported rule finding with a linter-style rule name, severity, message, source location, optional suggestion, and rule-specific context. Violations use the same `onion/...` rule names as configuration and include import line and column when available.
+A reported rule finding with a linter-style rule name, severity, message, source location, optional suggestion, and rule-specific context. Violations use the same canonical rule names as configuration and include import line and column when available.
 _Avoid_: numeric rule id as the primary identifier
 
 **Check Status**:
@@ -240,7 +240,7 @@ Domain expert: "No. Sensitive layers can fail closed while outer layers stay ope
 
 Dev: "Should rule names be numbered?"
 
-Domain expert: "No. Use linter-style names such as onion/no-layer-leak and control severity through rules and overrides."
+Domain expert: "No. Use linter-style names such as cleanarch/no-layer-leak and codesmells/circular-dependency, and control severity through rules and overrides."
 
 Dev: "What rule identifier appears in JSON output?"
 
@@ -278,11 +278,11 @@ Dev: "Does OnionCry read tsconfig path aliases in the MVP?"
 
 Domain expert: "No. The MVP resolves aliases declared in the OnionCry configuration."
 
-Dev: "Is onion/unresolved-import a full TypeScript resolver?"
+Dev: "Is codesmells/unresolved-import a full TypeScript resolver?"
 
 Domain expert: "No. In the MVP, local import resolution tries common source extensions and index files only."
 
-Dev: "Does onion/unresolved-import check whether npm packages are installed?"
+Dev: "Does codesmells/unresolved-import check whether npm packages are installed?"
 
 Domain expert: "No. It reports unresolved relative and configured-alias imports, not external package installation."
 

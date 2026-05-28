@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
-    FailOn, OnionCryError, init_config, render_explain_pretty, render_pretty, run_check,
-    run_explain,
+    FailOn, OnionCryError, init_config, render_explain_pretty, render_llm, render_pretty,
+    run_check, run_explain,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -29,6 +29,10 @@ struct CheckArgs {
     format: OutputFormat,
     #[arg(long, default_value_t = FailOnArg::Error)]
     fail_on: FailOnArg,
+    #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
+    tips: bool,
+    #[arg(long, help = "Show an LLM-optimized grouped diagnostic report")]
+    llm: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -44,6 +48,8 @@ struct ExplainArgs {
     config: Option<PathBuf>,
     #[arg(long, default_value_t = OutputFormat::Pretty)]
     format: OutputFormat,
+    #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
+    tips: bool,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -80,7 +86,7 @@ fn run_explain_command(args: ExplainArgs) -> ExitCode {
         Ok(report) => {
             match args.format {
                 OutputFormat::Pretty => {
-                    print!("{}", render_explain_pretty(&report));
+                    print!("{}", render_explain_pretty(&report, args.tips));
                 }
                 OutputFormat::Json => match serde_json::to_string_pretty(&report) {
                     Ok(json) => println!("{json}"),
@@ -131,18 +137,22 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
 
     match run_check(&cwd, args.config.as_deref(), args.fail_on.into()) {
         Ok(report) => {
-            match args.format {
-                OutputFormat::Pretty => {
-                    print!("{}", render_pretty(&report));
-                }
-                OutputFormat::Json => match serde_json::to_string_pretty(&report) {
-                    Ok(json) => println!("{json}"),
-                    Err(error) => {
-                        eprintln!("error: could not render JSON output: {error}");
-                        return ExitCode::from(2);
+            if args.llm {
+                print!("{}", render_llm(&report));
+            } else {
+                match args.format {
+                    OutputFormat::Pretty => {
+                        print!("{}", render_pretty(&report, args.tips));
                     }
-                },
-            }
+                    OutputFormat::Json => match serde_json::to_string_pretty(&report) {
+                        Ok(json) => println!("{json}"),
+                        Err(error) => {
+                            eprintln!("error: could not render JSON output: {error}");
+                            return ExitCode::from(2);
+                        }
+                    },
+                }
+            };
 
             if report.should_exit_with_failure() {
                 ExitCode::from(1)
