@@ -557,6 +557,56 @@ fn check_discovers_default_jsonc_config_and_emits_json_result() {
 }
 
 #[test]
+fn check_discovers_json_config_when_default_jsonc_config_is_missing() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &workspace.path().join(".onioncryrc.json"),
+        ".",
+        &["src/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 1);
+}
+
+#[test]
+fn check_prefers_jsonc_config_over_json_config() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        &["src/domain/**/*.ts"],
+        &[],
+    );
+    write_minimal_config(
+        &workspace.path().join(".onioncryrc.json"),
+        ".",
+        &["src/application/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        "export const run = () => undefined;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 1);
+}
+
+#[test]
 fn check_accepts_explicit_config_path() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_minimal_config(
@@ -594,7 +644,10 @@ fn check_reports_missing_default_config() {
         .args(["check"])
         .assert()
         .failure()
-        .stderr(predicate::str::contains(".onioncryrc.jsonc"));
+        .stderr(
+            predicate::str::contains(".onioncryrc.jsonc")
+                .and(predicate::str::contains(".onioncryrc.json")),
+        );
 }
 
 #[test]

@@ -109,8 +109,9 @@ onioncry explain <file> --tips
 
 ## Configuration
 
-OnionCry uses `.onioncryrc.jsonc`. JSONC is intentional: the configuration works
-like a linter config, with comments, rules, severities, options, and overrides.
+OnionCry auto-discovers `.onioncryrc.jsonc` first, then `.onioncryrc.json`.
+JSONC remains the default because the configuration works like a linter config,
+with comments, rules, severities, options, and overrides.
 
 Minimal shape:
 

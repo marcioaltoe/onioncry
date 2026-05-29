@@ -133,7 +133,7 @@ The set of files selected by project include and exclude patterns before rules a
 _Avoid_: override as include
 
 **Configuration File**:
-The JSONC file that defines project paths, aliases, boundaries, rules, and overrides for OnionCry. The default file name is `.onioncryrc.jsonc`.
+The JSONC file that defines project paths, aliases, boundaries, rules, and overrides for OnionCry. Auto-discovery checks `.onioncryrc.jsonc` first and `.onioncryrc.json` second.
 _Avoid_: YAML config as the default
 
 **Configuration Field Naming**:
@@ -268,7 +268,7 @@ Domain expert: "Because OnionCry behaves like a linter: JSONC fits rules, overri
 
 Dev: "What config file should a project commit?"
 
-Domain expert: "Use `.onioncryrc.jsonc` unless the CLI is pointed at another file explicitly."
+Domain expert: "Prefer `.onioncryrc.jsonc`; OnionCry also auto-discovers `.onioncryrc.json` after JSONC for projects that keep strict JSON config files."
 
 Dev: "Should JSONC fields use may_import or mayImport?"
 
