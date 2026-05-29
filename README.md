@@ -57,7 +57,7 @@ onioncry check
 For automation or agent workflows:
 
 ```bash
-onioncry check --llm
+onioncry check --llm-mode
 onioncry check --format json
 ```
 
@@ -90,7 +90,7 @@ onioncry check --config path/to/.onioncryrc.jsonc
 onioncry check --format json
 onioncry check --fail-on warning
 onioncry check --tips
-onioncry check --llm
+onioncry check --llm-mode
 ```
 
 ```bash
@@ -216,7 +216,7 @@ onioncry check
 LLM output groups repeated diagnostics and keeps locations explicit:
 
 ```bash
-onioncry check --llm
+onioncry check --llm-mode
 ```
 
 JSON output is for scripts and CI:

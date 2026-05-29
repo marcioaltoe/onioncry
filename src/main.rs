@@ -32,11 +32,11 @@ struct CheckArgs {
     #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
     tips: bool,
     #[arg(
-        long,
+        long = "llm-mode",
         conflicts_with_all = ["format", "tips"],
         help = "Show an LLM-optimized grouped diagnostic report"
     )]
-    llm: bool,
+    llm_mode: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -141,7 +141,7 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
 
     match run_check(&cwd, args.config.as_deref(), args.fail_on.into()) {
         Ok(report) => {
-            if args.llm {
+            if args.llm_mode {
                 print!("{}", render_llm(&report));
             } else {
                 match args.format {

@@ -656,17 +656,29 @@ fn check_rejects_llm_with_other_output_modes() {
 
     onioncry()
         .current_dir(workspace.path())
-        .args(["check", "--llm", "--format", "json"])
+        .args(["check", "--llm-mode", "--format", "json"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("cannot be used with"));
 
     onioncry()
         .current_dir(workspace.path())
-        .args(["check", "--llm", "--tip"])
+        .args(["check", "--llm-mode", "--tip"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("cannot be used with"));
+}
+
+#[test]
+fn check_rejects_legacy_llm_flag() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--llm"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("unexpected argument '--llm'"));
 }
 
 #[test]
@@ -802,7 +814,7 @@ export const second = repo;
 
     let output = onioncry()
         .current_dir(workspace.path())
-        .args(["check", "--llm"])
+        .args(["check", "--llm-mode"])
         .assert()
         .failure()
         .get_output()
