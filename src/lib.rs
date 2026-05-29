@@ -16,6 +16,7 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
+pub const JSON_CONFIG_FILE: &str = ".onioncryrc.json";
 const RULE_UNCLASSIFIED_FILE: &str = "cleanarch/unclassified-file";
 const RULE_AMBIGUOUS_LAYER: &str = "cleanarch/ambiguous-layer";
 const RULE_AMBIGUOUS_CONTEXT: &str = "cleanarch/ambiguous-context";
@@ -124,7 +125,9 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
 
 #[derive(Debug, Error)]
 pub enum OnionCryError {
-    #[error("could not find {DEFAULT_CONFIG_FILE}; pass --config <path> to use a different file")]
+    #[error(
+        "could not find {DEFAULT_CONFIG_FILE} or {JSON_CONFIG_FILE}; pass --config <path> to use a different file"
+    )]
     MissingDefaultConfig,
     #[error("could not read config {path}: {source}")]
     ReadConfig {
@@ -353,12 +356,13 @@ pub fn discover_config_path(cwd: &Path, explicit_path: Option<&Path>) -> Result<
     match explicit_path {
         Some(path) => Ok(resolve_against(cwd, path)),
         None => {
-            let path = cwd.join(DEFAULT_CONFIG_FILE);
-            if path.exists() {
-                Ok(path)
-            } else {
-                Err(OnionCryError::MissingDefaultConfig)
+            for file_name in [DEFAULT_CONFIG_FILE, JSON_CONFIG_FILE] {
+                let path = cwd.join(file_name);
+                if path.exists() {
+                    return Ok(path);
+                }
             }
+            Err(OnionCryError::MissingDefaultConfig)
         }
     }
 }

@@ -57,7 +57,7 @@ onioncry check
 For automation or agent workflows:
 
 ```bash
-onioncry check --llm
+onioncry check --llm-mode
 onioncry check --format json
 ```
 
@@ -90,7 +90,7 @@ onioncry check --config path/to/.onioncryrc.jsonc
 onioncry check --format json
 onioncry check --fail-on warning
 onioncry check --tips
-onioncry check --llm
+onioncry check --llm-mode
 ```
 
 ```bash
@@ -109,8 +109,9 @@ onioncry explain <file> --tips
 
 ## Configuration
 
-OnionCry uses `.onioncryrc.jsonc`. JSONC is intentional: the configuration works
-like a linter config, with comments, rules, severities, options, and overrides.
+OnionCry auto-discovers `.onioncryrc.jsonc` first, then `.onioncryrc.json`.
+JSONC remains the default because the configuration works like a linter config,
+with comments, rules, severities, options, and overrides.
 
 Minimal shape:
 
@@ -215,7 +216,7 @@ onioncry check
 LLM output groups repeated diagnostics and keeps locations explicit:
 
 ```bash
-onioncry check --llm
+onioncry check --llm-mode
 ```
 
 JSON output is for scripts and CI:
