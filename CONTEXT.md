@@ -104,6 +104,62 @@ _Avoid_: one-size-fits-all severity
 A named architecture check that can be turned off or reported as a warning or error. Rule names use intent-specific namespaces, such as `cleanarch/...`, `codesmells/...`, and future families such as `solid/...`.
 _Avoid_: numbered rule code as the primary name
 
+**Code Organization Rule**:
+A rule that checks observable repository structure, such as file naming, test placement, required folders, or required barrel files. It verifies code state, not whether a contributor followed a process or activated an agent skill.
+_Avoid_: plugin when meaning configured convention, skill enforcement, process audit
+
+**Rule Option Defaults**:
+The implicit rule options OnionCry applies when a rule is configured with only a severity string. Defaults make a concise config meaningful while still allowing a project to override the rule with an explicit `[severity, options]` value.
+_Avoid_: default rule preset when meaning one rule's fallback options
+
+**Project-Focused Defaults**:
+Opinionated rule option defaults chosen for the maintainers' common project shape while remaining overridable by explicit rule options. OnionCry can be open source while still prioritizing the conventions its maintainers use first.
+_Avoid_: universal default, hardcoded project exception
+
+**Forward-Looking Default**:
+A rule option default that expresses the desired convention even when existing repositories need temporary overrides during migration. Legacy code should use explicit overrides rather than weakening the default contract.
+_Avoid_: legacy-shaped default, silent grandfathering
+
+**Test Placement Rule**:
+A code organization rule that distinguishes source-level unit tests from workspace-level integration and end-to-end tests. By default, unit test files belong in co-located `__tests__` folders, while integration and end-to-end tests may live under dedicated test roots.
+_Avoid_: requiring every test file under source, mixing unit and integration placement
+
+**Path Naming Rule**:
+A code organization rule that checks file and directory names, including casing, suffixes, and collection-versus-feature directory naming. It does not check class names, function names, variable names, constants, or other code symbols.
+_Avoid_: symbol naming rule, generic lint naming rule
+
+**Feature System Contract**:
+A frontend code organization contract for domain-owned `systems/<domain>` modules. It defines expected folders, public barrel boundaries, dependency flow, API adapter shape, query ownership, and component responsibilities that can be checked when they are observable in files and imports.
+_Avoid_: agent skill requirement, documentation-only checklist as automatic rule
+
+**Surface CSS**:
+An optional CSS file owned by one feature system and placed at the system root when Tailwind CSS or shared UI primitives are not enough for that surface. If present, it follows the system domain name and is imported through the system public barrel.
+_Avoid_: required per-system stylesheet, global feature CSS
+
+**Feature System Public API**:
+The explicit named exports in a feature system's root `index.ts` barrel. Other systems and routes depend on this public API rather than importing internal files, and wildcard re-exports are rejected by default because they blur the system contract.
+_Avoid_: export everything barrel, cross-system internal import
+
+**Feature System Dependency Flow**:
+The allowed import direction inside a feature system. Adapters stay below hooks, contexts, stores, components, and routes; query options bridge adapters into the query layer; routes and other systems depend on the system public API instead of internals.
+_Avoid_: component-to-adapter shortcut, route-owned system internals
+
+**Feature System Adapter Contract**:
+The observable shape of a feature system API adapter: a domain-named adapter file, a namespace object for API operations, a typed API error export, cancellation-aware operations where applicable, and no imports from upper frontend layers. Semantic response normalization remains an assisted review unless expressed as a machine-checkable contract.
+_Avoid_: raw HTTP calls in components, adapter importing UI
+
+**Feature System Query Contract**:
+The observable TanStack Query ownership rules inside a feature system: query keys and query options live under `lib`, query hooks reuse option factories, query functions pass cancellation signals to adapters, routes and components do not own duplicate query keys, and mutations invalidate or roll back cache changes explicitly. Cache scope sufficiency remains an assisted review unless the project encodes it as rule options.
+_Avoid_: scattered query keys, inline query behavior in components
+
+**Automatic Rule Check**:
+A rule evaluation that can report a warning or error from observable project facts such as file paths, imports, exports, and recognizable syntax. Automatic checks should not depend on guessing contributor intent or product ownership.
+_Avoid_: human review disguised as a hard rule
+
+**Assisted Contract Review**:
+A non-blocking review item for a convention that depends on intent, ownership, domain meaning, UX expectations, or sufficiency. Assisted reviews can explain likely gaps, but they should not fail a check without an explicit machine-checkable contract.
+_Avoid_: flaky rule, subjective error
+
 **Violation**:
 A reported rule finding with a linter-style rule name, severity, message, source location, optional suggestion, and rule-specific context. Violations use the same canonical rule names as configuration and include import line and column when available.
 _Avoid_: numeric rule id as the primary identifier
@@ -309,3 +365,19 @@ Domain expert: "No. Boundary classification comes from layer and context pattern
 Dev: "Do override rule options merge with the base rule options?"
 
 Domain expert: "No. A matching override replaces the whole rule value for that file; if several overrides match, the last one wins."
+
+Dev: "Can OnionCry check whether a frontend change used the required agent skill?"
+
+Domain expert: "No. A code organization rule can verify resulting files, names, folders, imports, and barrels, but it does not audit contributor workflow."
+
+Dev: "If `repo/test-placement` is configured as just `error`, where do test files belong?"
+
+Domain expert: "The rule option defaults apply. For that rule, colocated unit tests use `__tests__` folders unless the project provides explicit options."
+
+Dev: "Should frontend organization rules use `system` or `feature-system` in their names?"
+
+Domain expert: "Use `feature-system`, such as `frontend/feature-system-layout`, because `system` alone is too broad for OnionCry's architecture language."
+
+Dev: "Should path naming defaults use `infra` or `infrastructure` for the outer layer directory?"
+
+Domain expert: "Use `infra` by default. Projects that spell out `infrastructure` can configure that explicitly."
