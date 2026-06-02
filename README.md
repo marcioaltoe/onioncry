@@ -260,7 +260,7 @@ them to `error` when the repository already follows the contract.
 ```
 
 `repo/test-placement` separates source-level unit tests from workspace-level
-integration and e2e tests. By default, unit tests live in colocated `__tests__`
+integration and e2e tests. By default, unit tests live in co-located `__tests__`
 folders, integration tests live under `tests/integration`, and e2e tests live
 under `tests/e2e`.
 

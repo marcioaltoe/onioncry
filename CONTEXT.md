@@ -372,7 +372,7 @@ Domain expert: "No. A code organization rule can verify resulting files, names, 
 
 Dev: "If `repo/test-placement` is configured as just `error`, where do test files belong?"
 
-Domain expert: "The rule option defaults apply. For that rule, colocated unit tests use `__tests__` folders unless the project provides explicit options."
+Domain expert: "The rule option defaults apply. For that rule, co-located unit tests use `__tests__` folders unless the project provides explicit options."
 
 Dev: "Should frontend organization rules use `system` or `feature-system` in their names?"
 
