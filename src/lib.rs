@@ -2259,7 +2259,8 @@ fn render_pretty_summary(report: &CheckReport) -> String {
 pub fn render_llm(report: &CheckReport) -> String {
     let groups = llm_groups(report);
     let mut output = format!(
-        "onioncry-llm-report v1\nstatus: {}\nfilesChecked: {}\nproblemCount: {}\nerrorCount: {}\nwarningCount: {}\ngroupCount: {}\n",
+        "onioncry-llm-report v1 buildTimestamp: {}\nstatus: {}\nfilesChecked: {}\nproblemCount: {}\nerrorCount: {}\nwarningCount: {}\ngroupCount: {}\n",
+        env!("ONIONCRY_BUILD_TIMESTAMP"),
         report.status.as_str(),
         report.summary.file_count,
         report.summary.violation_count,
