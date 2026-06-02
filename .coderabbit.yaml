@@ -1,0 +1,129 @@
+language: "en"
+early_access: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      # Project-level agent instructions
+      - "AGENTS.md"
+      - "**/AGENTS.md"
+      - "CLAUDE.md"
+      - "**/CLAUDE.md"
+      # Visual / design system reference
+      - "DESIGN.md"
+      # Skill definitions (read for context, but not reviewed — see path_filters)
+      - ".agents/skills/**/*.md"
+      - ".claude/skills/**/*.md"
+
+reviews:
+  request_changes_workflow: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: true
+  profile: "assertive"
+  related_prs: false
+  tools:
+    oxc:
+      enabled: true
+  path_filters:
+    # ----- Agent / skill / tooling configs (NOT code) -----
+    - "!.agents/**"
+    - "!.claude/**"
+    - "!.compozy/**"
+    - "!.cursor/**"
+
+    # ----- IDE / editor / OS noise -----
+    - "!.vscode/**"
+    - "!.idea/**"
+    - "!**/.DS_Store"
+    - "!**/Thumbs.db"
+    - "!**/*.swp"
+    - "!**/*.sw?"
+
+    # ----- Build artifacts -----
+    - "!**/dist/**"
+    - "!**/dist-ssr/**"
+    - "!**/build/**"
+    - "!**/out/**"
+    - "!**/.next/**"
+    - "!**/.turbo/**"
+    - "!**/.cache/**"
+    - "!**/.parcel-cache/**"
+    - "!**/.vercel/**"
+    - "!**/.mastra/**"
+    - "!**/coverage/**"
+    - "!**/.nyc_output/**"
+    - "!**/storybook-static/**"
+    - "!**/docs/.dist/**"
+
+    # ----- Auto-generated code (Drizzle, TanStack Router, OpenAPI, TS) -----
+    - "!**/routeTree.gen.ts"
+    - "!**/generated/**"
+    - "!**/*generated*.ts"
+    - "!**/database/migrations/**"
+    - "!**/drizzle/**"
+    - "!**/openapi.json"
+    - "!**/openapi.yaml"
+    - "!**/next-env.d.ts"
+    - "!**/*.tsbuildinfo"
+
+    # ----- Lock / package manager noise -----
+    - "!**/bun.lockb"
+    - "!**/.pnp.*"
+    - "!**/.yarn/**"
+
+    # ----- Logs / temp / runtime -----
+    - "!**/logs/**"
+    - "!**/*.log"
+    - "!**/*storybook.log"
+    - "!**/.tmp/**"
+    - "!**/.eslintcache"
+    - "!**/__pycache__/**"
+
+    # ----- Local databases / runtime data -----
+    - "!**/*.db"
+    - "!**/*.db-shm"
+    - "!**/*.db-wal"
+    - "!**/.storage/**"
+
+    # ----- Secrets / env -----
+    - "!**/.env"
+    - "!**/.env.local"
+    - "!**/.env.*.local"
+    - "!**/*.local"
+    - "!**/*.pem"
+
+    # ----- Test fixtures -----
+    - "!**/fixtures/**"
+    - "!**/__fixtures__/**"
+
+    # ----- One-off scripts -----
+    - "!scripts/**"
+
+    # ----- Files reviewed (explicit allowlist) -----
+    - "**/*.ts"
+    - "**/*.tsx"
+    - "**/*.js"
+    - "**/*.jsx"
+    - "**/*.mjs"
+    - "**/*.cjs"
+    - "**/*.css"
+    - "**/*.html"
+    - "**/*.sql"
+    - ".github/**/*"
+    - "**/README.md"
+    - "README.md"
+    - "**/package.json"
+    - "package.json"
+    - "**/tsconfig*.json"
+    - "tsconfig*.json"
+    - "Makefile"
+    - "**/Makefile"
+    - "docker-compose.yml"
+    - "docker-compose.*.yml"
+    - "Dockerfile"
+    - "**/Dockerfile"
+    - "turbo.json"
