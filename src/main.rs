@@ -1,13 +1,14 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
-    FailOn, OnionCryError, init_config, render_explain_pretty, render_llm, render_pretty,
-    run_check, run_explain,
+    CLI_VERSION, FailOn, OnionCryError, init_config, render_explain_pretty, render_llm,
+    render_pretty, run_check, run_explain,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
 
 #[derive(Debug, Parser)]
 #[command(name = "onioncry")]
+#[command(version = CLI_VERSION)]
 #[command(about = "Check architectural boundaries in source projects")]
 struct Cli {
     #[command(subcommand)]

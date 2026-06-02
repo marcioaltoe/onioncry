@@ -1,0 +1,3 @@
+# Add code organization rules
+
+OnionCry will support built-in, configurable code organization rules for observable repository conventions such as test placement, path naming, and frontend feature system contracts. We are choosing this over a plugin runtime for now because the immediate need is to check project structure, imports, exports, and recognizable syntax with stable linter-style rules; conventions that depend on intent, ownership, domain meaning, UX expectations, or sufficiency remain assisted contract reviews rather than blocking violations. Rule option defaults may be project-focused for the maintainers' common Tailwind CSS, shadcn/ui, and `systems/<domain>` frontend shape, while explicit rule options keep those defaults overridable.

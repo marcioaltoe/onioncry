@@ -37,6 +37,15 @@ fn git(workspace: &Path, args: &[&str]) {
     );
 }
 
+fn assert_llm_report_metadata_line(metadata: &str) {
+    let revision = metadata
+        .strip_prefix("onioncry-llm-report v1 revision: ")
+        .expect("llm report metadata should include a revision");
+
+    assert!(!revision.is_empty());
+    assert!(!revision.contains("buildTimestamp"));
+}
+
 fn strip_full_line_jsonc_comments(contents: &str) -> String {
     contents
         .lines()
@@ -337,6 +346,146 @@ fn write_shotgun_policy_config(path: &Path) {
     );
 }
 
+fn write_test_placement_config(path: &Path, rule_json: &str, overrides_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["src/**/*.ts", "tests/**/*.ts", "app/**/*.ts", "it/**/*.ts", "journeys/**/*.ts"],
+    "exclude": []
+  }},
+  "rules": {{
+    "repo/test-placement": {rule_json}
+  }},
+  "overrides": {overrides_json}
+}}"#
+        ),
+    );
+}
+
+fn write_path_naming_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["src/**/*.ts", "packages/**/*.ts"],
+    "exclude": []
+  }},
+  "rules": {{
+    "repo/path-naming": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
+fn write_feature_system_layout_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["packages/frontend/src/**/*", "apps/web/src/**/*"],
+    "exclude": []
+  }},
+  "rules": {{
+    "frontend/feature-system-layout": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
+fn write_feature_system_public_api_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["packages/frontend/src/**/*", "apps/web/src/**/*"],
+    "exclude": []
+  }},
+  "rules": {{
+    "frontend/feature-system-public-api": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
+fn write_feature_system_dependency_flow_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["packages/frontend/src/**/*", "apps/web/src/**/*"],
+    "exclude": []
+  }},
+  "rules": {{
+    "frontend/feature-system-dependency-flow": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
+fn write_feature_system_adapter_contract_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["packages/frontend/src/**/*", "apps/web/src/**/*"],
+    "exclude": []
+  }},
+  "rules": {{
+    "frontend/feature-system-adapter-contract": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
+fn write_feature_system_query_contract_config(path: &Path, rule_json: &str) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": ".",
+    "include": ["packages/frontend/src/**/*", "apps/web/src/**/*"],
+    "exclude": []
+  }},
+  "rules": {{
+    "frontend/feature-system-query-contract": {rule_json}
+  }},
+  "overrides": []
+}}"#
+        ),
+    );
+}
+
 fn write_explain_config(path: &Path) {
     write_file(
         path,
@@ -433,6 +582,14 @@ fn run_json_check_failure(workspace: &TempDir, args: &[&str]) -> Value {
         .stdout
         .clone();
     serde_json::from_slice(&output).expect("failing check --format json should emit valid JSON")
+}
+
+#[test]
+fn cli_prints_version() {
+    onioncry().arg("--version").assert().success().stdout(
+        predicate::str::contains(format!("onioncry {}\n", onioncry::CLI_VERSION))
+            .and(predicate::str::contains("buildTimestamp").not()),
+    );
 }
 
 #[test]
@@ -821,9 +978,22 @@ export const second = repo;
         .stdout
         .clone();
     let llm = String::from_utf8(output).expect("llm output should be utf-8");
+    let lines = llm.lines().collect::<Vec<_>>();
 
-    assert!(llm.contains("onioncry-llm-report v1"));
+    assert_eq!(lines.first(), Some(&"status: fail"));
+    assert_eq!(
+        lines
+            .get(lines.len().saturating_sub(2))
+            .expect("llm report should include a separator before metadata"),
+        &onioncry::LLM_REPORT_SEPARATOR
+    );
+    assert_llm_report_metadata_line(
+        lines
+            .last()
+            .expect("llm report should include metadata as the last line"),
+    );
     assert!(llm.contains("status: fail"));
+    assert!(!llm.contains("buildTimestamp"));
     assert!(llm.contains("filesChecked: 3"));
     assert!(llm.contains("problemCount: 2"));
     assert!(llm.contains("groupCount: 1"));
@@ -1121,6 +1291,1604 @@ export const ignored = run;
     assert_eq!(warning_failure["status"], "fail");
     assert_eq!(warning_failure["summary"]["warningCount"], 1);
     assert_eq!(warning_failure["summary"]["errorCount"], 0);
+}
+
+#[test]
+fn check_accepts_default_test_placement_layout() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+        "[]",
+    );
+    write_file(
+        &workspace.path().join("src/orders/__tests__/order.test.ts"),
+        "export const orderTest = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("tests/integration/orders/repository.spec.ts"),
+        "export const repositorySpec = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("tests/e2e/orders/checkout.test.ts"),
+        "export const checkoutTest = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/orders/order.ts"),
+        "export const order = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 4);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_misplaced_test_files_with_suggestions() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+        "[]",
+    );
+    write_file(
+        &workspace.path().join("src/orders/order.test.ts"),
+        "export const orderTest = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("tests/integration/order.spec.ts"),
+        "export const integrationSpec = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("tests/unit/orders/order.test.ts"),
+        "export const unitTest = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/orders/__tests__/allowed.spec.ts"),
+        "export const allowedSpec = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["fileCount"], 4);
+    assert_eq!(result["summary"]["errorCount"], 3);
+    assert_eq!(violations.len(), 3);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "repo/test-placement"
+            && violation["severity"] == "error"
+            && violation["message"] == "test file is not in an allowed test location"
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("src/orders/order.test.ts"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("__tests__"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("tests/integration/order.spec.ts"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("tests/integration/<context>/"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("tests/unit/orders/order.test.ts"))
+            && violation["suggestion"].as_str().is_some_and(|suggestion| {
+                suggestion.contains("tests/integration")
+                    && suggestion.contains("tests/e2e")
+                    && suggestion.contains("__tests__")
+            })
+    }));
+}
+
+#[test]
+fn check_applies_test_placement_overrides_without_changing_file_universe() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+        r#"[
+    {
+      "files": ["src/orders/legacy.test.ts"],
+      "rules": {
+        "repo/test-placement": "off"
+      }
+    },
+    {
+      "files": ["src/orders/soft.spec.ts"],
+      "rules": {
+        "repo/test-placement": "warn"
+      }
+    }
+  ]"#,
+    );
+    write_file(
+        &workspace.path().join("src/orders/legacy.test.ts"),
+        "export const legacy = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/orders/soft.spec.ts"),
+        "export const soft = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/orders/strict.test.ts"),
+        "export const strict = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["summary"]["fileCount"], 3);
+    assert_eq!(result["summary"]["errorCount"], 1);
+    assert_eq!(result["summary"]["warningCount"], 1);
+    assert_eq!(violations.len(), 2);
+    assert!(!violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("src/orders/legacy.test.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["severity"] == "warn"
+            && violation["file"]
+                .as_str()
+                .is_some_and(|file| file.ends_with("src/orders/soft.spec.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["severity"] == "error"
+            && violation["file"]
+                .as_str()
+                .is_some_and(|file| file.ends_with("src/orders/strict.test.ts"))
+    }));
+}
+
+#[test]
+fn check_accepts_test_placement_severity_and_options_forms() {
+    let off_workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &off_workspace.path().join(".onioncryrc.jsonc"),
+        r#""off""#,
+        "[]",
+    );
+    write_file(
+        &off_workspace.path().join("src/orders/order.test.ts"),
+        "export const orderTest = 1;\n",
+    );
+    let off_result = run_json_check(&off_workspace, &["check", "--format", "json"]);
+    assert_eq!(off_result["summary"]["violationCount"], 0);
+
+    let warn_workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &warn_workspace.path().join(".onioncryrc.jsonc"),
+        r#""warn""#,
+        "[]",
+    );
+    write_file(
+        &warn_workspace.path().join("src/orders/order.test.ts"),
+        "export const orderTest = 1;\n",
+    );
+    let warn_result = run_json_check(&warn_workspace, &["check", "--format", "json"]);
+    assert_eq!(warn_result["status"], "pass");
+    assert_eq!(warn_result["summary"]["warningCount"], 1);
+
+    let options_workspace = TempDir::new().expect("workspace should be creatable");
+    write_test_placement_config(
+        &options_workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "sourceRoots": ["app"],
+      "unitTestDirectories": ["specs"],
+      "integrationRoots": ["it"],
+      "e2eRoots": ["journeys"],
+      "testFileSuffixes": [".check.ts"]
+    }]"#,
+        "[]",
+    );
+    write_file(
+        &options_workspace
+            .path()
+            .join("app/orders/specs/order.check.ts"),
+        "export const orderCheck = 1;\n",
+    );
+    write_file(
+        &options_workspace
+            .path()
+            .join("it/orders/repository.check.ts"),
+        "export const repositoryCheck = 1;\n",
+    );
+    write_file(
+        &options_workspace
+            .path()
+            .join("journeys/orders/checkout.check.ts"),
+        "export const checkoutCheck = 1;\n",
+    );
+
+    let options_result = run_json_check(&options_workspace, &["check", "--format", "json"]);
+
+    assert_eq!(options_result["status"], "pass");
+    assert_eq!(options_result["summary"]["fileCount"], 3);
+    assert_eq!(options_result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_default_path_naming_layout_without_inspecting_symbols() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/domain/entities/order.ts"),
+        r#"export class BAD_symbol_name {}
+export const MIXED_SYMBOL_NAME = 1;
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/use-cases/create-order.use-case.ts"),
+        "export const run = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/infra/repositories/order.repository.ts"),
+        "export const repository = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/dtos/order.dto.ts"),
+        "export type OrderDto = { id: string };\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 4);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_invalid_path_naming_conventions() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("src/orders/infrastructure/repository/OrderRepo.ts"),
+        "export const value = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/infra/repositories/order.ts"),
+        "export const repository = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/CustomerProfile/domain/entities/order.ts"),
+        "export const order = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(
+        violations
+            .iter()
+            .all(|violation| violation["rule"] == "repo/path-naming")
+    );
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("feature directory \"orders\""))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("singular"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("infrastructure"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("infra"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("collection directory \"repository\""))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("repositories"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("file name \"OrderRepo.ts\""))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("files in \"repositories\""))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains(".repository"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("directory segment \"CustomerProfile\""))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_path_naming_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "featureRoots": ["packages/app/src/features"],
+      "layerDirectories": ["core", "usecases", "infrastructure", "shared"],
+      "collectionDirectories": ["models", "repos"],
+      "suffixes": {
+        "repos": ".repo"
+      }
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/app/src/features/account/core/models/order.ts"),
+        "export const order = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/app/src/features/account/infrastructure/repos/order.repo.ts"),
+        "export const repo = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 2);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_collection_suffix_before_test_or_spec_suffix() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/services/tax-import.service.test.ts"),
+        "export const taxImportService = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/use-cases/submit-order.use-case.spec.ts"),
+        "export const submitOrderUseCase = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/domain/value-objects/timestamp.value-object.test.ts"),
+        "export const timestamp = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/domain/events/order-created.event.spec.ts"),
+        "export const orderCreatedEvent = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/infra/repositories/__tests__/audit-event.repository.test.ts"),
+        "export const auditEventRepository = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 5);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_path_naming_severity_forms() {
+    let off_workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(&off_workspace.path().join(".onioncryrc.jsonc"), r#""off""#);
+    write_file(
+        &off_workspace.path().join("src/orders/OrderRepo.ts"),
+        "export const value = 1;\n",
+    );
+    let off_result = run_json_check(&off_workspace, &["check", "--format", "json"]);
+    assert_eq!(off_result["summary"]["violationCount"], 0);
+
+    let warn_workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(
+        &warn_workspace.path().join(".onioncryrc.jsonc"),
+        r#""warn""#,
+    );
+    write_file(
+        &warn_workspace.path().join("src/orders/OrderRepo.ts"),
+        "export const value = 1;\n",
+    );
+
+    let warn_result = run_json_check(&warn_workspace, &["check", "--format", "json"]);
+
+    assert_eq!(warn_result["status"], "pass");
+    assert_eq!(warn_result["summary"]["errorCount"], 0);
+    assert!(
+        warn_result["summary"]["warningCount"]
+            .as_u64()
+            .is_some_and(|count| count > 0)
+    );
+}
+
+#[test]
+fn check_accepts_default_feature_system_layout() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_layout_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/index.ts"),
+        "export { BillingCard } from './components/billing-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "export function BillingCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-options.ts"),
+        "export const billingQueryOptions = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-billing.ts"),
+        "export const useBilling = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "export const billingApi = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/contexts/billing-context.ts"),
+        "export const billingContext = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/stores/billing-store.ts"),
+        "export const billingStore = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/guards/billing-guard.ts"),
+        "export const billingGuard = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/billing.css"),
+        ".billing {}\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/components/ui/button.tsx"),
+        "export function Button() { return null; }\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_invalid_feature_system_layout() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_layout_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/orders/components/order-card.tsx"),
+        "export function OrderCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/components/orders/order-card.tsx"),
+        "export function SharedOrderCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/features/catalog/components/catalog-card.tsx"),
+        "export function CatalogCard() { return null; }\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(
+        violations
+            .iter()
+            .all(|violation| violation["rule"] == "frontend/feature-system-layout")
+    );
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("missing required lib/ directory"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("missing root index.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"].as_str().is_some_and(|message| {
+            message.contains("feature-specific frontend component is outside a feature system")
+        }) && violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("packages/frontend/src/components/orders/order-card.tsx")
+        })
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("legacy feature root"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("systems/catalog"))
+    }));
+}
+
+#[test]
+fn check_reports_feature_system_surface_css_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_layout_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/profile/index.ts"),
+        "export const profile = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/profile/components/profile-card.tsx"),
+        "export function ProfileCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/profile/lib/profile-options.ts"),
+        "export const profileOptions = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/profile/components/profile.css"),
+        ".profile {}\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/profile/profile-surface.css"),
+        ".profileSurface {}\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("must live at the system root"))
+            && violation["file"]
+                .as_str()
+                .is_some_and(|file| file.ends_with("components/profile.css"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("should be named \"profile.css\""))
+            && violation["file"]
+                .as_str()
+                .is_some_and(|file| file.ends_with("profile-surface.css"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_feature_system_layout_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_layout_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "systemsRoots": ["apps/web/src/modules"],
+      "requiredDirectories": ["ui", "logic"],
+      "allowedSharedComponentRoots": ["apps/web/src/ui/primitives"],
+      "legacyRoots": ["apps/web/src/old-features"],
+      "componentDirectories": ["ui"],
+      "rootIndexFile": "public.ts",
+      "surfaceCssNameTemplate": "{domain}.module.css"
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/public.ts"),
+        "export { AccountCard } from './ui/account-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/ui/account-card.tsx"),
+        "export function AccountCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/logic/account-options.ts"),
+        "export const accountOptions = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/accounts.module.css"),
+        ".accounts {}\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/ui/primitives/button.tsx"),
+        "export function Button() { return null; }\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_rejects_feature_system_public_api_wildcard_reexports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_public_api_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/index.ts"),
+        "export * from './components/billing-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "export function BillingCard() { return null; }\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-public-api"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("wildcard re-exports"))
+            && violation["file"].as_str().is_some_and(|file| {
+                file.ends_with("packages/frontend/src/systems/billing/index.ts")
+            })
+    }));
+}
+
+#[test]
+fn check_accepts_named_feature_system_public_exports_and_route_imports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_public_api_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/index.ts"),
+        "export { BillingCard } from './components/billing-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "export function BillingCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/billing-route.tsx"),
+        "import { BillingCard } from '../systems/billing';\nexport const Route = BillingCard;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_cross_system_internal_imports_but_allows_same_system_imports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_public_api_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "import { formatBilling } from '../lib/format-billing';\nexport function BillingCard() { return formatBilling(); }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/format-billing.ts"),
+        "export function formatBilling() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/orders/components/order-card.tsx"),
+        "import { BillingCard } from '../../billing/components/billing-card';\nexport const OrderCard = BillingCard;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(violations.len(), 1);
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-public-api"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("billing system internal file"))
+            && violation["targetFile"].as_str().is_some_and(|file| {
+                file.ends_with("packages/frontend/src/systems/billing/components/billing-card.tsx")
+            })
+    }));
+}
+
+#[test]
+fn check_reports_route_feature_system_internal_imports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_public_api_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "export function BillingCard() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/billing-route.tsx"),
+        "import { BillingCard } from '../systems/billing/components/billing-card';\nexport const Route = BillingCard;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-public-api"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("route may not import"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_feature_system_public_api_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_public_api_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "systemsRoots": ["apps/web/src/modules"],
+      "routeRoots": ["apps/web/src/pages"],
+      "allowedPublicEntryPoints": ["public.ts"]
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/public.ts"),
+        "export { AccountCard } from './components/account-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/components/account-card.tsx"),
+        "export function AccountCard() { return null; }\n",
+    );
+    write_file(
+        &workspace.path().join("apps/web/src/pages/accounts.tsx"),
+        "import { AccountCard } from '../modules/accounts/public';\nexport const AccountsPage = AccountCard;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_feature_system_dependency_flow_defaults() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_dependency_flow_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-client.ts"),
+        "export const billingClient = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "import { billingClient } from './billing-client';\nimport { formatBilling } from '../lib/format-billing';\nexport const billingApi = { billingClient, formatBilling };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/format-billing.ts"),
+        "export function formatBilling() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-options.ts"),
+        "import { billingApi } from '../adapters/billing-api';\nexport const billingQueryOptions = { billingApi };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-billing.ts"),
+        "import { billingQueryOptions } from '../lib/query-options';\nexport const useBilling = () => billingQueryOptions;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/contexts/billing-context.ts"),
+        "import { useBilling } from '../hooks/use-billing';\nimport { formatBilling } from '../lib/format-billing';\nexport const billingContext = { useBilling, formatBilling };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/stores/billing-store.ts"),
+        "import { billingApi } from '../adapters/billing-api';\nimport { billingQueryOptions } from '../lib/query-options';\nexport const billingStore = { billingApi, billingQueryOptions };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-button.tsx"),
+        "export function BillingButton() { return null; }\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "import { BillingButton } from './billing-button';\nimport { useBilling } from '../hooks/use-billing';\nimport { billingContext } from '../contexts/billing-context';\nimport { billingStore } from '../stores/billing-store';\nimport { formatBilling } from '../lib/format-billing';\nexport const BillingCard = { BillingButton, useBilling, billingContext, billingStore, formatBilling };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/index.ts"),
+        "export { BillingCard } from './components/billing-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/billing-route.tsx"),
+        "import { BillingCard } from '../systems/billing';\nexport const Route = BillingCard;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_feature_system_dependency_flow_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_dependency_flow_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "import { useBilling } from '../hooks/use-billing';\nexport const billingApi = { useBilling };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-billing.ts"),
+        "export const useBilling = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/format-billing.ts"),
+        "import { billingApi } from '../adapters/billing-api';\nexport const formatBilling = billingApi;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "import { billingApi } from '../adapters/billing-api';\nexport const BillingCard = billingApi;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/stores/billing-store.ts"),
+        "import { BillingCard } from '../components/billing-card';\nexport const billingStore = BillingCard;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/billing-route.tsx"),
+        "import { BillingCard } from '../systems/billing/components/billing-card';\nexport const Route = BillingCard;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-dependency-flow"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("adapters may not import hooks"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("lib may not import adapters"))
+            && violation["file"].as_str().is_some_and(|file| {
+                file.ends_with("packages/frontend/src/systems/billing/lib/format-billing.ts")
+            })
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("components may not import adapters"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("stores may not import components"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("routes may not import components"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_feature_system_dependency_flow_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_dependency_flow_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "systemsRoots": ["apps/web/src/modules"],
+      "routeRoots": ["apps/web/src/pages"],
+      "allowedPublicEntryPoints": ["public.ts"],
+      "allowedImports": {
+        "components": ["components", "adapters"]
+      }
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/adapters/accounts-api.ts"),
+        "export const accountsApi = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/components/account-card.tsx"),
+        "import { accountsApi } from '../adapters/accounts-api';\nexport const AccountCard = accountsApi;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/public.ts"),
+        "export { AccountCard } from './components/account-card';\n",
+    );
+    write_file(
+        &workspace.path().join("apps/web/src/pages/accounts.tsx"),
+        "import { AccountCard } from '../modules/accounts/public';\nexport const AccountsPage = AccountCard;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_default_feature_system_adapter_contract() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_adapter_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-client.ts"),
+        "export const billingClient = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        r#"export class BillingApiError extends Error {}
+export const billingApi = {
+  async list(signal?: AbortSignal) {
+    return fetch("/api/billing", { signal });
+  }
+};
+"#,
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_missing_feature_system_adapter_file_and_exports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_adapter_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-client.ts"),
+        "export const billingClient = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/orders/adapters/orders-api.ts"),
+        "export const ordersAdapter = {};\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-adapter-contract"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("adapters/billing-api.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("ordersApi"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("OrdersApiError"))
+    }));
+}
+
+#[test]
+fn check_reports_feature_system_adapter_cancellation_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_adapter_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        r#"export class BillingApiError extends Error {}
+export const billingApi = {
+  async list() {
+    return fetch("/api/billing");
+  }
+};
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-adapter-contract"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("AbortSignal"))
+    }));
+}
+
+#[test]
+fn check_reports_feature_system_adapter_import_boundary_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_adapter_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        r#"import { BillingCard } from "../components/billing-card";
+export class BillingApiError extends Error {}
+export const billingApi = {
+  async list(signal?: AbortSignal) {
+    return fetch("/api/billing", { signal });
+  },
+  BillingCard
+};
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "export function BillingCard() { return null; }\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-adapter-contract"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("adapter files may not import components"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_feature_system_adapter_contract_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_adapter_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "systemsRoots": ["apps/web/src/modules"],
+      "adapterDirectory": "api",
+      "adapterFileNameTemplate": "{domain}.client.ts",
+      "apiExportNameTemplate": "{domainCamel}Client",
+      "errorExportNameTemplate": "{DomainPascal}ClientError",
+      "httpClientNames": ["transport.get"]
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/api/accounts.client.ts"),
+        r#"export class AccountsClientError extends Error {}
+export const accountsClient = {
+  async list(signal?: AbortSignal) {
+    return transport.get("/accounts", { signal });
+  }
+};
+"#,
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_default_feature_system_query_contract() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "export const billingApi = { list: ({ signal }: { signal?: AbortSignal }) => fetch('/api/billing', { signal }), update: async () => undefined };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-keys.ts"),
+        "export const billingQueryKeys = { list: () => ['billing'] as const };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-options.ts"),
+        r#"import { queryOptions } from "@tanstack/react-query";
+import { billingApi } from "../adapters/billing-api";
+import { billingQueryKeys } from "./query-keys";
+export const billingQueryOptions = () => queryOptions({
+  queryKey: billingQueryKeys.list(),
+  queryFn: ({ signal }) => billingApi.list({ signal }),
+  staleTime: 60_000
+});
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-billing.ts"),
+        r#"import { useQuery } from "@tanstack/react-query";
+import { billingQueryOptions } from "../lib/query-options";
+export function useBilling() {
+  return useQuery(billingQueryOptions());
+}
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-update-billing.ts"),
+        r#"import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { billingApi } from "../adapters/billing-api";
+export function useUpdateBilling() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: billingApi.update,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing"] })
+  });
+}
+export function useOptimisticBilling() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: billingApi.update,
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["billing"] });
+      const previous = queryClient.getQueryData(["billing"]);
+      return { previous };
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["billing"] })
+  });
+}
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "import { useBilling } from '../hooks/use-billing';\nexport const BillingCard = useBilling;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_missing_feature_system_query_files_and_inline_hooks() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "export const billingApi = { list: async () => [] };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-billing.ts"),
+        r#"import { useQuery } from "@tanstack/react-query";
+import { billingApi } from "../adapters/billing-api";
+export function useBilling() {
+  return useQuery({
+    queryKey: ["billing"],
+    queryFn: () => billingApi.list()
+  });
+}
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-query-contract"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("lib/query-keys.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("lib/query-options.ts"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("query hooks should reuse factories"))
+    }));
+}
+
+#[test]
+fn check_reports_feature_system_query_option_shape_and_signal_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "export const billingApi = { list: async () => [] };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-keys.ts"),
+        "export const billingQueryKeys = { list: () => ['billing'] as const };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/lib/query-options.ts"),
+        r#"import { queryOptions } from "@tanstack/react-query";
+import { billingApi } from "../adapters/billing-api";
+export const billingQueryOptions = () => queryOptions({
+  queryFn: () => billingApi.list()
+});
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("co-locate queryKey and queryFn"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("query context signal"))
+    }));
+}
+
+#[test]
+fn check_reports_component_and_route_owned_query_keys() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/index.ts"),
+        "export { BillingCard } from './components/billing-card';\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        r#"import { useQuery } from "@tanstack/react-query";
+export function BillingCard() {
+  return useQuery({ queryKey: ["billing"], queryFn: async () => [] });
+}
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/billing-route.tsx"),
+        r#"import { useQuery } from "@tanstack/react-query";
+import { BillingCard } from "../systems/billing";
+export const Route = () => useQuery({ queryKey: ["billing"], queryFn: async () => BillingCard });
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("components should not own query keys"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("routes should not own query keys"))
+    }));
+}
+
+#[test]
+fn check_reports_feature_system_mutation_cache_handling_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-update-billing.ts"),
+        r#"import { useMutation, useQueryClient } from "@tanstack/react-query";
+export function useUpdateBilling() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => undefined,
+    onMutate: () => {
+      queryClient.setQueryData(["billing"], []);
+    }
+  });
+}
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("invalidate relevant queries"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("optimistic cache updates"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_feature_system_query_contract_options() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#"["error", {
+      "systemsRoots": ["apps/web/src/modules"],
+      "routeRoots": ["apps/web/src/pages"],
+      "adapterDirectory": "api",
+      "queryKeysFile": "lib/keys.ts",
+      "queryOptionsFile": "lib/options.ts"
+    }]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/api/accounts-api.ts"),
+        "export const accountsApi = { list: ({ signal }: { signal?: AbortSignal }) => fetch('/accounts', { signal }) };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/lib/keys.ts"),
+        "export const accountKeys = { list: () => ['accounts'] as const };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/lib/options.ts"),
+        r#"import { queryOptions } from "@tanstack/react-query";
+import { accountsApi } from "../api/accounts-api";
+import { accountKeys } from "./keys";
+export const accountOptions = () => queryOptions({
+  queryKey: accountKeys.list(),
+  queryFn: ({ signal }) => accountsApi.list({ signal })
+});
+"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("apps/web/src/modules/accounts/hooks/use-accounts.ts"),
+        "import { useQuery } from '@tanstack/react-query';\nimport { accountOptions } from '../lib/options';\nexport const useAccounts = () => useQuery(accountOptions());\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
 }
 
 #[test]
