@@ -17,6 +17,18 @@ use walkdir::WalkDir;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
 pub const JSON_CONFIG_FILE: &str = ".onioncryrc.json";
+pub const BUILD_REVISION: &str = env!("ONIONCRY_BUILD_REVISION");
+pub const CLI_VERSION: &str = concat!(
+    env!("CARGO_PKG_VERSION"),
+    " revision: ",
+    env!("ONIONCRY_BUILD_REVISION")
+);
+pub const LLM_REPORT_SEPARATOR: &str =
+    "---------------------------------------------------------------------------------------";
+pub const LLM_REPORT_METADATA: &str = concat!(
+    "onioncry-llm-report v1 revision: ",
+    env!("ONIONCRY_BUILD_REVISION")
+);
 const RULE_UNCLASSIFIED_FILE: &str = "cleanarch/unclassified-file";
 const RULE_AMBIGUOUS_LAYER: &str = "cleanarch/ambiguous-layer";
 const RULE_AMBIGUOUS_CONTEXT: &str = "cleanarch/ambiguous-context";
@@ -2259,8 +2271,7 @@ fn render_pretty_summary(report: &CheckReport) -> String {
 pub fn render_llm(report: &CheckReport) -> String {
     let groups = llm_groups(report);
     let mut output = format!(
-        "onioncry-llm-report v1 buildTimestamp: {}\nstatus: {}\nfilesChecked: {}\nproblemCount: {}\nerrorCount: {}\nwarningCount: {}\ngroupCount: {}\n",
-        env!("ONIONCRY_BUILD_TIMESTAMP"),
+        "status: {}\nfilesChecked: {}\nproblemCount: {}\nerrorCount: {}\nwarningCount: {}\ngroupCount: {}\n",
         report.status.as_str(),
         report.summary.file_count,
         report.summary.violation_count,
@@ -2321,6 +2332,12 @@ pub fn render_llm(report: &CheckReport) -> String {
             ));
         }
     }
+
+    output.push('\n');
+    output.push_str(LLM_REPORT_SEPARATOR);
+    output.push('\n');
+    output.push_str(LLM_REPORT_METADATA);
+    output.push('\n');
 
     output
 }
@@ -3674,13 +3691,13 @@ impl PathNamingPolicy {
             }
             if let Some((collection, suffixes)) = self.nearest_suffix_collection(&components) {
                 let stem = source_file_stem(file_name);
-                if stem != "index" && !suffixes.iter().any(|suffix| stem.ends_with(suffix)) {
+                if stem != "index" && !stem_matches_collection_suffix(stem, suffixes) {
                     violations.push(Violation::path_naming(
                         file,
                         severity,
                         format!("files in {collection:?} should use a configured suffix"),
                         format!(
-                            "rename the file so its stem ends with one of: {}",
+                            "rename the file so its stem ends with one of: {} (optionally followed by .test or .spec)",
                             suffixes.join(", ")
                         ),
                     ));
@@ -5875,6 +5892,15 @@ fn source_file_stem(file_name: &str) -> &str {
         .iter()
         .find_map(|extension| file_name.strip_suffix(&format!(".{extension}")))
         .unwrap_or(file_name)
+}
+
+fn stem_matches_collection_suffix(stem: &str, suffixes: &[String]) -> bool {
+    let stem = stem
+        .strip_suffix(".test")
+        .or_else(|| stem.strip_suffix(".spec"))
+        .unwrap_or(stem);
+
+    suffixes.iter().any(|suffix| stem.ends_with(suffix))
 }
 
 fn singular_directory_name(directory: &str) -> String {

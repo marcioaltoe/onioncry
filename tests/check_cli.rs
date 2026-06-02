@@ -37,25 +37,13 @@ fn git(workspace: &Path, args: &[&str]) {
     );
 }
 
-fn assert_llm_report_header_has_build_timestamp(header: &str) {
-    let timestamp = header
-        .strip_prefix("onioncry-llm-report v1 buildTimestamp: ")
-        .expect("llm report header should include build timestamp");
-    let bytes = timestamp.as_bytes();
+fn assert_llm_report_metadata_line(metadata: &str) {
+    let revision = metadata
+        .strip_prefix("onioncry-llm-report v1 revision: ")
+        .expect("llm report metadata should include a revision");
 
-    assert_eq!(bytes.len(), 20);
-    for index in [0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18] {
-        assert!(
-            bytes[index].is_ascii_digit(),
-            "timestamp character {index} should be a digit: {timestamp}"
-        );
-    }
-    assert_eq!(bytes[4], b'-');
-    assert_eq!(bytes[7], b'-');
-    assert_eq!(bytes[10], b'T');
-    assert_eq!(bytes[13], b':');
-    assert_eq!(bytes[16], b':');
-    assert_eq!(bytes[19], b'Z');
+    assert!(!revision.is_empty());
+    assert!(!revision.contains("buildTimestamp"));
 }
 
 fn strip_full_line_jsonc_comments(contents: &str) -> String {
@@ -597,6 +585,14 @@ fn run_json_check_failure(workspace: &TempDir, args: &[&str]) -> Value {
 }
 
 #[test]
+fn cli_prints_version() {
+    onioncry().arg("--version").assert().success().stdout(
+        predicate::str::contains(format!("onioncry {}\n", onioncry::CLI_VERSION))
+            .and(predicate::str::contains("buildTimestamp").not()),
+    );
+}
+
+#[test]
 fn init_creates_parseable_mvp_template() {
     let workspace = TempDir::new().expect("workspace should be creatable");
 
@@ -982,13 +978,22 @@ export const second = repo;
         .stdout
         .clone();
     let llm = String::from_utf8(output).expect("llm output should be utf-8");
+    let lines = llm.lines().collect::<Vec<_>>();
 
-    assert_llm_report_header_has_build_timestamp(
-        llm.lines()
-            .next()
-            .expect("llm report should include a header line"),
+    assert_eq!(lines.first(), Some(&"status: fail"));
+    assert_eq!(
+        lines
+            .get(lines.len().saturating_sub(2))
+            .expect("llm report should include a separator before metadata"),
+        &onioncry::LLM_REPORT_SEPARATOR
+    );
+    assert_llm_report_metadata_line(
+        lines
+            .last()
+            .expect("llm report should include metadata as the last line"),
     );
     assert!(llm.contains("status: fail"));
+    assert!(!llm.contains("buildTimestamp"));
     assert!(llm.contains("filesChecked: 3"));
     assert!(llm.contains("problemCount: 2"));
     assert!(llm.contains("groupCount: 1"));
@@ -1667,6 +1672,48 @@ fn check_accepts_custom_path_naming_options() {
 
     assert_eq!(result["status"], "pass");
     assert_eq!(result["summary"]["fileCount"], 2);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_collection_suffix_before_test_or_spec_suffix() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_path_naming_config(&workspace.path().join(".onioncryrc.jsonc"), r#""error""#);
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/services/tax-import.service.test.ts"),
+        "export const taxImportService = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/application/use-cases/submit-order.use-case.spec.ts"),
+        "export const submitOrderUseCase = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/domain/value-objects/timestamp.value-object.test.ts"),
+        "export const timestamp = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/domain/events/order-created.event.spec.ts"),
+        "export const orderCreatedEvent = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/billing/infra/repositories/__tests__/audit-event.repository.test.ts"),
+        "export const auditEventRepository = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["fileCount"], 5);
     assert_eq!(result["summary"]["violationCount"], 0);
 }
 

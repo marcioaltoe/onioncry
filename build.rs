@@ -1,51 +1,88 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-changed=src");
-    println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
-
-    let seconds = std::env::var("SOURCE_DATE_EPOCH")
-        .ok()
-        .and_then(|value| value.parse::<u64>().ok())
-        .unwrap_or_else(current_unix_seconds);
+    emit_git_rerun_hints();
 
     println!(
-        "cargo:rustc-env=ONIONCRY_BUILD_TIMESTAMP={}",
-        format_unix_timestamp(seconds)
+        "cargo:rustc-env=ONIONCRY_BUILD_REVISION={}",
+        current_git_revision()
     );
 }
 
-fn current_unix_seconds() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|duration| duration.as_secs())
-        .unwrap_or(0)
+fn emit_git_rerun_hints() {
+    let Some(git_dir) = git_dir() else {
+        println!("cargo:rerun-if-changed=.git");
+        return;
+    };
+
+    println!("cargo:rerun-if-changed={}", git_dir.join("HEAD").display());
+    println!("cargo:rerun-if-changed={}", git_dir.join("index").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        git_dir.join("packed-refs").display()
+    );
+
+    let head = git_dir.join("HEAD");
+    if let Ok(contents) = fs::read_to_string(head)
+        && let Some(reference) = contents.trim().strip_prefix("ref: ")
+    {
+        println!(
+            "cargo:rerun-if-changed={}",
+            git_dir.join(reference).display()
+        );
+    }
 }
 
-fn format_unix_timestamp(total_seconds: u64) -> String {
-    let days = i64::try_from(total_seconds / 86_400).unwrap_or(i64::MAX);
-    let seconds_of_day = total_seconds % 86_400;
-    let (year, month, day) = civil_from_days(days);
-    let hour = seconds_of_day / 3_600;
-    let minute = (seconds_of_day % 3_600) / 60;
-    let second = seconds_of_day % 60;
+fn git_dir() -> Option<PathBuf> {
+    let dot_git = Path::new(".git");
+    if dot_git.is_dir() {
+        return Some(dot_git.to_path_buf());
+    }
 
-    format!("{year:04}-{month:02}-{day:02}T{hour:02}:{minute:02}:{second:02}Z")
+    let contents = fs::read_to_string(dot_git).ok()?;
+    let path = contents.trim().strip_prefix("gitdir:")?.trim();
+    let git_dir = PathBuf::from(path);
+    Some(if git_dir.is_absolute() {
+        git_dir
+    } else {
+        dot_git
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join(git_dir)
+    })
 }
 
-fn civil_from_days(days_since_epoch: i64) -> (i64, u32, u32) {
-    let days = days_since_epoch + 719_468;
-    let era = if days >= 0 { days } else { days - 146_096 } / 146_097;
-    let day_of_era = days - era * 146_097;
-    let year_of_era =
-        (day_of_era - day_of_era / 1_460 + day_of_era / 36_524 - day_of_era / 146_096) / 365;
-    let day_of_year = day_of_era - (365 * year_of_era + year_of_era / 4 - year_of_era / 100);
-    let month_pattern = (5 * day_of_year + 2) / 153;
-    let day = day_of_year - (153 * month_pattern + 2) / 5 + 1;
-    let month = month_pattern + if month_pattern < 10 { 3 } else { -9 };
-    let year = year_of_era + era * 400 + if month <= 2 { 1 } else { 0 };
+fn current_git_revision() -> String {
+    let Some(revision) = command_stdout("git", &["rev-parse", "--short=12", "HEAD"]) else {
+        return "unknown".to_string();
+    };
 
-    (year, month as u32, day as u32)
+    if has_tracked_git_changes() {
+        format!("{revision}-dirty")
+    } else {
+        revision
+    }
+}
+
+fn has_tracked_git_changes() -> bool {
+    Command::new("git")
+        .args(["diff", "--quiet", "HEAD", "--"])
+        .status()
+        .map(|status| !status.success())
+        .unwrap_or(false)
+}
+
+fn command_stdout(command: &str, args: &[&str]) -> Option<String> {
+    let output = Command::new(command).args(args).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+
+    let value = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    if value.is_empty() { None } else { Some(value) }
 }

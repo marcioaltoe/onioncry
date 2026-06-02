@@ -67,6 +67,33 @@ To inspect one file:
 onioncry explain packages/backend/src/application/use-cases/example.ts
 ```
 
+For monorepos, keep separate configs in the workspaces that have different
+aliases or architecture rules:
+
+```text
+packages/backend/.onioncryrc.json
+packages/frontend/.onioncryrc.json
+```
+
+Then add an `onioncry` script in each workspace package and fan out from the
+root with Turbo:
+
+```json
+{
+  "scripts": {
+    "onioncry": "PATH=\"$HOME/.cargo/bin:$PATH\" onioncry check --llm-mode"
+  }
+}
+```
+
+```json
+{
+  "scripts": {
+    "onioncry": "turbo run onioncry"
+  }
+}
+```
+
 ## Commands
 
 ```bash
@@ -183,6 +210,13 @@ Minimal shape:
     "solid/no-concrete-dependency": "warn",
     "codesmells/feature-envy": "warn",
     "codesmells/shotgun-surgery": "off",
+    "repo/test-placement": "warn",
+    "repo/path-naming": "warn",
+    "frontend/feature-system-layout": "warn",
+    "frontend/feature-system-public-api": "warn",
+    "frontend/feature-system-dependency-flow": "warn",
+    "frontend/feature-system-adapter-contract": "warn",
+    "frontend/feature-system-query-contract": "warn",
     "cleanarch/unclassified-file": "warn"
   },
   "overrides": []
@@ -205,6 +239,51 @@ similar tools. OnionCry does not report generic unresolved imports, file-level
 cycles, max lines, max parameters, warning comments, or generic restricted
 imports as first-class diagnostics.
 
+## Code Organization Rules
+
+OnionCry also checks observable repository conventions when you enable the rule.
+These rules are adoption-friendly: configure them as `warn` first, then raise
+them to `error` when the repository already follows the contract.
+
+```jsonc
+{
+  "rules": {
+    "repo/test-placement": "warn",
+    "repo/path-naming": "warn",
+    "frontend/feature-system-layout": "warn",
+    "frontend/feature-system-public-api": "warn",
+    "frontend/feature-system-dependency-flow": "warn",
+    "frontend/feature-system-adapter-contract": "warn",
+    "frontend/feature-system-query-contract": "warn"
+  }
+}
+```
+
+`repo/test-placement` separates source-level unit tests from workspace-level
+integration and e2e tests. By default, unit tests live in colocated `__tests__`
+folders, integration tests live under `tests/integration`, and e2e tests live
+under `tests/e2e`.
+
+`repo/path-naming` checks path casing, plural collection directories such as
+`repositories`, singular feature directories, the configured layer directory
+vocabulary, and optional suffixes for collection-owned files.
+
+The `frontend/feature-system-*` rules check frontend systems under
+`packages/frontend/src/systems/<domain>` by default:
+
+- `frontend/feature-system-layout` requires the system folders, root `index.ts`,
+  allowed shared UI roots, and surface CSS placement.
+- `frontend/feature-system-public-api` keeps external callers on explicit system
+  barrels and rejects wildcard re-exports by default.
+- `frontend/feature-system-dependency-flow` enforces import direction inside a
+  system and between systems.
+- `frontend/feature-system-adapter-contract` checks domain-named API adapters,
+  typed API errors, abort-aware reads, and adapter isolation from upper frontend
+  layers.
+- `frontend/feature-system-query-contract` keeps TanStack Query keys and options
+  in `lib`, makes hooks reuse option factories, and checks cache invalidation
+  ownership when it is observable.
+
 ## Output Formats
 
 Pretty output is meant for humans:
@@ -217,6 +296,14 @@ LLM output groups repeated diagnostics and keeps locations explicit:
 
 ```bash
 onioncry check --llm-mode
+```
+
+During alpha, the final lines include the report format version and source
+revision of the installed binary:
+
+```text
+---------------------------------------------------------------------------------------
+onioncry-llm-report v1 revision: abc1234-dirty
 ```
 
 JSON output is for scripts and CI:
