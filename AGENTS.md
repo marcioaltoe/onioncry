@@ -1,27 +1,79 @@
 # General Agent Instructions
 
-## HIGH PRIORITY (read first — every task)
+OnionCry is a Rust CLI that names and checks architectural boundaries in source projects. These instructions apply to developing the tool itself.
 
-- Agent-created branches must use the active user's initials as the prefix. For Marcio Altoe, use `ma/`, for example `ma/context-plan-scaffold`.
-- Prefix repository shell commands with `rtk` when available.
+## High priority
+
+- Use the relevant local skills before changing code, docs, tests, workflows, or agent instructions.
+- Agent-created branches must use the `ma/` prefix.
+- Prefix shell commands with `rtk` when available. In command chains, prefix each command.
 - Never create commits unless the user explicitly asks for a commit in the current turn.
 - Always use Conventional Commits for commits and PR titles.
 - Before planning, implementing, reviewing, or documenting repository work, read `CONTEXT.md` and relevant `docs/adr/` entries. Use the glossary vocabulary and flag conflicts with ADRs instead of silently overriding them.
-- You can only finish a task when `make verify` passes. If a check fails, fix it and rerun the full command.
-- Always check dependent file APIs before writing tests.
-- Never use workarounds in fixes or tests. Diagnose the root cause and test observable behavior.
-- Research external libraries before integrating them. Do not use web research for local project code; use local search instead.
+- Use `rg` / `rg --files` for local code search. Use Context7 for external library/API docs. Do not use web research tools to search local code.
+- Run `make verify` before claiming completion. Treat any format issue, clippy warning, build failure, or test failure as blocking.
+- Do not use workarounds in production code or tests. Fix the root cause.
 - Do not install dependencies by editing manifest files by hand. Use Cargo commands once the Rust crate exists.
+- Do not run destructive git commands such as `git reset`, `git checkout --`, `git restore`, `git clean`, or forced deletion commands unless the user explicitly asks for that operation.
 
-## Mandatory Requirements
+## Agent docs
 
-- Run `make verify` before completing any implementation, docs, or repository-configuration task.
-- Conventional Commits are mandatory for every commit:
-  - Format: `<type>[optional scope][!]: <description>`
-  - Examples: `feat(cli): add check command`, `fix(parser): handle type-only imports`, `ci: validate PR titles`
-- PR titles must follow the same format because squash-merge titles become release-history entries.
-- Commit descriptions and PR title descriptions should be imperative, lowercase when natural, and concise.
-- Do not rewrite unrelated files or reformat the whole repo. Keep diffs limited to the task.
+Read these only when relevant to the task:
+
+- `docs/agents/issue-tracker.md` — local issue/PRD conventions under `.scratch/<feature>/`
+- `docs/agents/triage-labels.md` — label mapping for issue triage skills
+- `docs/agents/domain.md` — how agents consume `CONTEXT.md` and ADRs
+- `CONTEXT.md` — project vocabulary, command concepts, domain rules, and product decisions
+- `docs/adr/` — architectural decisions; flag conflicts before overriding them
+
+Use canonical terms from `CONTEXT.md` in command names, help text, issue titles, test names, and user-facing explanations. If the right term is missing, call out the gap instead of inventing new language.
+
+## Skill dispatch
+
+Before editing, identify the task domain and load every matching skill.
+
+- Planning, glossary, or ADR capture: `grill-with-docs`, `grilling`, `domain-modeling`
+- PRDs and specs: `to-prd`
+- Issue breakdown: `to-issues`
+- CLI behavior, flags, stdout/stderr, exit codes, JSON output, dry-run behavior, non-interactive mode, or introspection: `agentic-cli-design`
+- Rust command behavior, clap parser code, error handling, output contracts, integration tests, or Cargo workflows: `rust` and `rust-cli`
+- Tests, fixtures, golden files, integration tests: `testing-boss` plus the relevant Rust/CLI skill
+- Implementation: `coding-guidelines` and `implement`
+- Bug fix or failing test: `no-workarounds` and `systematic-debugging`
+- Code review before delivery: `review`
+- Commits or PR titles: `conventional-commits`
+- Completion claim: `evidence-gate`
+- OnionCry dogfooding or fixture checks: `onioncry` when running OnionCry against architecture boundaries or validating CLI behavior on sample projects
+
+## CLI behavior
+
+- Design commands for humans and agents. Prefer deterministic output, non-interactive flags, stable exit codes, and machine-readable modes when the workflow needs automation.
+- Keep stdout for requested command output. Send diagnostics, progress, and warnings to stderr.
+- Treat command names, flags, JSON fields, text output relied on by tests, and exit-code contracts as public API.
+- Help text must be concise, truthful, and backed by implemented behavior.
+- Errors must name the failed operation and the next useful action when one is known.
+
+## Rust conventions
+
+- Prefer a small, explicit Rust module structure over early abstraction.
+- Keep CLI parsing, config loading, path matching, source parsing, graph construction, and diagnostics in separate modules.
+- Prefer explicit domain types over stringly typed command plumbing.
+- Keep parsing, domain execution, and output rendering separable enough to test without spawning the binary for every case.
+- Use `clap` for CLI definitions, `serde_yaml` for config, `globset` for path matching, `oxc_parser` or `swc_ecma_parser` for TS/JS parsing, `petgraph` for graph modeling, and `miette` for terminal diagnostics unless an ADR changes that decision.
+- Use `thiserror` or the repo's established error pattern for typed errors.
+- Use `serde`/`serde_json` for structured output. Do not hand-build JSON.
+- Avoid panics in user-facing CLI paths. Return typed errors and render diagnostics through `miette`.
+- Do not add dependencies casually. Each dependency needs a clear job and should be used directly by the crate that imports it.
+- Integration tests should assert CLI behavior through the binary when the contract is user-facing. Unit tests should cover pure parsing and domain logic directly.
+
+## Testing rules
+
+- Use Arrange, Act, Assert.
+- Test observable behavior, not private implementation details.
+- Do not add test-only production hooks, branches, or helper methods.
+- Do not test mock behavior instead of system behavior.
+- Treat parser fixtures and graph edge cases as first-class tests.
+- Flaky tests are blocking failures, not acceptable debt.
 
 ## Commands
 
@@ -52,103 +104,37 @@ rtk cargo clippy --all-targets --all-features -- -D warnings
 rtk cargo test --all-features
 ```
 
-## CRITICAL: Git Commands Restriction
-
-- Never run `git restore`, `git checkout`, `git reset`, `git clean`, `git rm`, or any other git command that discards working directory changes without explicit user permission.
-- If a change must be reverted or discarded, ask the user first and wait for permission.
-- Use non-destructive commands for inspection: `git status`, `git diff`, `git log`, `git show`.
-- Use `--force-with-lease` instead of `--force` when a history rewrite has been explicitly approved.
-
-## Code Search and Discovery
-
-- Use local search first for project code: `rg`, `rg --files`, and targeted file reads.
-- Use external documentation tools only for libraries, frameworks, services, or APIs.
-- Never use external web search to understand local code.
-- When researching external libraries, verify package names, current versions, and official documentation before adding dependencies.
-
-## Rust Project Rules
-
-- Prefer a small, explicit Rust module structure over early abstraction.
-- Keep CLI parsing, config loading, path matching, source parsing, graph construction, and diagnostics in separate modules once the crate is scaffolded.
-- Use `clap` for CLI definitions, `serde_yaml` for config, `globset` for path matching, `oxc_parser` or `swc_ecma_parser` for TS/JS parsing, `petgraph` for graph modeling, and `miette` for terminal diagnostics unless an ADR changes that decision.
-- Treat parser fixtures and graph edge cases as first-class tests.
-- Avoid panics in user-facing CLI paths. Return typed errors and render diagnostics through `miette`.
-- Do not add dependencies casually. Each dependency needs a clear job and should be used directly by the crate that imports it.
-
-## Testing Rules
-
-- Use Arrange, Act, Assert.
-- Test observable behavior, not private implementation details.
-- Do not add test-only production hooks, branches, or helper methods.
-- Do not test mock behavior instead of system behavior.
-- Reset shared state in `before_each` / `after_each` equivalents.
-- Flaky tests are blocking failures, not acceptable debt.
-
-## Coding Style and Naming
+## Coding style
 
 - Rust code must be formatted with `cargo fmt`.
 - `cargo clippy --all-targets --all-features -- -D warnings` must pass with zero warnings.
 - Prefer clear names over abbreviations.
 - Keep comments sparse and useful; explain non-obvious decisions, not syntax.
 - Use kebab-case for markdown and workflow files.
+- Do not rewrite unrelated files or reformat the whole repo. Keep diffs limited to the task.
 
-## Commit and Pull Request Guidelines
+## Commit and pull request guidelines
 
-- Allowed commit and PR title types:
-  - `feat`
-  - `fix`
-  - `docs`
-  - `style`
-  - `refactor`
-  - `perf`
-  - `test`
-  - `build`
-  - `ci`
-  - `chore`
-  - `revert`
-- Allowed scopes:
-  - `agents`
-  - `ci`
-  - `cli`
-  - `config`
-  - `deps`
-  - `diagnostics`
-  - `docs`
-  - `graph`
-  - `parser`
-  - `release`
-  - `repo`
-  - `test`
-- Scopes are optional, but if a scope is used it must come from the allowed list.
-- Before opening a PR, run `make verify`.
-- PRs should include a clear description, linked issue or local ticket when available, and any relevant architecture decisions.
+Allowed commit and PR title types:
 
-## Security and Configuration
+- `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+Allowed scopes:
+
+- `agents`, `ci`, `cli`, `config`, `deps`, `diagnostics`, `docs`, `graph`, `parser`, `release`, `repo`, `test`
+
+Scopes are optional, but if a scope is used it must come from the allowed list. PR titles must follow the same format because squash-merge titles become release-history entries.
+
+Before opening a PR, run `make verify`. PR bodies should summarize changes, call out risk, and list validation commands run.
+
+## Security and configuration
 
 - Keep secrets in `.env` and never commit them.
 - Mirror required environment keys in `.env.example` once environment configuration exists.
 - Do not commit generated credentials, tokens, local caches, or machine-specific paths.
 - Prefer least-privilege GitHub Actions permissions.
 
-## Agent Skill Dispatch Protocol
-
-Every agent must identify the task domain before writing code:
-
-- Specs, PRDs, or planning: use `to-prd`, `to-issues`, or `grill-with-docs` as appropriate.
-- Test-first implementation: use `tdd`.
-- Bugs, failures, or regressions: use `diagnose`.
-- Architecture review or refactoring analysis: use `improve-codebase-architecture`.
-- README or public docs: use `crafting-effective-readmes`.
-- Broad codebase orientation: use `zoom-out`.
-
-Before claiming completion:
-
-1. Run `make verify`.
-2. Read the output.
-3. Fix all failures.
-4. Rerun `make verify`.
-
-## Anti-Patterns (immediate rejection)
+## Anti-patterns (immediate rejection)
 
 1. Skipping relevant skill activation.
 2. Claiming completion without `make verify`.
@@ -162,6 +148,14 @@ Before claiming completion:
 10. Reformatting unrelated files.
 
 ## Agent skills
+
+Skills are installed from the `rust-cli` setup in [marcioaltoe/skills](https://github.com/marcioaltoe/skills), plus the project-local `onioncry` skill. Reinstall with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/marcioaltoe/skills/main/install.sh | bash -s -- rust-cli
+bunx skills add marcioaltoe/skills --agent universal --copy -y --skill onioncry
+make skills-link
+```
 
 ### Issue tracker
 
