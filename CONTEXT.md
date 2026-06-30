@@ -20,12 +20,84 @@ _Avoid_: feature folder, module when meaning context, package when meaning conte
 A starter vocabulary of architectural boundaries and rules that reflects a common architectural style without making that style mandatory.
 _Avoid_: built-in architecture, mandatory onion model
 
+**Project Architecture Mode**:
+The configured architecture style that selects exactly one architecture-specific rule family for a project. It is configured with `architecture.mode`; if a configuration file does not select a mode, OnionCry uses the Clean Architecture mode.
+_Avoid_: mixed architecture validation, simultaneous clean and vertical slice mode
+
+**Architecture Mode Options**:
+Configuration nested under the selected architecture mode, such as `architecture.cleanArchitecture`, that describes structural conventions for that mode. Rule severities remain under `rules` rather than inside mode options.
+_Avoid_: rule severity in architecture shape, scattering mode options under unrelated config sections
+
+**Architecture-Specific Rule Family**:
+A set of rules that only makes sense for one Project Architecture Mode, such as `cleanarch/*` or `verticalslice/*`. OnionCry activates only the architecture-specific rule family selected by the project mode; architecture-neutral rules remain independent.
+_Avoid_: always-on architecture rule, running every architecture pattern at once
+
+**Architecture Rule Mode Mismatch**:
+A configuration error raised when a project enables a rule from an Architecture-Specific Rule Family that does not match `architecture.mode`. OnionCry fails configuration validation instead of silently ignoring the incompatible rule.
+_Avoid_: silently skipped architecture rule, mixed-mode warning only
+
 **Clean Architecture Preset**:
-The default architecture preset that uses pragmatic layer names: domain, application, infra, and shared. It follows Clean Architecture dependency direction while grouping interface adapters and framework details under infra.
+The default architecture preset and Project Architecture Mode that uses pragmatic layer names: domain, application, infra, and shared. It follows Clean Architecture dependency direction while grouping interface adapters and framework details under infra.
 _Avoid_: Uncle Bob names only, splitting adapters/frameworks by default
 
+**Context-First Clean Architecture Layout**:
+A Clean Architecture code organization where contextual code lives under the configured context root segment, defaulting to `contexts/<context>/`, and each context contains its own `domain/`, `application/`, and `infra/` layers. Code that does not belong to an Architectural Context uses the same layer shape directly under the source root.
+_Avoid_: layer-first clean architecture layout, global use-case dump
+
+**Context Root Segment**:
+The configured source path segment that contains Architectural Context folders. OnionCry defaults this to `contexts`, while projects may configure aliases such as `modules`.
+_Avoid_: hardcoded modules folder, treating context root as a context
+
+**Layer Path Alias**:
+A configured directory-name alias for a canonical Architectural Layer. For example, OnionCry's canonical outer layer is `infra`, but a project may map it to a path segment such as `infrastructure`.
+_Avoid_: new layer when meaning path spelling, renaming the architecture vocabulary
+
+**Artifact Folder Map**:
+A Project Architecture Mode option that lists the expected artifact folder names for each canonical layer. It lets OnionCry check placement of use cases, ports, repositories, adapters, entities, and value objects without hardcoding every team's directory spelling.
+_Avoid_: fixed folder list, unconfigurable artifact taxonomy
+
+**Artifact Filename Suffix**:
+A configured filename suffix that helps OnionCry infer an artifact's role, such as `.repository.ts`, `.service.ts`, `.use-case.ts`, `.entity.ts`, `.value-object.ts`, `.adapter.ts`, or `.handler.ts`. Suffix inference complements folder-based classification and should be configurable because teams use different naming conventions.
+_Avoid_: class-name inspection as path rule, hardcoded TypeScript suffixes
+
+**Service Artifact**:
+A file whose configured suffix marks it as a service, commonly `.service.ts`. In Clean Architecture, a service's architectural role comes from its containing layer or artifact folder; in Vertical Slice, a service is an internal slice detail unless exposed through the slice public surface.
+_Avoid_: global service layer, service as default place for all logic
+
+**Global Slice Artifact**:
+A file that appears to belong to a Vertical Slice, usually by configured filename suffix or artifact role, but lives outside the configured slice root. In Vertical Slice mode, OnionCry may warn about these files without treating global bootstrap, shared, config, or technical infrastructure folders as automatic violations.
+_Avoid_: every global folder is invalid, clean architecture fallback check
+
+**Artifact Placement Rule**:
+A Clean Architecture code organization rule, named `cleanarch/artifact-placement`, that reports artifacts placed outside the configured Context-First Clean Architecture Layout. It defaults to a warning so existing projects can expose structure drift before making it a blocking gate.
+_Avoid_: migration blocker by default, folder nitpick rule
+
+**Presence-Based Structure Rule**:
+A code organization rule that validates where an artifact belongs when that artifact exists, without requiring every possible folder to exist up front. It prevents misplaced use cases, ports, repositories, adapters, entities, and value objects while allowing small contexts to omit unused layers.
+_Avoid_: empty folder requirement, scaffold completeness rule
+
+**Vertical Slice Preset**:
+An architecture preset and Project Architecture Mode that organizes code around complete slices of user or business capability instead of global technical layers. It favors slice-local cohesion and cross-slice encapsulation over Clean Architecture layer validation.
+_Avoid_: feature folder when meaning context, clean architecture with different folders
+
+**Vertical Slice Layout**:
+A code organization where each complete slice of user or business capability lives under the configured slice root segment, defaulting to `features/<feature>/`. The slice root may be configured to alternatives such as `slices`, `modules`, or `.` for projects that intentionally place slices directly under the source root.
+_Avoid_: layer-first vertical slice, hardcoded features folder
+
+**Slice Public Surface**:
+The explicit files or folders other slices may import from, defaulting to a slice root `index.ts` and `contracts/`. Other slice files are internal details unless the project configures them as public.
+_Avoid_: any exported file is public, importable slice internals
+
+**Slice Handler**:
+The entrypoint inside a Vertical Slice that handles a command, query, endpoint, or equivalent user/business request. Handlers coordinate slice-local logic and adapters without becoming shared services for unrelated slices.
+_Avoid_: global use case when meaning slice handler, controller-only slice
+
+**Slice Root Segment**:
+The configured source path segment that contains Vertical Slice folders. OnionCry defaults this to `features`; using `.` means the source root itself contains slice folders and should be an explicit project choice because it is more ambiguous.
+_Avoid_: implicit root-level feature detection, treating every source folder as a slice
+
 **Default Rule Preset**:
-The starter rule policy generated by the configuration template. It treats layer leaks and cross-context internal imports as errors, external packages as default-deny in sensitive layers, architecture-specific clean architecture checks as warnings, shotgun-surgery history analysis as off, and generic import resolution or file-cycle checks as delegated to the JavaScript linter.
+The starter rule policy generated by the configuration template. It treats layer leaks and cross-context internal imports as errors, external packages as default-deny in sensitive layers, the selected Project Architecture Mode's architecture-specific checks as warnings, shotgun-surgery history analysis as off, and generic import resolution or file-cycle checks as delegated to the JavaScript linter.
 _Avoid_: silent starter config
 
 **Domain Layer**:
@@ -257,6 +329,50 @@ Domain expert: "That is an ambiguous boundary classification, not a precedence p
 Dev: "What if a scanned file matches no layer?"
 
 Domain expert: "That is an unclassified file. The default preset reports it as a warning so coverage gaps are visible."
+
+Dev: "Can a project run Clean Architecture and Vertical Slice validation at the same time?"
+
+Domain expert: "No. The project selects one Project Architecture Mode. If it does not select one, OnionCry uses Clean Architecture by default."
+
+Dev: "What if a Vertical Slice project configures a `cleanarch/*` rule?"
+
+Domain expert: "That is an Architecture Rule Mode Mismatch. OnionCry fails configuration validation instead of ignoring the rule."
+
+Dev: "Where should Vertical Slice code live by default?"
+
+Domain expert: "Use the Vertical Slice Layout: `src/features/<feature>` by default, with `sliceRoot` configurable to alternatives such as `slices`, `modules`, or `.`."
+
+Dev: "What folders should a default Vertical Slice contain?"
+
+Domain expert: "Use `index.ts` and `contracts/` as the public surface, with optional internal `handlers/`, `adapters/`, `domain/`, and `__tests__/` folders. Do not require empty folders."
+
+Dev: "Can OnionCry use filename conventions such as `.repository.ts` and `.service.ts`?"
+
+Domain expert: "Yes. Artifact Filename Suffixes complement folder placement so rules can identify artifact roles during migrations or in flatter layouts."
+
+Dev: "Does `.service.ts` mean the same thing in Clean Architecture and Vertical Slice?"
+
+Domain expert: "No. In Clean Architecture, folder placement decides whether it is a domain, application, or infra service. In Vertical Slice, it is a slice-internal detail unless exposed through the slice public surface."
+
+Dev: "If a project selects Vertical Slice, are global `domain`, `application`, or `infra` folders automatically invalid?"
+
+Domain expert: "No. Vertical Slice mode does not run Clean Architecture checks. It may warn about Global Slice Artifacts outside the slice root while still allowing configured global folders for bootstrap, shared code, config, libraries, and technical infrastructure."
+
+Dev: "Where do layout options such as context root, layer path aliases, and artifact folders live?"
+
+Domain expert: "Under the selected mode's Architecture Mode Options, such as `architecture.cleanArchitecture`. Rule severities stay under `rules`."
+
+Dev: "How should a large Clean Architecture backend avoid long global use-case and repository folders?"
+
+Domain expert: "Use the Context-First Clean Architecture Layout: `src/contexts/<context>/{domain,application,infra}` for contextual code and `src/{domain,application,infra}` for contextless base code."
+
+Dev: "Must every context contain every Clean Architecture layer folder from the start?"
+
+Domain expert: "No. Use Presence-Based Structure Rules: validate artifacts when they exist, but do not require empty layer folders."
+
+Dev: "Should artifact placement violations block existing projects by default?"
+
+Domain expert: "No. `cleanarch/artifact-placement` defaults to warning so teams can migrate gradually, then raise it to error when the layout is clean."
 
 Dev: "What if a scanned file matches no context?"
 
