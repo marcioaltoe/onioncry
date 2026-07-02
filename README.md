@@ -270,8 +270,9 @@ OnionCry focuses on architecture rules that need project-specific knowledge:
 - Framework or data-format dependencies from core layers.
 - Public-surface re-exports of internal implementation details.
 - Context-level cycles and ownership checks.
-- Context-first Clean Architecture artifact placement or Vertical Slice public
-  surface checks, depending on `architecture.mode`.
+- Context-first Clean Architecture artifact placement or Vertical Slice
+  feature-local boundaries, public entry points, and shared-layer drift,
+  depending on `architecture.mode`.
 
 See [`docs/architecture-modes.md`](docs/architecture-modes.md) for the
 `cleanArchitecture` and `verticalSlice` configuration contracts. OnionCry runs
@@ -293,6 +294,10 @@ them to `error` when the repository already follows the contract.
 {
   "rules": {
     "cleanarch/artifact-placement": "warn",
+    "verticalslice/no-cross-slice-internal-import": "warn",
+    "verticalslice/no-global-slice-artifacts": "warn",
+    "verticalslice/slice-entry-point": "warn",
+    "verticalslice/no-shared-layer-artifacts": "warn",
     "repo/test-placement": "warn",
     "repo/path-naming": "warn",
     "frontend/feature-system-layout": "warn",
@@ -312,6 +317,12 @@ under `tests/e2e`.
 `repo/path-naming` checks path casing, plural collection directories such as
 `repositories`, singular feature directories, the configured layer directory
 vocabulary, and optional suffixes for collection-owned files.
+
+The `verticalslice/*` rules run only when `architecture.mode` is
+`verticalSlice`. The default slice layout is
+`src/features/<domain>/<operation>` (`sliceRoot: "features"`,
+`sliceDepth: 2`). Set `sliceDepth: 1` for projects that intentionally use
+`src/features/<feature>` or root-level feature folders.
 
 The `frontend/feature-system-*` rules check frontend systems under
 `packages/frontend/src/systems/<domain>` by default:

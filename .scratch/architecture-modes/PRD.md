@@ -46,7 +46,7 @@ Vertical Slice mode gets slice-first organization rules. Slices live under a con
 26. As a Vertical Slice adopter, I want handlers, adapters, domain helpers, services, and tests to be internal by default, so that slice implementation details stay private.
 27. As a Vertical Slice adopter, I want imports between slices to target only the public surface, so that slices remain independent.
 28. As a Vertical Slice adopter, I want type-only imports and re-exports to count as slice dependencies, so that type coupling cannot bypass architecture checks.
-29. As a Vertical Slice adopter, I want global technical folders to be allowed, so that bootstrap, config, shared libraries, and technical infra can exist outside slices.
+29. As a Vertical Slice adopter, I want configured global platform folders to be allowed, so that bootstrap, config, shared libraries, and platform infrastructure can exist outside slices.
 30. As a Vertical Slice adopter, I want warnings for slice-looking files outside the slice root, so that projects do not drift back into global feature lists.
 31. As a CLI user, I want `onioncry init` to show the architecture mode contract, so that new projects start from an explicit configuration.
 32. As a CLI user, I want diagnostics to name the rule, architecture mode, detected artifact role, and expected boundary, so that violations are actionable.
@@ -73,15 +73,17 @@ Vertical Slice mode gets slice-first organization rules. Slices live under a con
 - Interpret `.service.ts` in Clean Architecture through the containing layer or artifact folder.
 - Allow contextless base artifacts in root domain, application, and infra layers.
 - Avoid requiring empty layer folders for every Architectural Context.
-- Add Vertical Slice mode options for slice root, public surface, artifact folders, artifact suffixes, and allowed global folders.
-- Use `features` as the default Vertical Slice root segment.
-- Allow `slices`, `modules`, and root-level slices through explicit configuration.
+- Add Vertical Slice mode options for slice root, slice depth, public surface, artifact folders, artifact suffixes, allowed global folders, entry point names, and shared layer folders.
+- Use `features/<domain>/<operation>` as the default Vertical Slice layout.
+- Allow `slices`, `modules`, `features/<feature>`, and root-level slices through explicit `sliceRoot` and `sliceDepth` configuration.
 - Use `index.ts` and `contracts` as the default Vertical Slice public surface.
 - Treat handlers, adapters, domain helpers, services, and tests as slice internals by default.
 - Interpret `.service.ts` in Vertical Slice as a slice-internal artifact unless exposed through the public surface.
 - Add `verticalslice/no-cross-slice-internal-import` to prevent imports from one slice into another slice's internals.
 - Add `verticalslice/no-global-slice-artifacts` to report slice-looking files outside the configured slice root.
-- Allow configured global folders in Vertical Slice mode for bootstrap, config, shared code, libraries, and technical infrastructure.
+- Add `verticalslice/slice-entry-point` to report slices without configured public entry points.
+- Add `verticalslice/no-shared-layer-artifacts` to report global technical layers such as repositories, services, handlers, and use cases outside slices.
+- Allow configured global folders in Vertical Slice mode for bootstrap, config, shared code, libraries, and platform infrastructure.
 - Update init output so new projects see the architecture mode contract and the Clean Architecture defaults.
 - Keep the CLI output model linter-style: violations include rule name, severity, file location, context needed to understand the finding, and a suggestion when one is known.
 
@@ -91,7 +93,7 @@ Vertical Slice mode gets slice-first organization rules. Slices live under a con
 - `onioncry init` output needs snapshot or direct content tests for the new architecture mode block and default rules.
 - Configuration tests must cover explicit Clean Architecture mode, explicit Vertical Slice mode, missing mode default, invalid mode, and architecture rule mode mismatch.
 - Clean Architecture placement tests must cover valid contextual artifacts, valid contextless base artifacts, misplaced artifacts, configured context root, configured layer aliases, configured artifact suffixes, `.service.ts` ambiguity, disabled rules, and overrides.
-- Vertical Slice layout tests must cover default `features` root, alternate roots, root-level slices, public surface classification, internal file classification, allowed global folders, and mode isolation from Clean Architecture checks.
+- Vertical Slice layout tests must cover default `features/<domain>/<operation>` layout, alternate roots, root-level slices, public surface classification, internal file classification, allowed global folders, entry points, shared-layer drift, and mode isolation from Clean Architecture checks.
 - Cross-slice import tests must cover imports through public surface, imports into internals, same-slice imports, type-only imports, re-exports, custom public surface options, and disabled rule behavior.
 - Global slice artifact tests must cover misplaced slice-looking files, configured allowed global folders, root-level slice mode, valid slice artifacts, and disabled rule behavior.
 - Tests must assert observable behavior instead of private implementation details.

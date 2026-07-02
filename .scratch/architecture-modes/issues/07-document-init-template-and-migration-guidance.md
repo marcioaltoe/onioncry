@@ -20,10 +20,11 @@ Update the generated starter configuration and user-facing documentation so new 
 - [ ] The generated Clean Architecture options include default `contextRoot`, `layerPathAliases`, `artifactFolders`, and `artifactSuffixes`.
 - [ ] The generated `rules` map includes `cleanarch/artifact-placement` at `warn`.
 - [ ] Documentation explains that `cleanarch/*` and `verticalslice/*` are mutually exclusive by mode.
-- [ ] Documentation includes a Clean Architecture context-first example and a Vertical Slice `features/<feature>` example.
+- [ ] Documentation includes a Clean Architecture context-first example and a Vertical Slice `features/<domain>/<operation>` example.
+- [ ] Documentation explains `sliceDepth: 1` for projects that intentionally use `features/<feature>` or root-level feature folders.
 - [ ] Documentation explains how to configure `modules`, `infrastructure`, and root-level slices when a project needs those path names.
 - [ ] Documentation explains the `.service.ts` distinction between Clean Architecture and Vertical Slice.
-- [ ] Documentation includes a migration note for projects with existing global use case or repository lists.
+- [ ] Documentation includes a migration note for projects with existing global use case, service, handler, or repository lists.
 - [ ] The architecture modes PRD links or describes the final implementation issue queue in dependency order.
 - [ ] Tests or snapshots cover the updated `init` template output.
 - [ ] `make verify` passes.

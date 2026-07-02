@@ -121,11 +121,11 @@ The `.service.ts` suffix is ambiguous in Clean Architecture. OnionCry must use f
 
 ## Vertical Slice
 
-Vertical Slice mode uses `features/<feature>` by default:
+Vertical Slice mode uses `features/<domain>/<operation>` by default:
 
 ```txt
 src/
-  features/<feature>/
+  features/<domain>/<operation>/
     index.ts
     contracts/
     handlers/
@@ -144,6 +144,7 @@ The default mode options are:
     "mode": "verticalSlice",
     "verticalSlice": {
       "sliceRoot": "features",
+      "sliceDepth": 2,
       "publicSurface": ["index.ts", "contracts"],
       "artifactFolders": ["handlers", "adapters", "domain", "__tests__"],
       "artifactSuffixes": {
@@ -155,17 +156,27 @@ The default mode options are:
         "valueObject": [".value-object.ts"],
         "useCase": [".use-case.ts"]
       },
-      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "platform"],
+      "entryPointNames": ["setup", "Setup", "map", "Map", "register", "Register"],
+      "sharedLayerFolders": ["controllers", "handlers", "services", "repositories", "use-cases"]
     }
   }
 }
 ```
 
-Projects can set `sliceRoot` to `slices`, `modules`, or `.`. Root-level slices are explicit because they are more ambiguous to classify.
+Projects can set `sliceRoot` to `slices`, `modules`, or `.`. Projects that prefer `features/<feature>` or root-level feature folders should set `sliceDepth` to `1`; root-level slices are explicit because they are more ambiguous to classify.
 
-In Vertical Slice mode, `.service.ts` files are internal slice details by default. Other slices must import through the configured public surface.
+In Vertical Slice mode, `.service.ts`, `.repository.ts`, `.handler.ts`, and similar artifact suffixes are slice-internal details by default. Other slices must import through the configured public surface.
 
-Global `domain`, `application`, or `infra` folders are not invalid by themselves in Vertical Slice mode. The `verticalslice/no-global-slice-artifacts` rule can warn when files that look like slice artifacts live outside the configured slice root.
+Global `domain`, `application`, or `infra` folders are not invalid by
+themselves in Vertical Slice mode. The
+`verticalslice/no-global-slice-artifacts` rule can warn when files that look
+like slice artifacts live outside the configured slice root. The stricter
+`verticalslice/no-shared-layer-artifacts` rule reports global technical layers
+such as `repositories`, `services`, `handlers`, or `use-cases` even when they
+appear under configured global folders. The `verticalslice/slice-entry-point`
+rule reports slices that do not expose a configured entry point such as
+`setup`, `Map`, or `register`.
 
 ## Choosing a mode
 

@@ -45,6 +45,8 @@ const RULE_CLEAN_ARTIFACT_PLACEMENT: &str = "cleanarch/artifact-placement";
 const RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT: &str =
     "verticalslice/no-cross-slice-internal-import";
 const RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS: &str = "verticalslice/no-global-slice-artifacts";
+const RULE_VERTICAL_SLICE_ENTRY_POINT: &str = "verticalslice/slice-entry-point";
+const RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS: &str = "verticalslice/no-shared-layer-artifacts";
 const RULE_NO_CONCRETE_DEPENDENCY: &str = "solid/no-concrete-dependency";
 const RULE_FEATURE_ENVY: &str = "codesmells/feature-envy";
 const RULE_SHOTGUN_SURGERY: &str = "codesmells/shotgun-surgery";
@@ -55,7 +57,7 @@ const RULE_FEATURE_SYSTEM_PUBLIC_API: &str = "frontend/feature-system-public-api
 const RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW: &str = "frontend/feature-system-dependency-flow";
 const RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT: &str = "frontend/feature-system-adapter-contract";
 const RULE_FEATURE_SYSTEM_QUERY_CONTRACT: &str = "frontend/feature-system-query-contract";
-const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/no-framework-in-core, cleanarch/no-outer-data-format-in-core, cleanarch/no-public-surface-internal-reexport, cleanarch/no-context-cycle, cleanarch/no-unowned-schema-import, cleanarch/artifact-placement, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, verticalslice/no-cross-slice-internal-import, verticalslice/no-global-slice-artifacts, solid/no-concrete-dependency, codesmells/feature-envy, codesmells/shotgun-surgery, repo/test-placement, repo/path-naming, frontend/feature-system-layout, frontend/feature-system-public-api, frontend/feature-system-dependency-flow, frontend/feature-system-adapter-contract, frontend/feature-system-query-contract";
+const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/no-framework-in-core, cleanarch/no-outer-data-format-in-core, cleanarch/no-public-surface-internal-reexport, cleanarch/no-context-cycle, cleanarch/no-unowned-schema-import, cleanarch/artifact-placement, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, verticalslice/no-cross-slice-internal-import, verticalslice/no-global-slice-artifacts, verticalslice/slice-entry-point, verticalslice/no-shared-layer-artifacts, solid/no-concrete-dependency, codesmells/feature-envy, codesmells/shotgun-surgery, repo/test-placement, repo/path-naming, frontend/feature-system-layout, frontend/feature-system-public-api, frontend/feature-system-dependency-flow, frontend/feature-system-adapter-contract, frontend/feature-system-query-contract";
 const DEFAULT_TEST_FILE_SUFFIXES: &[&str] = &[
     ".test.ts",
     ".test.tsx",
@@ -202,6 +204,7 @@ const DEFAULT_CLEAN_GROUPED_ARTIFACT_FOLDERS: &[&str] = &[
     "bootstrap",
 ];
 const DEFAULT_VERTICAL_SLICE_ROOT: &str = "features";
+const DEFAULT_VERTICAL_SLICE_DEPTH: usize = 2;
 const DEFAULT_VERTICAL_PUBLIC_SURFACE: &[&str] = &["index.ts", "contracts"];
 const DEFAULT_VERTICAL_ARTIFACT_FOLDERS: &[&str] = &["handlers", "adapters", "domain", "__tests__"];
 const DEFAULT_VERTICAL_ARTIFACT_SUFFIXES: &[(&str, &[&str])] = &[
@@ -214,7 +217,24 @@ const DEFAULT_VERTICAL_ARTIFACT_SUFFIXES: &[(&str, &[&str])] = &[
     ("useCase", &[".use-case.ts"]),
 ];
 const DEFAULT_VERTICAL_ALLOWED_GLOBAL_FOLDERS: &[&str] =
-    &["app", "config", "lib", "shared", "infra"];
+    &["app", "config", "lib", "shared", "platform"];
+const DEFAULT_VERTICAL_ENTRY_POINT_NAMES: &[&str] = &[
+    "setup",
+    "Setup",
+    "map",
+    "Map",
+    "register",
+    "Register",
+    "registerRoute",
+    "RegisterRoute",
+];
+const DEFAULT_VERTICAL_SHARED_LAYER_FOLDERS: &[&str] = &[
+    "controllers",
+    "handlers",
+    "services",
+    "repositories",
+    "use-cases",
+];
 const DEFAULT_SYSTEMS_ROOTS: &[&str] = &["packages/frontend/src/systems"];
 const DEFAULT_FEATURE_SYSTEM_REQUIRED_DIRECTORIES: &[&str] = &["components", "lib"];
 const DEFAULT_FEATURE_SYSTEM_OPTIONAL_DIRECTORIES: &[&str] =
@@ -337,6 +357,7 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
     },
     "verticalSlice": {
       "sliceRoot": "features",
+      "sliceDepth": 2,
       "publicSurface": ["index.ts", "contracts"],
       "artifactFolders": ["handlers", "adapters", "domain", "__tests__"],
       "artifactSuffixes": {
@@ -348,7 +369,9 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
         "valueObject": [".value-object.ts"],
         "useCase": [".use-case.ts"]
       },
-      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "platform"],
+      "entryPointNames": ["setup", "Setup", "map", "Map", "register", "Register"],
+      "sharedLayerFolders": ["controllers", "handlers", "services", "repositories", "use-cases"]
     }
   },
   // TODO: map import aliases used by your project.
@@ -429,7 +452,9 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
     "cleanarch/unclassified-file": "warn"
     // If you switch architecture.mode to "verticalSlice", remove cleanarch/* rules and enable:
     // "verticalslice/no-cross-slice-internal-import": "warn",
-    // "verticalslice/no-global-slice-artifacts": "warn"
+    // "verticalslice/no-global-slice-artifacts": "warn",
+    // "verticalslice/slice-entry-point": "warn",
+    // "verticalslice/no-shared-layer-artifacts": "warn"
   },
   // TODO: use overrides for temporary policy exceptions, not file selection.
   "overrides": []
@@ -553,6 +578,8 @@ pub struct CleanArchitectureConfig {
 pub struct VerticalSliceConfig {
     #[serde(default = "default_vertical_slice_root")]
     pub slice_root: String,
+    #[serde(default = "default_vertical_slice_depth")]
+    pub slice_depth: usize,
     #[serde(default = "default_vertical_public_surface")]
     pub public_surface: Vec<String>,
     #[serde(default = "default_vertical_artifact_folders")]
@@ -561,6 +588,10 @@ pub struct VerticalSliceConfig {
     pub artifact_suffixes: BTreeMap<String, Vec<String>>,
     #[serde(default = "default_vertical_allowed_global_folders")]
     pub allowed_global_folders: Vec<String>,
+    #[serde(default = "default_vertical_entry_point_names")]
+    pub entry_point_names: Vec<String>,
+    #[serde(default = "default_vertical_shared_layer_folders")]
+    pub shared_layer_folders: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -897,6 +928,18 @@ fn collect_all_violations(
                 rule_policy,
             )?);
             violations.extend(collect_global_slice_artifact_violations(
+                loaded,
+                project_root,
+                files,
+                rule_policy,
+            )?);
+            violations.extend(collect_vertical_slice_entry_point_violations(
+                loaded,
+                project_root,
+                files,
+                rule_policy,
+            )?);
+            violations.extend(collect_vertical_shared_layer_artifact_violations(
                 loaded,
                 project_root,
                 files,
@@ -1992,11 +2035,145 @@ fn collect_global_slice_artifact_violations(
             file,
             rule_setting.severity,
             &role,
-            &policy.slice_root_display(),
+            &policy.slice_root_pattern_display(),
         ));
     }
 
     Ok(violations)
+}
+
+fn collect_vertical_slice_entry_point_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    files: &[PathBuf],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let policy = VerticalSlicePolicy::from_config(&loaded.config.architecture.vertical_slice);
+    let mut files_by_slice = BTreeMap::<String, (String, Vec<PathBuf>)>::new();
+    let mut violations = Vec::new();
+
+    for file in files {
+        let Some(location) = policy.slice_location(project_root, file) else {
+            continue;
+        };
+        if file
+            .file_name()
+            .and_then(|file_name| file_name.to_str())
+            .is_some_and(is_test_file_name)
+        {
+            continue;
+        }
+        files_by_slice
+            .entry(location.slice)
+            .or_insert_with(|| (location.slice_path, Vec::new()))
+            .1
+            .push(file.clone());
+    }
+
+    for (slice, (slice_path, slice_files)) in files_by_slice {
+        let Some(representative_file) = slice_files.first() else {
+            continue;
+        };
+        let rule_setting = rule_policy.effective_rule(
+            RULE_VERTICAL_SLICE_ENTRY_POINT,
+            project_root,
+            representative_file,
+        );
+        if rule_setting.severity == Severity::Off {
+            continue;
+        }
+        if slice_has_configured_entry_point(&slice_files, &policy.entry_point_names)? {
+            continue;
+        }
+
+        violations.push(Violation::vertical_slice_entry_point(
+            representative_file,
+            rule_setting.severity,
+            &slice,
+            &slice_path,
+            &policy.entry_point_names_display(),
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_vertical_shared_layer_artifact_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    files: &[PathBuf],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let policy = VerticalSlicePolicy::from_config(&loaded.config.architecture.vertical_slice);
+    let mut violations = Vec::new();
+
+    for file in files {
+        let rule_setting =
+            rule_policy.effective_rule(RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS, project_root, file);
+        if rule_setting.severity == Severity::Off
+            || policy.slice_location(project_root, file).is_some()
+        {
+            continue;
+        }
+        let Some(folder) = policy.shared_layer_folder(project_root, file) else {
+            continue;
+        };
+        violations.push(Violation::vertical_shared_layer_artifact(
+            file,
+            rule_setting.severity,
+            &folder,
+            &policy.slice_root_pattern_display(),
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn slice_has_configured_entry_point(
+    files: &[PathBuf],
+    entry_point_names: &[String],
+) -> Result<bool> {
+    for file in files {
+        let source = fs::read_to_string(file).map_err(|source| OnionCryError::ReadSource {
+            path: file.clone(),
+            source,
+        })?;
+        if contains_configured_entry_point(&source, entry_point_names) {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
+}
+
+fn contains_configured_entry_point(source: &str, entry_point_names: &[String]) -> bool {
+    entry_point_names.iter().any(|name| {
+        [
+            "export function ",
+            "export async function ",
+            "export const ",
+            "export let ",
+            "export class ",
+            "export { ",
+            "export {",
+        ]
+        .iter()
+        .any(|prefix| source_contains_exported_name(source, prefix, name))
+    })
+}
+
+fn source_contains_exported_name(source: &str, prefix: &str, name: &str) -> bool {
+    let pattern = format!("{prefix}{name}");
+    source.match_indices(&pattern).any(|(index, _)| {
+        source[index + pattern.len()..]
+            .chars()
+            .next()
+            .is_none_or(|character| !is_javascript_identifier_continue(character))
+    })
+}
+
+fn is_javascript_identifier_continue(character: char) -> bool {
+    character.is_ascii_alphanumeric() || character == '_' || character == '$'
 }
 
 fn collect_shotgun_surgery_violations(
@@ -2502,10 +2679,13 @@ struct CleanArtifactPlacementFileIndex {
 
 struct VerticalSlicePolicy {
     slice_root: Vec<String>,
+    slice_depth: usize,
     public_surface: Vec<Vec<String>>,
     artifact_folders: HashSet<String>,
     artifact_suffixes: Vec<(String, String)>,
     allowed_global_folders: HashSet<String>,
+    entry_point_names: Vec<String>,
+    shared_layer_folders: HashSet<String>,
 }
 
 #[derive(Clone)]
@@ -2989,6 +3169,12 @@ fn violation_rule_explanation(rule: &str) -> &'static str {
         }
         RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS => {
             "Vertical Slice artifacts should live under the configured slice root unless their global folder is explicitly allowed."
+        }
+        RULE_VERTICAL_SLICE_ENTRY_POINT => {
+            "Each Vertical Slice should expose a small configured entry point so routes, jobs, or composition code depend on the slice boundary."
+        }
+        RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS => {
+            "Vertical Slice projects should not rebuild shared technical layers such as global services, repositories, handlers, or use cases."
         }
         RULE_NO_CONCRETE_DEPENDENCY => {
             "Core layers should depend on abstractions rather than concrete details."
@@ -3567,13 +3753,13 @@ impl Violation {
         file: &Path,
         severity: Severity,
         role: &str,
-        slice_root: &str,
+        slice_root_pattern: &str,
     ) -> Self {
         Self {
             rule: RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS.to_string(),
             severity: severity.as_str().to_string(),
             message: format!(
-                "verticalSlice artifact {role:?} is outside the configured slice root {slice_root}"
+                "verticalSlice artifact {role:?} is outside the configured slice layout {slice_root_pattern}"
             ),
             file: file.display().to_string(),
             import_specifier: None,
@@ -3587,7 +3773,70 @@ impl Violation {
             target_file: None,
             cycle_path: None,
             suggestion: Some(format!(
-                "move this slice artifact under {slice_root}/<feature>/ or add its global folder to architecture.verticalSlice.allowedGlobalFolders"
+                "move this slice artifact under {slice_root_pattern} or add its global folder to architecture.verticalSlice.allowedGlobalFolders"
+            )),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn vertical_slice_entry_point(
+        file: &Path,
+        severity: Severity,
+        slice: &str,
+        slice_path: &str,
+        entry_point_names: &str,
+    ) -> Self {
+        Self {
+            rule: RULE_VERTICAL_SLICE_ENTRY_POINT.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "verticalSlice slice {slice} does not expose a configured entry point"
+            ),
+            file: file.display().to_string(),
+            import_specifier: None,
+            package_name: None,
+            line: None,
+            column: None,
+            from_layer: None,
+            to_layer: None,
+            from_context: Some(slice.to_string()),
+            to_context: None,
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(format!(
+                "export one entry point from {slice_path}, such as one of {entry_point_names}"
+            )),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn vertical_shared_layer_artifact(
+        file: &Path,
+        severity: Severity,
+        folder: &str,
+        slice_root_pattern: &str,
+    ) -> Self {
+        Self {
+            rule: RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "verticalSlice shared layer folder {folder:?} is outside the configured slice layout"
+            ),
+            file: file.display().to_string(),
+            import_specifier: None,
+            package_name: None,
+            line: None,
+            column: None,
+            from_layer: Some(folder.to_string()),
+            to_layer: None,
+            from_context: None,
+            to_context: None,
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(format!(
+                "move this artifact under {slice_root_pattern} or keep only cross-cutting platform code in configured global folders"
             )),
             matched_layers: None,
             matched_contexts: None,
@@ -4753,6 +5002,7 @@ impl VerticalSlicePolicy {
     fn from_config(config: &VerticalSliceConfig) -> Self {
         Self {
             slice_root: path_components(Path::new(&config.slice_root)),
+            slice_depth: config.slice_depth.max(1),
             public_surface: config
                 .public_surface
                 .iter()
@@ -4770,6 +5020,8 @@ impl VerticalSlicePolicy {
                 })
                 .collect(),
             allowed_global_folders: config.allowed_global_folders.iter().cloned().collect(),
+            entry_point_names: config.entry_point_names.clone(),
+            shared_layer_folders: config.shared_layer_folders.iter().cloned().collect(),
         }
     }
 
@@ -4779,13 +5031,16 @@ impl VerticalSlicePolicy {
             return None;
         }
         if self.slice_root.is_empty() {
-            if self.allowed_global_folders.contains(&components[0]) || components.len() < 2 {
+            if self.allowed_global_folders.contains(&components[0])
+                || components.len() <= self.slice_depth
+            {
                 return None;
             }
+            let slice_end = self.slice_depth;
             return Some(SliceLocation {
-                slice: components[0].clone(),
-                slice_path: components[0].clone(),
-                relative_file: components[1..].to_vec(),
+                slice: display_path_components(&components[..slice_end]),
+                slice_path: display_path_components(&components[..slice_end]),
+                relative_file: components[slice_end..].to_vec(),
             });
         }
 
@@ -4795,15 +5050,16 @@ impl VerticalSlicePolicy {
             return None;
         }
         let slice_index = self.slice_root.len();
-        if components.len() <= slice_index + 1 {
+        let slice_end = slice_index + self.slice_depth;
+        if components.len() <= slice_end {
             return None;
         }
-        let slice = components[slice_index].clone();
-        let slice_path = display_path_components(&components[..=slice_index]);
+        let slice = display_path_components(&components[slice_index..slice_end]);
+        let slice_path = display_path_components(&components[..slice_end]);
         Some(SliceLocation {
             slice,
             slice_path,
-            relative_file: components[slice_index + 1..].to_vec(),
+            relative_file: components[slice_end..].to_vec(),
         })
     }
 
@@ -4841,8 +5097,38 @@ impl VerticalSlicePolicy {
             .cloned()
     }
 
-    fn slice_root_display(&self) -> String {
-        display_path_components(&self.slice_root)
+    fn shared_layer_folder(&self, project_root: &Path, file: &Path) -> Option<String> {
+        let components = project_relative_components(project_root, file);
+        components
+            .iter()
+            .take(components.len().saturating_sub(1))
+            .find(|component| self.shared_layer_folders.contains(*component))
+            .cloned()
+    }
+
+    fn entry_point_names_display(&self) -> String {
+        self.entry_point_names.join(", ")
+    }
+
+    fn slice_root_pattern_display(&self) -> String {
+        let mut components = self.slice_root.clone();
+        for placeholder_index in 0..self.slice_depth {
+            let placeholder = if self.slice_depth == 1 {
+                "<feature>"
+            } else {
+                slice_depth_placeholder(placeholder_index)
+            };
+            components.push(placeholder.to_string());
+        }
+        display_path_components(&components)
+    }
+}
+
+fn slice_depth_placeholder(index: usize) -> &'static str {
+    match index {
+        0 => "<domain>",
+        1 => "<operation>",
+        _ => "<segment>",
     }
 }
 
@@ -6764,10 +7050,13 @@ impl Default for VerticalSliceConfig {
     fn default() -> Self {
         Self {
             slice_root: default_vertical_slice_root(),
+            slice_depth: default_vertical_slice_depth(),
             public_surface: default_vertical_public_surface(),
             artifact_folders: default_vertical_artifact_folders(),
             artifact_suffixes: default_vertical_artifact_suffixes(),
             allowed_global_folders: default_vertical_allowed_global_folders(),
+            entry_point_names: default_vertical_entry_point_names(),
+            shared_layer_folders: default_vertical_shared_layer_folders(),
         }
     }
 }
@@ -6912,6 +7201,8 @@ fn canonical_rule_name(rule: &str) -> Result<&'static str> {
             RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
         }
         RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS => RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS,
+        RULE_VERTICAL_SLICE_ENTRY_POINT => RULE_VERTICAL_SLICE_ENTRY_POINT,
+        RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS => RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS,
         RULE_NO_CONCRETE_DEPENDENCY | "onion/no-concrete-dependency" => RULE_NO_CONCRETE_DEPENDENCY,
         RULE_FEATURE_ENVY => RULE_FEATURE_ENVY,
         RULE_SHOTGUN_SURGERY => RULE_SHOTGUN_SURGERY,
@@ -7188,6 +7479,8 @@ fn default_rule_severity(rule: &str) -> Severity {
         | RULE_CLEAN_ARTIFACT_PLACEMENT
         | RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
         | RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS
+        | RULE_VERTICAL_SLICE_ENTRY_POINT
+        | RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS
         | RULE_NO_CONCRETE_DEPENDENCY
         | RULE_FEATURE_ENVY
         | RULE_SHOTGUN_SURGERY
@@ -7233,6 +7526,10 @@ fn default_vertical_slice_root() -> String {
     DEFAULT_VERTICAL_SLICE_ROOT.to_string()
 }
 
+fn default_vertical_slice_depth() -> usize {
+    DEFAULT_VERTICAL_SLICE_DEPTH
+}
+
 fn default_vertical_public_surface() -> Vec<String> {
     DEFAULT_VERTICAL_PUBLIC_SURFACE
         .iter()
@@ -7253,6 +7550,20 @@ fn default_vertical_artifact_suffixes() -> BTreeMap<String, Vec<String>> {
 
 fn default_vertical_allowed_global_folders() -> Vec<String> {
     DEFAULT_VERTICAL_ALLOWED_GLOBAL_FOLDERS
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_vertical_entry_point_names() -> Vec<String> {
+    DEFAULT_VERTICAL_ENTRY_POINT_NAMES
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_vertical_shared_layer_folders() -> Vec<String> {
+    DEFAULT_VERTICAL_SHARED_LAYER_FOLDERS
         .iter()
         .map(|value| (*value).to_string())
         .collect()

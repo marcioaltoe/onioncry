@@ -19,6 +19,7 @@ Add `verticalslice/no-cross-slice-internal-import` to report imports from one sl
 - [ ] `verticalslice/no-cross-slice-internal-import` is accepted in `rules` with `off`, `warn`, `error`, and `[severity, options]`.
 - [ ] Imports from one slice to another slice's `index.ts` are valid by default.
 - [ ] Imports from one slice to another slice's `contracts/` files are valid by default.
+- [ ] Default slice identity uses `features/<domain>/<operation>` when `sliceDepth` is `2`.
 - [ ] Imports from one slice to another slice's internal `handlers/`, `adapters/`, `domain/`, `__tests__/`, or internal service files report violations.
 - [ ] Imports within the same slice are valid.
 - [ ] Imports from allowed global folders are handled according to existing local import rules and do not become cross-slice violations by default.

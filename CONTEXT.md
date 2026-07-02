@@ -65,7 +65,7 @@ A file whose configured suffix marks it as a service, commonly `.service.ts`. In
 _Avoid_: global service layer, service as default place for all logic
 
 **Global Slice Artifact**:
-A file that appears to belong to a Vertical Slice, usually by configured filename suffix or artifact role, but lives outside the configured slice root. In Vertical Slice mode, OnionCry may warn about these files without treating global bootstrap, shared, config, or technical infrastructure folders as automatic violations.
+A file that appears to belong to a Vertical Slice, usually by configured filename suffix or artifact role, but lives outside the configured slice root. In Vertical Slice mode, OnionCry may warn about these files without treating configured global bootstrap, shared, config, library, or platform infrastructure folders as automatic violations.
 _Avoid_: every global folder is invalid, clean architecture fallback check
 
 **Artifact Placement Rule**:
@@ -81,7 +81,7 @@ An architecture preset and Project Architecture Mode that organizes code around 
 _Avoid_: feature folder when meaning context, clean architecture with different folders
 
 **Vertical Slice Layout**:
-A code organization where each complete slice of user or business capability lives under the configured slice root segment, defaulting to `features/<feature>/`. The slice root may be configured to alternatives such as `slices`, `modules`, or `.` for projects that intentionally place slices directly under the source root.
+A code organization where each complete slice of user or business capability lives under the configured slice root segment, defaulting to `features/<domain>/<operation>/`. The slice root may be configured to alternatives such as `slices`, `modules`, or `.`, and `sliceDepth: 1` supports projects that intentionally use `features/<feature>` or root-level feature folders.
 _Avoid_: layer-first vertical slice, hardcoded features folder
 
 **Slice Public Surface**:
@@ -340,11 +340,11 @@ Domain expert: "That is an Architecture Rule Mode Mismatch. OnionCry fails confi
 
 Dev: "Where should Vertical Slice code live by default?"
 
-Domain expert: "Use the Vertical Slice Layout: `src/features/<feature>` by default, with `sliceRoot` configurable to alternatives such as `slices`, `modules`, or `.`."
+Domain expert: "Use the Vertical Slice Layout: `src/features/<domain>/<operation>` by default. Keep `sliceRoot` configurable to alternatives such as `slices`, `modules`, or `.`, and use `sliceDepth: 1` when a project intentionally uses `features/<feature>`."
 
 Dev: "What folders should a default Vertical Slice contain?"
 
-Domain expert: "Use `index.ts` and `contracts/` as the public surface, with optional internal `handlers/`, `adapters/`, `domain/`, and `__tests__/` folders. Do not require empty folders."
+Domain expert: "Use `index.ts` and `contracts/` as the public surface, with optional internal `handlers/`, `adapters/`, `domain/`, and `__tests__/` folders. Do not require empty folders. A slice should expose a configured entry point such as `setup`, `Map`, or `register` when that rule is enabled."
 
 Dev: "Can OnionCry use filename conventions such as `.repository.ts` and `.service.ts`?"
 
@@ -354,9 +354,13 @@ Dev: "Does `.service.ts` mean the same thing in Clean Architecture and Vertical 
 
 Domain expert: "No. In Clean Architecture, folder placement decides whether it is a domain, application, or infra service. In Vertical Slice, it is a slice-internal detail unless exposed through the slice public surface."
 
+Dev: "Can a Vertical Slice project keep global `repositories`, `services`, `handlers`, or `use-cases` folders?"
+
+Domain expert: "Only as explicit migration debt or project-specific exceptions. The default Vertical Slice rule treats those shared technical layers as drift because implementation details should live inside the owning slice."
+
 Dev: "If a project selects Vertical Slice, are global `domain`, `application`, or `infra` folders automatically invalid?"
 
-Domain expert: "No. Vertical Slice mode does not run Clean Architecture checks. It may warn about Global Slice Artifacts outside the slice root while still allowing configured global folders for bootstrap, shared code, config, libraries, and technical infrastructure."
+Domain expert: "No. Vertical Slice mode does not run Clean Architecture checks. It may warn about Global Slice Artifacts outside the slice root while still allowing configured global folders for bootstrap, shared code, config, libraries, and platform infrastructure."
 
 Dev: "Where do layout options such as context root, layer path aliases, and artifact folders live?"
 

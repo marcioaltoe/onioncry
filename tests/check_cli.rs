@@ -678,6 +678,12 @@ fn init_creates_parseable_mvp_template() {
     assert!(config.contains(r#""cleanarch/unclassified-file": "warn""#));
     assert!(config.contains(r#""verticalslice/no-cross-slice-internal-import": "warn""#));
     assert!(config.contains(r#""verticalslice/no-global-slice-artifacts": "warn""#));
+    assert!(config.contains(r#""sliceDepth": 2"#));
+    assert!(config.contains(r#""platform""#));
+    assert!(config.contains(r#""entryPointNames""#));
+    assert!(config.contains(r#""sharedLayerFolders""#));
+    assert!(config.contains(r#""verticalslice/slice-entry-point": "warn""#));
+    assert!(config.contains(r#""verticalslice/no-shared-layer-artifacts": "warn""#));
 
     let stripped = strip_full_line_jsonc_comments(&config);
     let parsed: Value =
@@ -711,6 +717,7 @@ fn init_creates_parseable_mvp_template() {
         parsed["architecture"]["verticalSlice"]["sliceRoot"],
         "features"
     );
+    assert_eq!(parsed["architecture"]["verticalSlice"]["sliceDepth"], 2);
     assert!(parsed["aliases"].is_object());
     assert!(parsed["layers"].is_object());
     assert!(parsed["contexts"].is_object());
@@ -908,13 +915,14 @@ fn check_accepts_architecture_modes_and_defaults_missing_mode_to_clean_architect
     "mode": "verticalSlice",
     "verticalSlice": {
       "sliceRoot": "features",
+      "sliceDepth": 2,
       "publicSurface": ["index.ts", "contracts"],
       "artifactFolders": ["handlers", "adapters", "domain", "__tests__"],
       "artifactSuffixes": {
         "handler": [".handler.ts"],
         "service": [".service.ts"]
       },
-      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "platform"]
     }
   }"#,
         r#"{}"#,
@@ -923,7 +931,7 @@ fn check_accepts_architecture_modes_and_defaults_missing_mode_to_clean_architect
     write_file(
         &vertical_workspace
             .path()
-            .join("src/features/orders/index.ts"),
+            .join("src/features/orders/list-orders/index.ts"),
         "export const orders = 1;\n",
     );
 
@@ -2573,36 +2581,39 @@ fn check_reports_cross_slice_internal_imports_but_allows_public_surface_imports(
         r#"[]"#,
     );
     write_file(
-        &workspace.path().join("src/features/billing/index.ts"),
-        "export const billing = 1;\n",
+        &workspace
+            .path()
+            .join("src/features/billing/create-billing/index.ts"),
+        "export const billing = 1;\nexport const setup = () => undefined;\n",
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/billing/contracts/billing-event.ts"),
+            .join("src/features/billing/create-billing/contracts/billing-event.ts"),
         "export type BillingEvent = { id: string };\n",
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/billing/handlers/create-billing.handler.ts"),
+            .join("src/features/billing/create-billing/handlers/create-billing.handler.ts"),
         "export type BillingHandler = () => void;\nexport const createBilling = () => undefined;\n",
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/orders/domain/order.service.ts"),
+            .join("src/features/orders/create-order/domain/order.service.ts"),
         "export const orderService = 1;\n",
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/orders/handlers/create-order.handler.ts"),
-        r#"import { billing } from "../../billing";
-import type { BillingEvent } from "../../billing/contracts/billing-event";
+            .join("src/features/orders/create-order/handlers/create-order.handler.ts"),
+        r#"import { billing } from "../../../billing/create-billing";
+import type { BillingEvent } from "../../../billing/create-billing/contracts/billing-event";
 import { orderService } from "../domain/order.service";
-import type { BillingHandler } from "../../billing/handlers/create-billing.handler";
-export { createBilling } from "../../billing/handlers/create-billing.handler";
+import type { BillingHandler } from "../../../billing/create-billing/handlers/create-billing.handler";
+export { createBilling } from "../../../billing/create-billing/handlers/create-billing.handler";
+export const setup = () => undefined;
 export const createOrder = { billing, orderService } satisfies { billing: unknown; orderService: unknown };
 export type OrderBillingHandler = BillingHandler;
 export type OrderBillingEvent = BillingEvent;
@@ -2623,16 +2634,17 @@ export type OrderBillingEvent = BillingEvent;
                 .is_some_and(|message| message.contains("verticalSlice"))
             && violation["suggestion"]
                 .as_str()
-                .is_some_and(|suggestion| suggestion.contains("features/billing"))
+                .is_some_and(|suggestion| suggestion.contains("features/billing/create-billing"))
     }));
     assert!(violations.iter().all(|violation| {
-        violation["importSpecifier"] == "../../billing/handlers/create-billing.handler"
+        violation["importSpecifier"]
+            == "../../../billing/create-billing/handlers/create-billing.handler"
             && violation["message"]
                 .as_str()
-                .is_some_and(|message| message.contains("orders"))
+                .is_some_and(|message| message.contains("orders/create-order"))
             && violation["message"]
                 .as_str()
-                .is_some_and(|message| message.contains("billing"))
+                .is_some_and(|message| message.contains("billing/create-billing"))
     }));
 }
 
@@ -2646,6 +2658,7 @@ fn check_accepts_custom_vertical_slice_public_surface_and_root_level_slices() {
     "mode": "verticalSlice",
     "verticalSlice": {
       "sliceRoot": "modules",
+      "sliceDepth": 1,
       "publicSurface": ["public.ts", "api"],
       "artifactFolders": ["handlers", "domain"],
       "artifactSuffixes": {
@@ -2663,7 +2676,7 @@ fn check_accepts_custom_vertical_slice_public_surface_and_root_level_slices() {
         &custom_workspace
             .path()
             .join("src/modules/billing/public.ts"),
-        "export const billing = 1;\n",
+        "export const billing = 1;\nexport const setup = () => undefined;\n",
     );
     write_file(
         &custom_workspace
@@ -2677,6 +2690,7 @@ fn check_accepts_custom_vertical_slice_public_surface_and_root_level_slices() {
             .join("src/modules/orders/handlers/create-order.handler.ts"),
         r#"import { billing } from "../../billing/public";
 import type { BillingContract } from "../../billing/api/billing-contract";
+export const setup = () => undefined;
 export const createOrder = billing;
 export type OrderContract = BillingContract;
 "#,
@@ -2694,11 +2708,13 @@ export type OrderContract = BillingContract;
     "mode": "verticalSlice",
     "verticalSlice": {
       "sliceRoot": ".",
+      "sliceDepth": 1,
       "allowedGlobalFolders": ["app", "config", "shared"]
     }
   }"#,
         r#"{
-    "verticalslice/no-global-slice-artifacts": "error"
+    "verticalslice/no-global-slice-artifacts": "error",
+    "verticalslice/no-shared-layer-artifacts": "off"
   }"#,
         r#"[]"#,
     );
@@ -2706,7 +2722,7 @@ export type OrderContract = BillingContract;
         &root_workspace
             .path()
             .join("src/orders/handlers/create-order.handler.ts"),
-        "export const createOrder = () => undefined;\n",
+        "export const setup = () => undefined;\nexport const createOrder = () => undefined;\n",
     );
     write_file(
         &root_workspace.path().join("src/app/server.handler.ts"),
@@ -2732,15 +2748,16 @@ fn check_reports_global_slice_artifacts_outside_slice_root() {
     }
   }"#,
         r#"{
-    "verticalslice/no-global-slice-artifacts": "error"
+    "verticalslice/no-global-slice-artifacts": "error",
+    "verticalslice/no-shared-layer-artifacts": "off"
   }"#,
         r#"[]"#,
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/orders/handlers/create-order.handler.ts"),
-        "export const createOrder = () => undefined;\n",
+            .join("src/features/orders/create-order/handlers/create-order.handler.ts"),
+        "export const setup = () => undefined;\nexport const createOrder = () => undefined;\n",
     );
     write_file(
         &workspace
@@ -2793,7 +2810,8 @@ fn check_applies_global_slice_artifact_allowed_global_folders() {
     }
   }"#,
         r#"{
-    "verticalslice/no-global-slice-artifacts": "error"
+    "verticalslice/no-global-slice-artifacts": "error",
+    "verticalslice/no-shared-layer-artifacts": "off"
   }"#,
         r#"[]"#,
     );
@@ -2811,6 +2829,107 @@ fn check_applies_global_slice_artifact_allowed_global_folders() {
 }
 
 #[test]
+fn check_reports_vertical_slice_missing_configured_entry_point() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "verticalslice/slice-entry-point": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/create-order/handlers/create-order.handler.ts"),
+        "export const setupOrder = () => undefined;\nexport const createOrder = () => undefined;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 1);
+    assert_eq!(violations[0]["rule"], "verticalslice/slice-entry-point");
+    assert!(violations[0]["message"].as_str().is_some_and(|message| {
+        message.contains("orders/create-order") && message.contains("entry point")
+    }));
+}
+
+#[test]
+fn check_accepts_vertical_slice_configured_entry_point() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "verticalslice/slice-entry-point": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/create-order/handlers/create-order.handler.ts"),
+        "export const setup = () => undefined;\nexport const createOrder = () => undefined;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_vertical_slice_shared_layer_artifacts_outside_slices() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "verticalslice/no-shared-layer-artifacts": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/create-order/repositories/order.repository.ts"),
+        "export const setup = () => undefined;\nexport const orderRepository = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/platform/repositories/order.repository.ts"),
+        "export const platformRepository = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/shared/services/tax.service.ts"),
+        "export const taxService = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 2);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "verticalslice/no-shared-layer-artifacts"
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("features/<domain>/<operation>"))
+    }));
+}
+
+#[test]
 fn check_accepts_disabled_vertical_slice_rules() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_architecture_mode_config(
@@ -2819,21 +2938,23 @@ fn check_accepts_disabled_vertical_slice_rules() {
         r#"{ "mode": "verticalSlice" }"#,
         r#"{
     "verticalslice/no-cross-slice-internal-import": "off",
-    "verticalslice/no-global-slice-artifacts": "off"
+    "verticalslice/no-global-slice-artifacts": "off",
+    "verticalslice/slice-entry-point": "off",
+    "verticalslice/no-shared-layer-artifacts": "off"
   }"#,
         r#"[]"#,
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/billing/handlers/create-billing.handler.ts"),
+            .join("src/features/billing/create-billing/handlers/create-billing.handler.ts"),
         "export const createBilling = () => undefined;\n",
     );
     write_file(
         &workspace
             .path()
-            .join("src/features/orders/handlers/create-order.handler.ts"),
-        "import { createBilling } from '../../billing/handlers/create-billing.handler';\nexport const createOrder = createBilling;\n",
+            .join("src/features/orders/create-order/handlers/create-order.handler.ts"),
+        "import { createBilling } from '../../../billing/create-billing/handlers/create-billing.handler';\nexport const createOrder = createBilling;\n",
     );
     write_file(
         &workspace
