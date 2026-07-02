@@ -63,6 +63,7 @@ src/
   infra/
     repositories/
     adapters/
+    bootstrap/
 ```
 
 The root `domain/`, `application/`, and `infra/` folders are for contextless base code. Contextual code belongs under the configured context root.
@@ -84,14 +85,27 @@ The default mode options are:
         "infra": ["repositories", "adapters", "controllers", "database", "workflows", "bootstrap"]
       },
       "artifactSuffixes": {
-        "repository": [".repository.ts"],
-        "service": [".service.ts"],
-        "useCase": [".use-case.ts"],
-        "entity": [".entity.ts"],
-        "valueObject": [".value-object.ts"],
-        "adapter": [".adapter.ts"],
-        "handler": [".handler.ts"]
-      }
+        "repository": [".repository.ts", "-repository.ts", "-catalog.ts", ".writer.ts", "-writer.ts", "-writers.ts"],
+        "service": [".service.ts", "-service.ts"],
+        "useCase": [".use-case.ts", "-use-case.ts"],
+        "entity": [".entity.ts", "-entity.ts"],
+        "valueObject": [".value-object.ts", "-value-object.ts"],
+        "adapter": [".adapter.ts", "-adapter.ts", ".gateway.ts", "-gateway.ts", "/client.ts", ".client.ts", "-client.ts", "/handler.ts", ".mapper.ts", "-mapper.ts", "-mappers.ts", ".parser.ts", "-parser.ts", ".provider.ts", "-provider.ts", ".request.ts", "-request.ts", "-requests.ts", ".schema.ts", "-schema.ts", "-schemas.ts", "-normalization.ts", "-resilience.ts", "-composition.ts", "-scenario.ts", "-scenarios.ts", "-snapshot.ts", "-snapshots.ts"],
+        "handler": [".handler.ts", "-handler.ts"],
+        "port": [".port.ts", "-port.ts", "-ports.ts"]
+      },
+      "groupedArtifactFolders": [
+        "use-cases",
+        "entities",
+        "value-objects",
+        "ports",
+        "repositories",
+        "adapters",
+        "controllers",
+        "database",
+        "workflows",
+        "bootstrap"
+      ]
     }
   }
 }
@@ -99,7 +113,9 @@ The default mode options are:
 
 Clean Architecture structure rules are presence-based. OnionCry validates where artifacts belong when they exist, but it does not require empty folders in every context.
 
-The `cleanarch/artifact-placement` rule defaults to `warn`. Existing projects can expose misplaced use cases, ports, repositories, adapters, entities, and value objects before making the rule a blocking gate.
+The `groupedArtifactFolders` option identifies contextless base artifact folders that should not become flat file lists. A single direct file such as `domain/entities/classification-export.ts` is accepted; two or more direct files in the same grouped artifact folder produce warnings that suggest a `<group>` folder. Direct capability folders under a layer, such as `domain/classification-exports/classification-export.ts`, `application/reviews/get-tax-review.ts`, or `infra/reviews/drizzle-tax-review-repository.ts`, also produce warnings when the configured layer artifact folders are `entities`, `value-objects`, `ports`, `use-cases`, `repositories`, `adapters`, or `bootstrap`. If a capability folder contains one source file, OnionCry suggests moving that file directly under the artifact folder; if it contains multiple source files, OnionCry suggests preserving the capability folder under the artifact folder.
+
+The generated Clean Architecture starter config sets `cleanarch/artifact-placement` to `warn`. Existing projects can expose misplaced use cases, ports, repositories, adapters, entities, and value objects before making the rule a blocking gate.
 
 The `.service.ts` suffix is ambiguous in Clean Architecture. OnionCry must use folder placement to decide whether the file is a domain service, application service, or infra service.
 

@@ -6,6 +6,10 @@ Status: ready-for-agent
 
 ../PRD.md
 
+## User stories covered
+
+- 25, 26, 27, 28, 32, 33
+
 ## What to build
 
 Add `verticalslice/no-cross-slice-internal-import` to report imports from one slice into another slice's internal files. Cross-slice imports must target the imported slice's configured public surface.
@@ -19,7 +23,7 @@ Add `verticalslice/no-cross-slice-internal-import` to report imports from one sl
 - [ ] Imports within the same slice are valid.
 - [ ] Imports from allowed global folders are handled according to existing local import rules and do not become cross-slice violations by default.
 - [ ] Type-only imports and re-exports count as slice dependencies.
-- [ ] Violations include source slice, target slice, imported path, public surface expectation, and rule name.
+- [ ] Pretty and JSON violations include source slice, target slice, imported path, public surface expectation, configured architecture mode, and rule name.
 - [ ] Tests cover valid public imports, invalid internal imports, same-slice imports, type-only imports, re-exports, custom public surface options, and disabled rule behavior.
 - [ ] `make verify` passes.
 

@@ -6,6 +6,10 @@ Status: ready-for-agent
 
 ../PRD.md
 
+## User stories covered
+
+- 29, 30, 32, 33
+
 ## What to build
 
 Add `verticalslice/no-global-slice-artifacts` to warn when files that look like slice artifacts live outside the configured slice root. The rule must avoid treating approved global bootstrap, shared, config, library, or technical infrastructure folders as automatic violations.
@@ -18,7 +22,7 @@ Add `verticalslice/no-global-slice-artifacts` to warn when files that look like 
 - [ ] Files inside the configured slice root do not report global artifact violations.
 - [ ] Allowed global folders are configurable.
 - [ ] Global `domain`, `application`, or `infra` folders are not rejected automatically without matching slice artifact evidence.
-- [ ] Violations include detected artifact role, current path, configured slice root, and rule name.
+- [ ] Pretty and JSON violations include detected artifact role, current path, configured slice root, configured architecture mode, and rule name.
 - [ ] Tests cover default allowed globals, custom allowed globals, root-level slice mode, valid slice artifacts, misplaced artifact suffixes, and disabled rule behavior.
 - [ ] `make verify` passes.
 

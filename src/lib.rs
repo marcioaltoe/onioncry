@@ -41,6 +41,10 @@ const RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT: &str =
     "cleanarch/no-public-surface-internal-reexport";
 const RULE_NO_CONTEXT_CYCLE: &str = "cleanarch/no-context-cycle";
 const RULE_NO_UNOWNED_SCHEMA_IMPORT: &str = "cleanarch/no-unowned-schema-import";
+const RULE_CLEAN_ARTIFACT_PLACEMENT: &str = "cleanarch/artifact-placement";
+const RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT: &str =
+    "verticalslice/no-cross-slice-internal-import";
+const RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS: &str = "verticalslice/no-global-slice-artifacts";
 const RULE_NO_CONCRETE_DEPENDENCY: &str = "solid/no-concrete-dependency";
 const RULE_FEATURE_ENVY: &str = "codesmells/feature-envy";
 const RULE_SHOTGUN_SURGERY: &str = "codesmells/shotgun-surgery";
@@ -51,7 +55,7 @@ const RULE_FEATURE_SYSTEM_PUBLIC_API: &str = "frontend/feature-system-public-api
 const RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW: &str = "frontend/feature-system-dependency-flow";
 const RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT: &str = "frontend/feature-system-adapter-contract";
 const RULE_FEATURE_SYSTEM_QUERY_CONTRACT: &str = "frontend/feature-system-query-contract";
-const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/no-framework-in-core, cleanarch/no-outer-data-format-in-core, cleanarch/no-public-surface-internal-reexport, cleanarch/no-context-cycle, cleanarch/no-unowned-schema-import, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, solid/no-concrete-dependency, codesmells/feature-envy, codesmells/shotgun-surgery, repo/test-placement, repo/path-naming, frontend/feature-system-layout, frontend/feature-system-public-api, frontend/feature-system-dependency-flow, frontend/feature-system-adapter-contract, frontend/feature-system-query-contract";
+const KNOWN_RULE_NAMES_DISPLAY: &str = "cleanarch/no-layer-leak, cleanarch/no-forbidden-imports, cleanarch/no-cross-context-internal-import, cleanarch/no-framework-in-core, cleanarch/no-outer-data-format-in-core, cleanarch/no-public-surface-internal-reexport, cleanarch/no-context-cycle, cleanarch/no-unowned-schema-import, cleanarch/artifact-placement, cleanarch/unclassified-file, cleanarch/ambiguous-layer, cleanarch/ambiguous-context, verticalslice/no-cross-slice-internal-import, verticalslice/no-global-slice-artifacts, solid/no-concrete-dependency, codesmells/feature-envy, codesmells/shotgun-surgery, repo/test-placement, repo/path-naming, frontend/feature-system-layout, frontend/feature-system-public-api, frontend/feature-system-dependency-flow, frontend/feature-system-adapter-contract, frontend/feature-system-query-contract";
 const DEFAULT_TEST_FILE_SUFFIXES: &[&str] = &[
     ".test.ts",
     ".test.tsx",
@@ -92,6 +96,125 @@ const DEFAULT_SUFFIXES_BY_COLLECTION: &[(&str, &[&str])] = &[
     ("gateways", &[".gateway"]),
     ("dtos", &[".dto"]),
 ];
+const DEFAULT_CLEAN_CONTEXT_ROOT: &str = "contexts";
+const DEFAULT_CLEAN_LAYER_ALIASES: &[(&str, &[&str])] = &[
+    ("domain", &["domain"]),
+    ("application", &["application"]),
+    ("infra", &["infra", "infrastructure"]),
+];
+const DEFAULT_CLEAN_ARTIFACT_FOLDERS: &[(&str, &[&str])] = &[
+    (
+        "domain",
+        &[
+            "entities",
+            "value-objects",
+            "aggregates",
+            "events",
+            "services",
+            "errors",
+        ],
+    ),
+    (
+        "application",
+        &[
+            "use-cases",
+            "ports",
+            "dtos",
+            "mappers",
+            "services",
+            "events",
+        ],
+    ),
+    (
+        "infra",
+        &[
+            "repositories",
+            "adapters",
+            "controllers",
+            "database",
+            "workflows",
+            "bootstrap",
+        ],
+    ),
+];
+const DEFAULT_CLEAN_ARTIFACT_SUFFIXES: &[(&str, &[&str])] = &[
+    (
+        "repository",
+        &[
+            ".repository.ts",
+            "-repository.ts",
+            "-catalog.ts",
+            ".writer.ts",
+            "-writer.ts",
+            "-writers.ts",
+        ],
+    ),
+    ("service", &[".service.ts", "-service.ts"]),
+    ("useCase", &[".use-case.ts", "-use-case.ts"]),
+    ("entity", &[".entity.ts", "-entity.ts"]),
+    ("valueObject", &[".value-object.ts", "-value-object.ts"]),
+    (
+        "adapter",
+        &[
+            ".adapter.ts",
+            "-adapter.ts",
+            ".gateway.ts",
+            "-gateway.ts",
+            "/client.ts",
+            ".client.ts",
+            "-client.ts",
+            "/handler.ts",
+            ".mapper.ts",
+            "-mapper.ts",
+            "-mappers.ts",
+            ".parser.ts",
+            "-parser.ts",
+            ".provider.ts",
+            "-provider.ts",
+            ".request.ts",
+            "-request.ts",
+            "-requests.ts",
+            ".schema.ts",
+            "-schema.ts",
+            "-schemas.ts",
+            "-normalization.ts",
+            "-resilience.ts",
+            "-composition.ts",
+            "-scenario.ts",
+            "-scenarios.ts",
+            "-snapshot.ts",
+            "-snapshots.ts",
+        ],
+    ),
+    ("handler", &[".handler.ts", "-handler.ts"]),
+    ("port", &[".port.ts", "-port.ts", "-ports.ts"]),
+];
+const DEFAULT_CLEAN_GROUPED_ARTIFACT_FOLDERS: &[&str] = &[
+    "use-cases",
+    "entities",
+    "value-objects",
+    "ports",
+    "repositories",
+    "adapters",
+    "controllers",
+    "database",
+    "workflows",
+    "bootstrap",
+];
+const DEFAULT_VERTICAL_SLICE_ROOT: &str = "features";
+const DEFAULT_VERTICAL_PUBLIC_SURFACE: &[&str] = &["index.ts", "contracts"];
+const DEFAULT_VERTICAL_ARTIFACT_FOLDERS: &[&str] = &["handlers", "adapters", "domain", "__tests__"];
+const DEFAULT_VERTICAL_ARTIFACT_SUFFIXES: &[(&str, &[&str])] = &[
+    ("repository", &[".repository.ts"]),
+    ("service", &[".service.ts"]),
+    ("handler", &[".handler.ts"]),
+    ("adapter", &[".adapter.ts"]),
+    ("entity", &[".entity.ts"]),
+    ("valueObject", &[".value-object.ts"]),
+    ("useCase", &[".use-case.ts"]),
+];
+const DEFAULT_VERTICAL_ALLOWED_GLOBAL_FOLDERS: &[&str] =
+    &["app", "config", "lib", "shared", "infra"];
 const DEFAULT_SYSTEMS_ROOTS: &[&str] = &["packages/frontend/src/systems"];
 const DEFAULT_FEATURE_SYSTEM_REQUIRED_DIRECTORIES: &[&str] = &["components", "lib"];
 const DEFAULT_FEATURE_SYSTEM_OPTIONAL_DIRECTORIES: &[&str] =
@@ -145,6 +268,88 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
     // TODO: adjust the file universe for your source layout.
     "include": ["src/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"],
     "exclude": ["node_modules/**", "dist/**", "build/**", "coverage/**"]
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts",
+      "layerPathAliases": {
+        "domain": ["domain"],
+        "application": ["application"],
+        "infra": ["infra", "infrastructure"]
+      },
+      "artifactFolders": {
+        "domain": ["entities", "value-objects", "aggregates", "events", "services", "errors"],
+        "application": ["use-cases", "ports", "dtos", "mappers", "services", "events"],
+        "infra": ["repositories", "adapters", "controllers", "database", "workflows", "bootstrap"]
+      },
+      "artifactSuffixes": {
+        "repository": [".repository.ts", "-repository.ts", "-catalog.ts", ".writer.ts", "-writer.ts", "-writers.ts"],
+        "service": [".service.ts", "-service.ts"],
+        "useCase": [".use-case.ts", "-use-case.ts"],
+        "entity": [".entity.ts", "-entity.ts"],
+        "valueObject": [".value-object.ts", "-value-object.ts"],
+        "adapter": [
+          ".adapter.ts",
+          "-adapter.ts",
+          ".gateway.ts",
+          "-gateway.ts",
+          "/client.ts",
+          ".client.ts",
+          "-client.ts",
+          "/handler.ts",
+          ".mapper.ts",
+          "-mapper.ts",
+          "-mappers.ts",
+          ".parser.ts",
+          "-parser.ts",
+          ".provider.ts",
+          "-provider.ts",
+          ".request.ts",
+          "-request.ts",
+          "-requests.ts",
+          ".schema.ts",
+          "-schema.ts",
+          "-schemas.ts",
+          "-normalization.ts",
+          "-resilience.ts",
+          "-composition.ts",
+          "-scenario.ts",
+          "-scenarios.ts",
+          "-snapshot.ts",
+          "-snapshots.ts"
+        ],
+        "handler": [".handler.ts", "-handler.ts"],
+        "port": [".port.ts", "-port.ts", "-ports.ts"]
+      },
+      "groupedArtifactFolders": [
+        "use-cases",
+        "entities",
+        "value-objects",
+        "ports",
+        "repositories",
+        "adapters",
+        "controllers",
+        "database",
+        "workflows",
+        "bootstrap"
+      ]
+    },
+    "verticalSlice": {
+      "sliceRoot": "features",
+      "publicSurface": ["index.ts", "contracts"],
+      "artifactFolders": ["handlers", "adapters", "domain", "__tests__"],
+      "artifactSuffixes": {
+        "repository": [".repository.ts"],
+        "service": [".service.ts"],
+        "handler": [".handler.ts"],
+        "adapter": [".adapter.ts"],
+        "entity": [".entity.ts"],
+        "valueObject": [".value-object.ts"],
+        "useCase": [".use-case.ts"]
+      },
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+    }
   },
   // TODO: map import aliases used by your project.
   "aliases": {
@@ -217,10 +422,14 @@ const INIT_CONFIG_TEMPLATE: &str = r#"{
     "cleanarch/no-public-surface-internal-reexport": "warn",
     "cleanarch/no-context-cycle": "warn",
     "cleanarch/no-unowned-schema-import": "warn",
+    "cleanarch/artifact-placement": "warn",
     "solid/no-concrete-dependency": "warn",
     "codesmells/feature-envy": "warn",
     "codesmells/shotgun-surgery": "off",
     "cleanarch/unclassified-file": "warn"
+    // If you switch architecture.mode to "verticalSlice", remove cleanarch/* rules and enable:
+    // "verticalslice/no-cross-slice-internal-import": "warn",
+    // "verticalslice/no-global-slice-artifacts": "warn"
   },
   // TODO: use overrides for temporary policy exceptions, not file selection.
   "overrides": []
@@ -272,6 +481,14 @@ pub enum OnionCryError {
     },
     #[error("invalid value for rule {rule:?}: {message}")]
     InvalidRuleValue { rule: String, message: String },
+    #[error(
+        "rule {rule:?} is incompatible with architecture.mode {mode:?}; expected rules from {expected_family}"
+    )]
+    ArchitectureRuleModeMismatch {
+        rule: String,
+        mode: &'static str,
+        expected_family: &'static str,
+    },
 }
 
 pub type Result<T> = std::result::Result<T, OnionCryError>;
@@ -281,6 +498,8 @@ pub type Result<T> = std::result::Result<T, OnionCryError>;
 pub struct Config {
     pub version: Value,
     pub project: ProjectConfig,
+    #[serde(default)]
+    pub architecture: ArchitectureConfig,
     #[serde(default)]
     pub aliases: Map<String, Value>,
     #[serde(default)]
@@ -293,6 +512,55 @@ pub struct Config {
     pub rules: Map<String, Value>,
     #[serde(default)]
     pub overrides: Vec<OverrideConfig>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ArchitectureConfig {
+    #[serde(default)]
+    pub mode: ArchitectureMode,
+    #[serde(default)]
+    pub clean_architecture: CleanArchitectureConfig,
+    #[serde(default)]
+    pub vertical_slice: VerticalSliceConfig,
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum ArchitectureMode {
+    #[default]
+    CleanArchitecture,
+    VerticalSlice,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CleanArchitectureConfig {
+    #[serde(default = "default_clean_context_root")]
+    pub context_root: String,
+    #[serde(default = "default_clean_layer_path_aliases")]
+    pub layer_path_aliases: BTreeMap<String, Vec<String>>,
+    #[serde(default = "default_clean_artifact_folders")]
+    pub artifact_folders: BTreeMap<String, Vec<String>>,
+    #[serde(default = "default_clean_artifact_suffixes")]
+    pub artifact_suffixes: BTreeMap<String, Vec<String>>,
+    #[serde(default = "default_clean_grouped_artifact_folders")]
+    pub grouped_artifact_folders: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VerticalSliceConfig {
+    #[serde(default = "default_vertical_slice_root")]
+    pub slice_root: String,
+    #[serde(default = "default_vertical_public_surface")]
+    pub public_surface: Vec<String>,
+    #[serde(default = "default_vertical_artifact_folders")]
+    pub artifact_folders: Vec<String>,
+    #[serde(default = "default_vertical_artifact_suffixes")]
+    pub artifact_suffixes: BTreeMap<String, Vec<String>>,
+    #[serde(default = "default_vertical_allowed_global_folders")]
+    pub allowed_global_folders: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -562,56 +830,80 @@ fn collect_all_violations(
     rule_policy: &RulePolicy,
 ) -> Result<Vec<Violation>> {
     let mut violations = Vec::new();
-    violations.extend(collect_layer_violations(
-        loaded,
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_external_package_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_context_violations(
-        loaded,
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_framework_in_core_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_outer_data_format_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_public_surface_reexport_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_context_cycle_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_unowned_schema_import_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
+    match loaded.config.architecture.mode {
+        ArchitectureMode::CleanArchitecture => {
+            violations.extend(collect_layer_violations(
+                loaded,
+                project_root,
+                files,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_external_package_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_context_violations(
+                loaded,
+                project_root,
+                files,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_framework_in_core_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_outer_data_format_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_public_surface_reexport_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_context_cycle_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_unowned_schema_import_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_clean_artifact_placement_violations(
+                loaded,
+                project_root,
+                files,
+                rule_policy,
+            )?);
+        }
+        ArchitectureMode::VerticalSlice => {
+            violations.extend(collect_vertical_slice_internal_import_violations(
+                loaded,
+                project_root,
+                edges,
+                rule_policy,
+            )?);
+            violations.extend(collect_global_slice_artifact_violations(
+                loaded,
+                project_root,
+                files,
+                rule_policy,
+            )?);
+        }
+    }
     violations.extend(collect_concrete_dependency_violations(
         loaded,
         project_root,
@@ -1599,6 +1891,114 @@ fn collect_feature_envy_violations(
     Ok(violations)
 }
 
+fn collect_clean_artifact_placement_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    files: &[PathBuf],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let policy =
+        CleanArtifactPlacementPolicy::from_config(&loaded.config.architecture.clean_architecture);
+    let file_index = CleanArtifactPlacementFileIndex::from_files(project_root, files);
+    let mut violations = Vec::new();
+
+    for file in files {
+        let rule_setting =
+            rule_policy.effective_rule(RULE_CLEAN_ARTIFACT_PLACEMENT, project_root, file);
+        if rule_setting.severity == Severity::Off {
+            continue;
+        }
+        if let Some(finding) = policy.finding(project_root, file, &file_index) {
+            violations.push(Violation::clean_artifact_placement(
+                file,
+                rule_setting.severity,
+                &finding.role,
+                &finding.expected_layer,
+                &finding.expected_boundary,
+            ));
+        }
+    }
+
+    Ok(violations)
+}
+
+fn collect_vertical_slice_internal_import_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    edges: &[ImportEdge],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let policy = VerticalSlicePolicy::from_config(&loaded.config.architecture.vertical_slice);
+    let mut violations = Vec::new();
+
+    for edge in edges {
+        let severity = rule_policy.effective_severity(
+            RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT,
+            project_root,
+            &edge.source,
+        );
+        if severity == Severity::Off {
+            continue;
+        }
+        let ImportResolution::Local(target) = &edge.resolution else {
+            continue;
+        };
+        let Some(source_location) = policy.slice_location(project_root, &edge.source) else {
+            continue;
+        };
+        let Some(target_location) = policy.slice_location(project_root, target) else {
+            continue;
+        };
+        if source_location.slice == target_location.slice
+            || policy.is_public_surface_location(&target_location)
+        {
+            continue;
+        }
+
+        violations.push(Violation::cross_slice_internal_import(
+            edge,
+            target,
+            severity,
+            &source_location,
+            &target_location,
+        ));
+    }
+
+    Ok(violations)
+}
+
+fn collect_global_slice_artifact_violations(
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    files: &[PathBuf],
+    rule_policy: &RulePolicy,
+) -> Result<Vec<Violation>> {
+    let policy = VerticalSlicePolicy::from_config(&loaded.config.architecture.vertical_slice);
+    let mut violations = Vec::new();
+
+    for file in files {
+        let rule_setting =
+            rule_policy.effective_rule(RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS, project_root, file);
+        if rule_setting.severity == Severity::Off
+            || policy.slice_location(project_root, file).is_some()
+            || policy.is_allowed_global_file(project_root, file)
+        {
+            continue;
+        }
+        let Some(role) = policy.slice_artifact_role(project_root, file) else {
+            continue;
+        };
+        violations.push(Violation::global_slice_artifact(
+            file,
+            rule_setting.severity,
+            &role,
+            &policy.slice_root_display(),
+        ));
+    }
+
+    Ok(violations)
+}
+
 fn collect_shotgun_surgery_violations(
     project_root: &Path,
     files: &[PathBuf],
@@ -2080,6 +2480,41 @@ struct PathNamingPolicy {
     suffixes_by_collection: BTreeMap<String, Vec<String>>,
 }
 
+struct CleanArtifactPlacementPolicy {
+    source_prefix: Vec<String>,
+    context_root: Vec<String>,
+    layer_aliases: BTreeMap<String, HashSet<String>>,
+    artifact_folders_by_layer: BTreeMap<String, Vec<String>>,
+    folder_layers: BTreeMap<String, BTreeSet<String>>,
+    suffix_roles: BTreeMap<String, Vec<String>>,
+    grouped_artifact_folders: HashSet<String>,
+}
+
+struct CleanArtifactFinding {
+    role: String,
+    expected_layer: String,
+    expected_boundary: String,
+}
+
+struct CleanArtifactPlacementFileIndex {
+    direct_source_file_counts: BTreeMap<Vec<String>, usize>,
+}
+
+struct VerticalSlicePolicy {
+    slice_root: Vec<String>,
+    public_surface: Vec<Vec<String>>,
+    artifact_folders: HashSet<String>,
+    artifact_suffixes: Vec<(String, String)>,
+    allowed_global_folders: HashSet<String>,
+}
+
+#[derive(Clone)]
+struct SliceLocation {
+    slice: String,
+    slice_path: String,
+    relative_file: Vec<String>,
+}
+
 struct FeatureSystemLayoutPolicy {
     systems_roots: Vec<Vec<String>>,
     required_directories: HashSet<String>,
@@ -2545,6 +2980,15 @@ fn violation_rule_explanation(rule: &str) -> &'static str {
         }
         RULE_NO_UNOWNED_SCHEMA_IMPORT => {
             "A context should not depend directly on another context's storage schema."
+        }
+        RULE_CLEAN_ARTIFACT_PLACEMENT => {
+            "Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer."
+        }
+        RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT => {
+            "Cross-slice imports should target the imported slice's configured public surface."
+        }
+        RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS => {
+            "Vertical Slice artifacts should live under the configured slice root unless their global folder is explicitly allowed."
         }
         RULE_NO_CONCRETE_DEPENDENCY => {
             "Core layers should depend on abstractions rather than concrete details."
@@ -3053,6 +3497,103 @@ impl Violation {
         }
     }
 
+    fn clean_artifact_placement(
+        file: &Path,
+        severity: Severity,
+        role: &str,
+        expected_layer: &str,
+        expected_boundary: &str,
+    ) -> Self {
+        Self {
+            rule: RULE_CLEAN_ARTIFACT_PLACEMENT.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "cleanArchitecture artifact {role:?} should live in the {expected_layer} boundary {expected_boundary}"
+            ),
+            file: file.display().to_string(),
+            import_specifier: None,
+            package_name: None,
+            line: None,
+            column: None,
+            from_layer: None,
+            to_layer: Some(expected_layer.to_string()),
+            from_context: None,
+            to_context: None,
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(format!(
+                "move this {role} artifact to {expected_boundary} or turn cleanarch/artifact-placement off with an override while migrating"
+            )),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn cross_slice_internal_import(
+        edge: &ImportEdge,
+        target: &Path,
+        severity: Severity,
+        source_location: &SliceLocation,
+        target_location: &SliceLocation,
+    ) -> Self {
+        Self {
+            rule: RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "verticalSlice slice {} may not import {} internals through {}",
+                source_location.slice, target_location.slice, edge.specifier
+            ),
+            file: edge.source.display().to_string(),
+            import_specifier: Some(edge.specifier.clone()),
+            package_name: None,
+            line: Some(edge.line),
+            column: Some(edge.column),
+            from_layer: None,
+            to_layer: None,
+            from_context: Some(source_location.slice.clone()),
+            to_context: Some(target_location.slice.clone()),
+            target_file: Some(target.display().to_string()),
+            cycle_path: None,
+            suggestion: Some(format!(
+                "import from the {} public surface instead, such as index.ts or contracts/",
+                target_location.slice_path
+            )),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
+    fn global_slice_artifact(
+        file: &Path,
+        severity: Severity,
+        role: &str,
+        slice_root: &str,
+    ) -> Self {
+        Self {
+            rule: RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS.to_string(),
+            severity: severity.as_str().to_string(),
+            message: format!(
+                "verticalSlice artifact {role:?} is outside the configured slice root {slice_root}"
+            ),
+            file: file.display().to_string(),
+            import_specifier: None,
+            package_name: None,
+            line: None,
+            column: None,
+            from_layer: Some(role.to_string()),
+            to_layer: None,
+            from_context: None,
+            to_context: None,
+            target_file: None,
+            cycle_path: None,
+            suggestion: Some(format!(
+                "move this slice artifact under {slice_root}/<feature>/ or add its global folder to architecture.verticalSlice.allowedGlobalFolders"
+            )),
+            matched_layers: None,
+            matched_contexts: None,
+        }
+    }
+
     fn shotgun_surgery(
         file: &Path,
         commit_count: usize,
@@ -3348,12 +3889,15 @@ impl Violation {
 impl RulePolicy {
     fn new(config: &Config) -> Result<Self> {
         let base_rules = parse_rule_map(&config.rules)?;
+        validate_architecture_rule_mode(config.architecture.mode, &base_rules)?;
         let mut overrides = Vec::new();
 
         for override_config in &config.overrides {
+            let rules = parse_rule_map(&override_config.rules)?;
+            validate_architecture_rule_mode(config.architecture.mode, &rules)?;
             overrides.push(CompiledOverride {
                 files: build_glob_set(&override_config.files)?,
-                rules: parse_rule_map(&override_config.rules)?,
+                rules,
             });
         }
 
@@ -3727,6 +4271,578 @@ impl PathNamingPolicy {
                 .get_key_value(component)
                 .map(|(collection, suffixes)| (collection.as_str(), suffixes.as_slice()))
         })
+    }
+}
+
+impl CleanArtifactPlacementFileIndex {
+    fn from_files(project_root: &Path, files: &[PathBuf]) -> Self {
+        let mut direct_source_file_counts = BTreeMap::<Vec<String>, usize>::new();
+
+        for file in files {
+            let components = project_relative_components(project_root, file);
+            let Some(file_name) = components.last() else {
+                continue;
+            };
+            if is_index_file_name(file_name) || is_test_file_name(file_name) {
+                continue;
+            }
+            let Some(parent) = components.get(..components.len().saturating_sub(1)) else {
+                continue;
+            };
+            *direct_source_file_counts
+                .entry(parent.to_vec())
+                .or_default() += 1;
+        }
+
+        Self {
+            direct_source_file_counts,
+        }
+    }
+
+    fn direct_file_count(&self, components: &[String], folder_index: usize) -> usize {
+        components
+            .get(..=folder_index)
+            .and_then(|parent| self.direct_source_file_counts.get(parent))
+            .copied()
+            .unwrap_or_default()
+    }
+}
+
+impl CleanArtifactPlacementPolicy {
+    fn from_config(config: &CleanArchitectureConfig) -> Self {
+        let mut layer_aliases = BTreeMap::new();
+        for layer in ["domain", "application", "infra"] {
+            let mut aliases = config
+                .layer_path_aliases
+                .get(layer)
+                .cloned()
+                .unwrap_or_default()
+                .into_iter()
+                .collect::<HashSet<_>>();
+            aliases.insert(layer.to_string());
+            layer_aliases.insert(layer.to_string(), aliases);
+        }
+
+        let mut folder_layers = BTreeMap::<String, BTreeSet<String>>::new();
+        for (layer, folders) in &config.artifact_folders {
+            for folder in folders {
+                folder_layers
+                    .entry(folder.clone())
+                    .or_default()
+                    .insert(layer.clone());
+            }
+        }
+
+        let context_root = path_components(Path::new(&config.context_root));
+        let source_prefix = context_root
+            .split_last()
+            .map(|(_, prefix)| prefix.to_vec())
+            .unwrap_or_default();
+
+        Self {
+            source_prefix,
+            context_root,
+            layer_aliases,
+            artifact_folders_by_layer: config.artifact_folders.clone(),
+            folder_layers,
+            suffix_roles: config.artifact_suffixes.clone(),
+            grouped_artifact_folders: config.grouped_artifact_folders.iter().cloned().collect(),
+        }
+    }
+
+    fn finding(
+        &self,
+        project_root: &Path,
+        file: &Path,
+        file_index: &CleanArtifactPlacementFileIndex,
+    ) -> Option<CleanArtifactFinding> {
+        let components = project_relative_components(project_root, file);
+        if components.is_empty() {
+            return None;
+        }
+        let artifact = match self.artifact_classification(&components) {
+            Some(artifact) => artifact,
+            None => return self.layer_direct_folder_finding(&components, file_index),
+        };
+        let current_layer = self.first_layer(&components);
+        let expected_layer = self.expected_layer(&artifact.role, current_layer.as_deref())?;
+
+        if let Some((context, layer)) = self.context_first_location(&components) {
+            if layer == expected_layer {
+                return None;
+            }
+            return Some(CleanArtifactFinding {
+                role: artifact.role.clone(),
+                expected_boundary: self.expected_boundary(
+                    Some(&context),
+                    &expected_layer,
+                    &artifact.role,
+                ),
+                expected_layer,
+            });
+        }
+
+        if let Some(context) = self.context_missing_layer(&components) {
+            return Some(CleanArtifactFinding {
+                role: artifact.role.clone(),
+                expected_boundary: self.expected_boundary(
+                    Some(&context),
+                    &expected_layer,
+                    &artifact.role,
+                ),
+                expected_layer,
+            });
+        }
+
+        if let Some((layer, layer_index)) = self.first_layer_with_index(&components) {
+            if layer != expected_layer {
+                let context = self.context_before_layer(&components, layer_index);
+                return Some(CleanArtifactFinding {
+                    role: artifact.role.clone(),
+                    expected_boundary: self.expected_boundary(
+                        context,
+                        &expected_layer,
+                        &artifact.role,
+                    ),
+                    expected_layer,
+                });
+            }
+            if self.is_contextless_base_layer(&components, layer_index) {
+                if self.is_flat_grouped_artifact(&components, layer_index, &artifact, file_index) {
+                    return Some(CleanArtifactFinding {
+                        role: artifact.role.clone(),
+                        expected_boundary: self
+                            .grouped_artifact_boundary(&expected_layer, &artifact.role),
+                        expected_layer,
+                    });
+                }
+                if let Some(expected_boundary) = self.contextless_base_capability_boundary(
+                    &components,
+                    layer_index,
+                    &artifact,
+                    file_index,
+                    &expected_layer,
+                ) {
+                    return Some(CleanArtifactFinding {
+                        role: artifact.role.clone(),
+                        expected_boundary,
+                        expected_layer,
+                    });
+                }
+                if let Some(context) = self.layer_first_context_candidate(
+                    &components,
+                    layer_index,
+                    artifact.folder_index,
+                ) {
+                    return Some(CleanArtifactFinding {
+                        role: artifact.role.clone(),
+                        expected_boundary: self.expected_boundary(
+                            Some(context),
+                            &expected_layer,
+                            &artifact.role,
+                        ),
+                        expected_layer,
+                    });
+                }
+                return None;
+            }
+            return Some(CleanArtifactFinding {
+                role: artifact.role.clone(),
+                expected_boundary: self.expected_boundary(
+                    self.context_before_layer(&components, layer_index),
+                    &expected_layer,
+                    &artifact.role,
+                ),
+                expected_layer,
+            });
+        }
+
+        let context = self.context_after_source_prefix(&components);
+        Some(CleanArtifactFinding {
+            role: artifact.role.clone(),
+            expected_boundary: self.expected_boundary(context, &expected_layer, &artifact.role),
+            expected_layer,
+        })
+    }
+
+    fn artifact_classification(&self, components: &[String]) -> Option<CleanArtifact> {
+        let folder_match = components
+            .iter()
+            .take(components.len().saturating_sub(1))
+            .enumerate()
+            .rev()
+            .find_map(|(index, component)| {
+                self.folder_layers
+                    .contains_key(component)
+                    .then(|| CleanArtifact {
+                        role: component.clone(),
+                        folder_index: Some(index),
+                    })
+            });
+        if folder_match.is_some() {
+            return folder_match;
+        }
+
+        let relative_path = components.join("/").to_ascii_lowercase();
+        self.suffix_roles.iter().find_map(|(role, suffixes)| {
+            let role_folder = artifact_role_folder(role);
+            suffixes
+                .iter()
+                .any(|suffix| relative_path.ends_with(&suffix.to_ascii_lowercase()))
+                .then_some(role_folder)
+                .filter(|role_folder| {
+                    self.folder_layers.contains_key(role_folder)
+                        || is_core_clean_artifact_role(role_folder)
+                })
+                .map(|role_folder| CleanArtifact {
+                    role: role_folder,
+                    folder_index: None,
+                })
+        })
+    }
+
+    fn layer_direct_folder_finding(
+        &self,
+        components: &[String],
+        file_index: &CleanArtifactPlacementFileIndex,
+    ) -> Option<CleanArtifactFinding> {
+        let (layer, layer_index) = self.first_layer_with_index(components)?;
+        let child_index = layer_index + 1;
+        let child = components.get(child_index)?;
+        if is_index_file_name(child) || self.layer_for_segment(child).is_some() {
+            return None;
+        }
+        let folders = self.artifact_folders_by_layer.get(&layer)?;
+        if folders.is_empty() || folders.iter().any(|folder| folder == child) {
+            return None;
+        }
+
+        let context = if self.is_contextless_base_layer(components, layer_index) {
+            None
+        } else if let Some((context, context_layer)) = self.context_first_location(components) {
+            (context_layer == layer).then_some(context)
+        } else {
+            self.context_before_layer(components, layer_index)
+                .map(str::to_string)
+        };
+        let group =
+            (file_index.direct_file_count(components, child_index) > 1).then_some(child.as_str());
+
+        Some(CleanArtifactFinding {
+            role: layer.clone(),
+            expected_boundary: self.layer_artifact_boundary(context.as_deref(), &layer, group),
+            expected_layer: layer,
+        })
+    }
+
+    fn layer_artifact_boundary(
+        &self,
+        context: Option<&str>,
+        layer: &str,
+        group: Option<&str>,
+    ) -> String {
+        let Some(folders) = self.artifact_folders_by_layer.get(layer) else {
+            return self.expected_boundary_with_group(context, layer, "<artifact-folder>", group);
+        };
+
+        if folders.is_empty() {
+            return self.expected_boundary_with_group(context, layer, "<artifact-folder>", group);
+        }
+
+        if folders.len() <= 3 {
+            return folders
+                .iter()
+                .map(|folder| self.expected_boundary_with_group(context, layer, folder, group))
+                .collect::<Vec<_>>()
+                .join(" or ");
+        }
+
+        self.expected_boundary_with_group(context, layer, "<artifact-folder>", group)
+    }
+
+    fn expected_layer(&self, role: &str, current_layer: Option<&str>) -> Option<String> {
+        let candidates = self.folder_layers.get(role);
+        if let (Some(current_layer), Some(candidates)) = (current_layer, candidates)
+            && candidates.contains(current_layer)
+        {
+            return Some(current_layer.to_string());
+        }
+        if let Some(candidates) = candidates
+            && candidates.len() == 1
+        {
+            return candidates.first().cloned();
+        }
+        current_layer.map(str::to_string)
+    }
+
+    fn context_first_location(&self, components: &[String]) -> Option<(String, String)> {
+        let context_index = self.context_root.len();
+        let layer_index = context_index + 1;
+        if !path_has_prefix_components(components, &self.context_root)
+            || components.len() <= layer_index
+        {
+            return None;
+        }
+        let layer = self.layer_for_segment(&components[layer_index])?;
+        Some((components[context_index].clone(), layer))
+    }
+
+    fn context_missing_layer(&self, components: &[String]) -> Option<String> {
+        let context_index = self.context_root.len();
+        let next_index = context_index + 1;
+        if !path_has_prefix_components(components, &self.context_root)
+            || components.len() <= next_index
+        {
+            return None;
+        }
+        let next = &components[next_index];
+        (self.layer_for_segment(next).is_none() && self.folder_layers.contains_key(next))
+            .then(|| components[context_index].clone())
+    }
+
+    fn first_layer(&self, components: &[String]) -> Option<String> {
+        self.first_layer_with_index(components)
+            .map(|(layer, _)| layer)
+    }
+
+    fn first_layer_with_index(&self, components: &[String]) -> Option<(String, usize)> {
+        components
+            .iter()
+            .enumerate()
+            .find_map(|(index, component)| {
+                self.layer_for_segment(component)
+                    .map(|layer| (layer, index))
+            })
+    }
+
+    fn layer_for_segment(&self, segment: &str) -> Option<String> {
+        self.layer_aliases
+            .iter()
+            .find_map(|(layer, aliases)| aliases.contains(segment).then(|| layer.clone()))
+    }
+
+    fn source_prefix_len(&self, components: &[String]) -> usize {
+        if path_has_prefix_components(components, &self.source_prefix) {
+            self.source_prefix.len()
+        } else {
+            0
+        }
+    }
+
+    fn is_contextless_base_layer(&self, components: &[String], layer_index: usize) -> bool {
+        layer_index == self.source_prefix_len(components)
+    }
+
+    fn context_before_layer<'a>(
+        &self,
+        components: &'a [String],
+        layer_index: usize,
+    ) -> Option<&'a str> {
+        let context_index = self.source_prefix_len(components);
+        (layer_index > context_index)
+            .then(|| components.get(context_index).map(String::as_str))
+            .flatten()
+    }
+
+    fn context_after_source_prefix<'a>(&self, components: &'a [String]) -> Option<&'a str> {
+        components
+            .get(self.source_prefix_len(components))
+            .map(String::as_str)
+    }
+
+    fn layer_first_context_candidate<'a>(
+        &self,
+        components: &'a [String],
+        layer_index: usize,
+        folder_index: Option<usize>,
+    ) -> Option<&'a str> {
+        if folder_index == Some(layer_index + 1) {
+            return None;
+        }
+        let context_index = layer_index + 1;
+        if components.len() <= context_index + 1 {
+            return None;
+        }
+        let candidate = components[context_index].as_str();
+        if self.layer_for_segment(candidate).is_some() || self.folder_layers.contains_key(candidate)
+        {
+            return None;
+        }
+        Some(candidate)
+    }
+
+    fn is_flat_grouped_artifact(
+        &self,
+        components: &[String],
+        layer_index: usize,
+        artifact: &CleanArtifact,
+        file_index: &CleanArtifactPlacementFileIndex,
+    ) -> bool {
+        let Some(folder_index) = artifact.folder_index else {
+            return false;
+        };
+        self.grouped_artifact_folders.contains(&artifact.role)
+            && folder_index == layer_index + 1
+            && components.len() == folder_index + 2
+            && file_index.direct_file_count(components, folder_index) > 1
+            && components
+                .last()
+                .is_some_and(|file_name| !is_index_file_name(file_name))
+    }
+
+    fn contextless_base_capability_boundary(
+        &self,
+        components: &[String],
+        layer_index: usize,
+        artifact: &CleanArtifact,
+        file_index: &CleanArtifactPlacementFileIndex,
+        expected_layer: &str,
+    ) -> Option<String> {
+        let child_index = layer_index + 1;
+        let child = components.get(child_index)?;
+        if artifact.folder_index == Some(child_index)
+            || self.layer_for_segment(child).is_some()
+            || self.folder_layers.contains_key(child)
+            || is_index_file_name(child)
+        {
+            return None;
+        }
+
+        let group =
+            (file_index.direct_file_count(components, child_index) > 1).then_some(child.as_str());
+        Some(self.expected_boundary_with_group(None, expected_layer, &artifact.role, group))
+    }
+
+    fn grouped_artifact_boundary(&self, layer: &str, role: &str) -> String {
+        format!("{}/<group>", self.expected_boundary(None, layer, role))
+    }
+
+    fn expected_boundary(&self, context: Option<&str>, layer: &str, role: &str) -> String {
+        self.expected_boundary_with_group(context, layer, role, None)
+    }
+
+    fn expected_boundary_with_group(
+        &self,
+        context: Option<&str>,
+        layer: &str,
+        role: &str,
+        group: Option<&str>,
+    ) -> String {
+        let mut components = Vec::new();
+        if let Some(context) = context {
+            components.extend(self.context_root.clone());
+            components.push(context.to_string());
+        } else {
+            components.extend(self.source_prefix.clone());
+        }
+        components.push(layer.to_string());
+        components.push(role.to_string());
+        if let Some(group) = group {
+            components.push(group.to_string());
+        }
+        display_path_components(&components)
+    }
+}
+
+struct CleanArtifact {
+    role: String,
+    folder_index: Option<usize>,
+}
+
+impl VerticalSlicePolicy {
+    fn from_config(config: &VerticalSliceConfig) -> Self {
+        Self {
+            slice_root: path_components(Path::new(&config.slice_root)),
+            public_surface: config
+                .public_surface
+                .iter()
+                .map(|entry| path_components(Path::new(entry)))
+                .collect(),
+            artifact_folders: config.artifact_folders.iter().cloned().collect(),
+            artifact_suffixes: config
+                .artifact_suffixes
+                .iter()
+                .flat_map(|(role, suffixes)| {
+                    suffixes
+                        .iter()
+                        .map(|suffix| (artifact_role_folder(role), suffix.clone()))
+                        .collect::<Vec<_>>()
+                })
+                .collect(),
+            allowed_global_folders: config.allowed_global_folders.iter().cloned().collect(),
+        }
+    }
+
+    fn slice_location(&self, project_root: &Path, file: &Path) -> Option<SliceLocation> {
+        let components = project_relative_components(project_root, file);
+        if components.is_empty() {
+            return None;
+        }
+        if self.slice_root.is_empty() {
+            if self.allowed_global_folders.contains(&components[0]) || components.len() < 2 {
+                return None;
+            }
+            return Some(SliceLocation {
+                slice: components[0].clone(),
+                slice_path: components[0].clone(),
+                relative_file: components[1..].to_vec(),
+            });
+        }
+
+        if components.len() <= self.slice_root.len()
+            || !path_has_prefix_components(&components, &self.slice_root)
+        {
+            return None;
+        }
+        let slice_index = self.slice_root.len();
+        if components.len() <= slice_index + 1 {
+            return None;
+        }
+        let slice = components[slice_index].clone();
+        let slice_path = display_path_components(&components[..=slice_index]);
+        Some(SliceLocation {
+            slice,
+            slice_path,
+            relative_file: components[slice_index + 1..].to_vec(),
+        })
+    }
+
+    fn is_public_surface_location(&self, location: &SliceLocation) -> bool {
+        let relative_file = &location.relative_file;
+        self.public_surface.iter().any(|surface| {
+            relative_file == surface
+                || (!surface.is_empty()
+                    && path_has_prefix_components(relative_file.as_slice(), surface)
+                    && relative_file.len() > surface.len())
+        })
+    }
+
+    fn is_allowed_global_file(&self, project_root: &Path, file: &Path) -> bool {
+        let components = project_relative_components(project_root, file);
+        components
+            .first()
+            .is_some_and(|segment| self.allowed_global_folders.contains(segment))
+    }
+
+    fn slice_artifact_role(&self, project_root: &Path, file: &Path) -> Option<String> {
+        let components = project_relative_components(project_root, file);
+        let relative_path = components.join("/").to_ascii_lowercase();
+        for (role, suffix) in &self.artifact_suffixes {
+            if relative_path.ends_with(&suffix.to_ascii_lowercase()) {
+                return Some(role.clone());
+            }
+        }
+        components
+            .iter()
+            .take(components.len().saturating_sub(1))
+            .find(|component| {
+                component.as_str() != "domain" && self.artifact_folders.contains(*component)
+            })
+            .cloned()
+    }
+
+    fn slice_root_display(&self) -> String {
+        display_path_components(&self.slice_root)
     }
 }
 
@@ -5616,6 +6732,46 @@ impl Severity {
     }
 }
 
+impl ArchitectureMode {
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::CleanArchitecture => "cleanArchitecture",
+            Self::VerticalSlice => "verticalSlice",
+        }
+    }
+
+    fn expected_rule_family(self) -> &'static str {
+        match self {
+            Self::CleanArchitecture => "cleanarch/*",
+            Self::VerticalSlice => "verticalslice/*",
+        }
+    }
+}
+
+impl Default for CleanArchitectureConfig {
+    fn default() -> Self {
+        Self {
+            context_root: default_clean_context_root(),
+            layer_path_aliases: default_clean_layer_path_aliases(),
+            artifact_folders: default_clean_artifact_folders(),
+            artifact_suffixes: default_clean_artifact_suffixes(),
+            grouped_artifact_folders: default_clean_grouped_artifact_folders(),
+        }
+    }
+}
+
+impl Default for VerticalSliceConfig {
+    fn default() -> Self {
+        Self {
+            slice_root: default_vertical_slice_root(),
+            public_surface: default_vertical_public_surface(),
+            artifact_folders: default_vertical_artifact_folders(),
+            artifact_suffixes: default_vertical_artifact_suffixes(),
+            allowed_global_folders: default_vertical_allowed_global_folders(),
+        }
+    }
+}
+
 fn severity_from_str(value: &str) -> Option<Severity> {
     match value {
         "off" => Some(Severity::Off),
@@ -5751,6 +6907,11 @@ fn canonical_rule_name(rule: &str) -> Result<&'static str> {
         RULE_NO_UNOWNED_SCHEMA_IMPORT | "onion/no-unowned-schema-import" => {
             RULE_NO_UNOWNED_SCHEMA_IMPORT
         }
+        RULE_CLEAN_ARTIFACT_PLACEMENT => RULE_CLEAN_ARTIFACT_PLACEMENT,
+        RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT => {
+            RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
+        }
+        RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS => RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS,
         RULE_NO_CONCRETE_DEPENDENCY | "onion/no-concrete-dependency" => RULE_NO_CONCRETE_DEPENDENCY,
         RULE_FEATURE_ENVY => RULE_FEATURE_ENVY,
         RULE_SHOTGUN_SURGERY => RULE_SHOTGUN_SURGERY,
@@ -5770,6 +6931,40 @@ fn canonical_rule_name(rule: &str) -> Result<&'static str> {
     };
 
     Ok(canonical)
+}
+
+fn validate_architecture_rule_mode(
+    mode: ArchitectureMode,
+    rules: &BTreeMap<String, RuleSetting>,
+) -> Result<()> {
+    for (rule, setting) in rules {
+        if setting.severity == Severity::Off {
+            continue;
+        }
+        let Some(family) = architecture_rule_family(rule) else {
+            continue;
+        };
+        if family == mode.expected_rule_family() {
+            continue;
+        }
+        return Err(OnionCryError::ArchitectureRuleModeMismatch {
+            rule: rule.clone(),
+            mode: mode.as_str(),
+            expected_family: mode.expected_rule_family(),
+        });
+    }
+
+    Ok(())
+}
+
+fn architecture_rule_family(rule: &str) -> Option<&'static str> {
+    if rule.starts_with("cleanarch/") {
+        Some("cleanarch/*")
+    } else if rule.starts_with("verticalslice/") {
+        Some("verticalslice/*")
+    } else {
+        None
+    }
 }
 
 fn normalized_package_name(specifier: &str) -> String {
@@ -5845,6 +7040,19 @@ fn display_path_components(components: &[String]) -> String {
     }
 }
 
+fn is_index_file_name(file_name: &str) -> bool {
+    matches!(
+        file_name,
+        "index.ts" | "index.tsx" | "index.js" | "index.jsx" | "index.mts" | "index.cts"
+    )
+}
+
+fn is_test_file_name(file_name: &str) -> bool {
+    DEFAULT_TEST_FILE_SUFFIXES
+        .iter()
+        .any(|suffix| file_name.ends_with(suffix))
+}
+
 fn sorted_strings(values: &HashSet<String>) -> Vec<String> {
     let mut values = values.iter().cloned().collect::<Vec<_>>();
     values.sort();
@@ -5871,6 +7079,25 @@ fn display_unit_test_directories(unit_test_directories: &HashSet<String>) -> Str
         .first()
         .cloned()
         .unwrap_or_else(|| "__tests__".to_string())
+}
+
+fn artifact_role_folder(role: &str) -> String {
+    match role {
+        "repository" => "repositories",
+        "service" => "services",
+        "useCase" => "use-cases",
+        "entity" => "entities",
+        "valueObject" => "value-objects",
+        "adapter" => "adapters",
+        "handler" => "handlers",
+        "port" => "ports",
+        other => other,
+    }
+    .to_string()
+}
+
+fn is_core_clean_artifact_role(role: &str) -> bool {
+    matches!(role, "use-cases" | "entities" | "value-objects" | "ports")
 }
 
 fn is_kebab_case_file_name(file_name: &str) -> bool {
@@ -5958,6 +7185,9 @@ fn default_rule_severity(rule: &str) -> Severity {
         | RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT
         | RULE_NO_CONTEXT_CYCLE
         | RULE_NO_UNOWNED_SCHEMA_IMPORT
+        | RULE_CLEAN_ARTIFACT_PLACEMENT
+        | RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
+        | RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS
         | RULE_NO_CONCRETE_DEPENDENCY
         | RULE_FEATURE_ENVY
         | RULE_SHOTGUN_SURGERY
@@ -5974,6 +7204,70 @@ fn default_rule_severity(rule: &str) -> Severity {
 
 fn default_project_root() -> String {
     ".".to_string()
+}
+
+fn default_clean_context_root() -> String {
+    DEFAULT_CLEAN_CONTEXT_ROOT.to_string()
+}
+
+fn default_clean_layer_path_aliases() -> BTreeMap<String, Vec<String>> {
+    default_string_vec_map(DEFAULT_CLEAN_LAYER_ALIASES)
+}
+
+fn default_clean_artifact_folders() -> BTreeMap<String, Vec<String>> {
+    default_string_vec_map(DEFAULT_CLEAN_ARTIFACT_FOLDERS)
+}
+
+fn default_clean_artifact_suffixes() -> BTreeMap<String, Vec<String>> {
+    default_string_vec_map(DEFAULT_CLEAN_ARTIFACT_SUFFIXES)
+}
+
+fn default_clean_grouped_artifact_folders() -> Vec<String> {
+    DEFAULT_CLEAN_GROUPED_ARTIFACT_FOLDERS
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_vertical_slice_root() -> String {
+    DEFAULT_VERTICAL_SLICE_ROOT.to_string()
+}
+
+fn default_vertical_public_surface() -> Vec<String> {
+    DEFAULT_VERTICAL_PUBLIC_SURFACE
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_vertical_artifact_folders() -> Vec<String> {
+    DEFAULT_VERTICAL_ARTIFACT_FOLDERS
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_vertical_artifact_suffixes() -> BTreeMap<String, Vec<String>> {
+    default_string_vec_map(DEFAULT_VERTICAL_ARTIFACT_SUFFIXES)
+}
+
+fn default_vertical_allowed_global_folders() -> Vec<String> {
+    DEFAULT_VERTICAL_ALLOWED_GLOBAL_FOLDERS
+        .iter()
+        .map(|value| (*value).to_string())
+        .collect()
+}
+
+fn default_string_vec_map(default: &[(&str, &[&str])]) -> BTreeMap<String, Vec<String>> {
+    default
+        .iter()
+        .map(|(key, values)| {
+            (
+                (*key).to_string(),
+                values.iter().map(|value| (*value).to_string()).collect(),
+            )
+        })
+        .collect()
 }
 
 impl Default for ContextRuleDefaultConfig {

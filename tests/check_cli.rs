@@ -324,6 +324,31 @@ fn write_architecture_rules_config(path: &Path) {
     );
 }
 
+fn write_architecture_mode_config(
+    path: &Path,
+    project_root: &str,
+    architecture_json: &str,
+    rules_json: &str,
+    overrides_json: &str,
+) {
+    write_file(
+        path,
+        &format!(
+            r#"{{
+  "version": 1,
+  "project": {{
+    "root": "{project_root}",
+    "include": ["**/*.ts"],
+    "exclude": []
+  }},
+  "architecture": {architecture_json},
+  "rules": {rules_json},
+  "overrides": {overrides_json}
+}}"#
+        ),
+    );
+}
+
 fn write_shotgun_policy_config(path: &Path) {
     write_file(
         path,
@@ -609,6 +634,16 @@ fn init_creates_parseable_mvp_template() {
     assert!(config.contains(r#""$schema""#));
     assert!(config.contains(r#""version""#));
     assert!(config.contains(r#""project""#));
+    assert!(config.contains(r#""architecture""#));
+    assert!(config.contains(r#""mode": "cleanArchitecture""#));
+    assert!(config.contains(r#""cleanArchitecture""#));
+    assert!(config.contains(r#""verticalSlice""#));
+    assert!(config.contains(r#""contextRoot": "contexts""#));
+    assert!(config.contains(r#""sliceRoot": "features""#));
+    assert!(config.contains(r#""layerPathAliases""#));
+    assert!(config.contains(r#""artifactFolders""#));
+    assert!(config.contains(r#""artifactSuffixes""#));
+    assert!(config.contains(r#""groupedArtifactFolders""#));
     assert!(config.contains(r#""aliases""#));
     assert!(config.contains(r#""layers""#));
     assert!(config.contains(r#""contexts""#));
@@ -636,16 +671,46 @@ fn init_creates_parseable_mvp_template() {
     assert!(config.contains(r#""cleanarch/no-public-surface-internal-reexport": "warn""#));
     assert!(config.contains(r#""cleanarch/no-context-cycle": "warn""#));
     assert!(config.contains(r#""cleanarch/no-unowned-schema-import": "warn""#));
+    assert!(config.contains(r#""cleanarch/artifact-placement": "warn""#));
     assert!(config.contains(r#""solid/no-concrete-dependency": "warn""#));
     assert!(config.contains(r#""codesmells/feature-envy": "warn""#));
     assert!(config.contains(r#""codesmells/shotgun-surgery": "off""#));
     assert!(config.contains(r#""cleanarch/unclassified-file": "warn""#));
+    assert!(config.contains(r#""verticalslice/no-cross-slice-internal-import": "warn""#));
+    assert!(config.contains(r#""verticalslice/no-global-slice-artifacts": "warn""#));
 
     let stripped = strip_full_line_jsonc_comments(&config);
     let parsed: Value =
         serde_json::from_str(&stripped).expect("template should parse after comments are stripped");
     assert_eq!(parsed["version"], 1);
     assert!(parsed["project"].is_object());
+    assert_eq!(parsed["architecture"]["mode"], "cleanArchitecture");
+    assert_eq!(
+        parsed["architecture"]["cleanArchitecture"]["contextRoot"],
+        "contexts"
+    );
+    assert_eq!(
+        parsed["architecture"]["cleanArchitecture"]["groupedArtifactFolders"][0],
+        "use-cases"
+    );
+    assert!(
+        parsed["architecture"]["cleanArchitecture"]["groupedArtifactFolders"]
+            .as_array()
+            .expect("grouped artifact folders should be an array")
+            .iter()
+            .any(|folder| folder == "repositories")
+    );
+    assert!(
+        parsed["architecture"]["cleanArchitecture"]["groupedArtifactFolders"]
+            .as_array()
+            .expect("grouped artifact folders should be an array")
+            .iter()
+            .any(|folder| folder == "bootstrap")
+    );
+    assert_eq!(
+        parsed["architecture"]["verticalSlice"]["sliceRoot"],
+        "features"
+    );
     assert!(parsed["aliases"].is_object());
     assert!(parsed["layers"].is_object());
     assert!(parsed["contexts"].is_object());
@@ -805,6 +870,167 @@ fn check_reports_missing_default_config() {
             predicate::str::contains(".onioncryrc.jsonc")
                 .and(predicate::str::contains(".onioncryrc.json")),
         );
+}
+
+#[test]
+fn check_accepts_architecture_modes_and_defaults_missing_mode_to_clean_architecture() {
+    let clean_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &clean_workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "cleanArchitecture": {
+      "contextRoot": "contexts",
+      "layerPathAliases": {
+        "infra": ["infrastructure"]
+      }
+    },
+    "verticalSlice": {
+      "sliceRoot": "features"
+    }
+  }"#,
+        r#"{}"#,
+        r#"[]"#,
+    );
+    write_file(
+        &clean_workspace.path().join("src/application/use-case.ts"),
+        "export const run = () => undefined;\n",
+    );
+
+    let clean_result = run_json_check(&clean_workspace, &["check", "--format", "json"]);
+    assert_eq!(clean_result["status"], "pass");
+
+    let vertical_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &vertical_workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "verticalSlice",
+    "verticalSlice": {
+      "sliceRoot": "features",
+      "publicSurface": ["index.ts", "contracts"],
+      "artifactFolders": ["handlers", "adapters", "domain", "__tests__"],
+      "artifactSuffixes": {
+        "handler": [".handler.ts"],
+        "service": [".service.ts"]
+      },
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+    }
+  }"#,
+        r#"{}"#,
+        r#"[]"#,
+    );
+    write_file(
+        &vertical_workspace
+            .path()
+            .join("src/features/orders/index.ts"),
+        "export const orders = 1;\n",
+    );
+
+    let vertical_result = run_json_check(&vertical_workspace, &["check", "--format", "json"]);
+    assert_eq!(vertical_result["status"], "pass");
+}
+
+#[test]
+fn check_rejects_invalid_architecture_mode() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlices" }"#,
+        r#"{}"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace.path().join("src/features/orders/index.ts"),
+        "export const orders = 1;\n",
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("verticalSlices")
+                .and(predicate::str::contains("cleanArchitecture"))
+                .and(predicate::str::contains("verticalSlice")),
+        );
+}
+
+#[test]
+fn check_rejects_architecture_rule_mode_mismatch_before_scanning_files() {
+    let vertical_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &vertical_workspace.path().join(".onioncryrc.jsonc"),
+        "missing-src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "cleanarch/no-layer-leak": "error"
+  }"#,
+        r#"[]"#,
+    );
+
+    onioncry()
+        .current_dir(vertical_workspace.path())
+        .args(["check"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("cleanarch/no-layer-leak")
+                .and(predicate::str::contains("verticalSlice"))
+                .and(predicate::str::contains("verticalslice/*")),
+        );
+
+    let clean_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &clean_workspace.path().join(".onioncryrc.jsonc"),
+        "missing-src",
+        r#"{ "mode": "cleanArchitecture" }"#,
+        r#"{}"#,
+        r#"[
+    {
+      "files": ["**/*.ts"],
+      "rules": {
+        "verticalslice/no-cross-slice-internal-import": "warn"
+      }
+    }
+  ]"#,
+    );
+
+    onioncry()
+        .current_dir(clean_workspace.path())
+        .args(["check"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("verticalslice/no-cross-slice-internal-import")
+                .and(predicate::str::contains("cleanArchitecture"))
+                .and(predicate::str::contains("cleanarch/*")),
+        );
+}
+
+#[test]
+fn check_runs_architecture_neutral_rules_in_vertical_slice_mode() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "repo/path-naming": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace.path().join("src/features/orders/OrderRepo.ts"),
+        "export const value = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["violations"][0]["rule"], "repo/path-naming");
 }
 
 #[test]
@@ -1714,6 +1940,911 @@ fn check_accepts_collection_suffix_before_test_or_spec_suffix() {
 
     assert_eq!(result["status"], "pass");
     assert_eq!(result["summary"]["fileCount"], 5);
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_context_first_clean_architecture_artifact_placement() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts",
+      "layerPathAliases": {
+        "infra": ["infra", "infrastructure"]
+      }
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": ["error", { "note": "migration gate" }]
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/contexts/billing/application/use-cases/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/contexts/billing/domain/services/tax.service.ts"),
+        "export const tax = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/domain/entities/money.entity.ts"),
+        "export const money = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infrastructure/repositories/audit.repository.ts"),
+        "export const audit = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/repositories/drizzle/customer.repository.ts"),
+        "export const customerRepository = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/catalog/sync-products.use-case.ts"),
+        "export const syncProducts = () => undefined;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_clean_architecture_artifacts_with_source_prefix() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts"
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/contexts/billing/application/use-cases/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/catalog/sync-products.use-case.ts"),
+        "export const syncProducts = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/repositories/drizzle/customer.repository.ts"),
+        "export const customerRepository = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/domain/entities/money.entity.ts"),
+        "export const money = 1;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_flat_contextless_clean_architecture_use_case_lists() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts"
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/submit-invoice.use-case.ts"),
+        "export const submitInvoice = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/catalog/sync-products.use-case.ts"),
+        "export const syncProducts = () => undefined;\n",
+    );
+    write_file(
+        &workspace.path().join("src/application/use-cases/index.ts"),
+        "export * from \"./catalog/sync-products.use-case\";\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 2);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "cleanarch/artifact-placement"
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("src/application/use-cases/<group>"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("src/application/use-cases/create-invoice.use-case.ts")
+        })
+    }));
+}
+
+#[test]
+fn check_accepts_single_direct_contextless_grouped_artifact_file() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts",
+      "artifactFolders": {
+        "domain": ["entities", "value-objects", "ports"],
+        "application": ["use-cases", "ports"]
+      },
+      "groupedArtifactFolders": ["use-cases", "entities", "value-objects", "ports"]
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace.path().join("src/domain/entities/product.ts"),
+        "export const product = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/import-products.ts"),
+        "export const importProducts = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/ports/catalog-port.ts"),
+        "export const catalogPort = {};\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_contextless_clean_architecture_capability_folders_under_domain() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts",
+      "artifactFolders": {
+        "domain": ["entities", "value-objects", "ports"]
+      },
+      "groupedArtifactFolders": ["entities", "value-objects", "ports"]
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/domain/classification-exports/classification-export.ts"),
+        "export const classificationExport = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/domain/reviews/tax-review.ts"),
+        "export const taxReview = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/domain/reviews/tax-review-warnings.ts"),
+        "export const taxReviewWarnings = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/domain/entities/direct-entity.ts"),
+        "export const directEntity = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 3);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "cleanarch/artifact-placement" && violation["toLayer"] == "domain"
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("src/domain/classification-exports/classification-export.ts")
+        }) && violation["suggestion"].as_str().is_some_and(|suggestion| {
+            suggestion
+                .contains("src/domain/entities or src/domain/value-objects or src/domain/ports")
+                && !suggestion.contains("classification-exports")
+        })
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("src/domain/reviews/tax-review.ts"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("src/domain/entities/reviews"))
+    }));
+}
+
+#[test]
+fn check_reports_contextless_clean_architecture_capability_folders_under_application() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts",
+      "artifactFolders": {
+        "application": ["use-cases", "ports"]
+      }
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/reviews/get-tax-review.ts"),
+        "export const getTaxReview = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/import-sessions/import-session-ports.ts"),
+        "export const importSessionPorts = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/reviews/list-tax-reviews.ts"),
+        "export const listTaxReviews = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/ports/reviews/tax-review-ports.ts"),
+        "export const taxReviewPorts = {};\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 2);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "cleanarch/artifact-placement" && violation["toLayer"] == "application"
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("src/application/reviews/get-tax-review.ts"))
+            && violation["suggestion"].as_str().is_some_and(|suggestion| {
+                suggestion.contains("src/application/use-cases or src/application/ports")
+            })
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("src/application/import-sessions/import-session-ports.ts")
+        }) && violation["suggestion"]
+            .as_str()
+            .is_some_and(|suggestion| suggestion.contains("src/application/ports"))
+    }));
+}
+
+#[test]
+fn check_reports_contextless_clean_architecture_capability_folders_under_infra() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts",
+      "artifactFolders": {
+        "infra": ["repositories", "adapters", "bootstrap"]
+      },
+      "groupedArtifactFolders": ["repositories", "adapters", "bootstrap"]
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/reviews/drizzle-tax-review-repository.ts"),
+        "export const drizzleTaxReviewRepository = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/reviews/fake-tax-provider-gateway.ts"),
+        "export const fakeTaxProviderGateway = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/tax-configurations/drizzle-tax-configuration-catalog.ts"),
+        "export const drizzleTaxConfigurationCatalog = {};\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/infra/repositories/audit-repository.ts"),
+        "export const auditRepository = {};\n",
+    );
+    write_file(
+        &workspace.path().join("src/infra/adapters/http-client.ts"),
+        "export const httpClient = {};\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 3);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "cleanarch/artifact-placement" && violation["toLayer"] == "infra"
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("src/infra/tax-configurations/drizzle-tax-configuration-catalog.ts")
+        }) && violation["suggestion"].as_str().is_some_and(|suggestion| {
+            suggestion.contains("src/infra/repositories")
+                && !suggestion.contains("tax-configurations")
+        })
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"].as_str().is_some_and(|file| {
+            file.ends_with("src/infra/reviews/drizzle-tax-review-repository.ts")
+        }) && violation["suggestion"]
+            .as_str()
+            .is_some_and(|suggestion| suggestion.contains("src/infra/repositories/reviews"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["file"]
+            .as_str()
+            .is_some_and(|file| file.ends_with("src/infra/reviews/fake-tax-provider-gateway.ts"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("src/infra/adapters/reviews"))
+    }));
+}
+
+#[test]
+fn check_reports_source_prefixed_layer_first_clean_architecture_artifacts() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts"
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/billing/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 1);
+    assert_eq!(violations[0]["rule"], "cleanarch/artifact-placement");
+    assert!(
+        violations[0]["suggestion"]
+            .as_str()
+            .is_some_and(|suggestion| suggestion.contains("src/application/use-cases"))
+    );
+}
+
+#[test]
+fn check_reports_clean_architecture_artifact_placement_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "cleanArchitecture" }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/billing/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+    write_file(
+        &workspace.path().join("src/sales/entities/order.entity.ts"),
+        "export const order = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/contexts/catalog/repositories/catalog.repository.ts"),
+        "export const catalog = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 3);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "cleanarch/artifact-placement"
+            && violation["severity"] == "error"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("cleanArchitecture"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("use-cases"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("application/use-cases"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("entities"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("contexts/sales/domain"))
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("repositories"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("contexts/catalog/infra"))
+    }));
+}
+
+#[test]
+fn check_applies_clean_architecture_artifact_options_and_overrides() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "modules",
+      "layerPathAliases": {
+        "infra": ["infrastructure"]
+      },
+      "artifactFolders": {
+        "infra": ["repos"]
+      },
+      "artifactSuffixes": {
+        "repository": [".repo.ts"],
+        "useCase": [".use-case.ts"]
+      }
+    }
+  }"#,
+        r#"{
+    "cleanarch/artifact-placement": "error"
+  }"#,
+        r#"[
+    {
+      "files": ["application/legacy/**"],
+      "rules": {
+        "cleanarch/artifact-placement": "off"
+      }
+    }
+  ]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/modules/billing/infrastructure/repos/invoice.repo.ts"),
+        "export const invoiceRepo = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/legacy/create-invoice.use-case.ts"),
+        "export const legacy = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/billing/create-invoice.use-case.ts"),
+        "export const createInvoice = () => undefined;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["summary"]["errorCount"], 1);
+    assert_eq!(violations[0]["rule"], "cleanarch/artifact-placement");
+    assert!(
+        violations[0]["suggestion"]
+            .as_str()
+            .is_some_and(|suggestion| suggestion.contains("application/use-cases"))
+    );
+}
+
+#[test]
+fn check_reports_cross_slice_internal_imports_but_allows_public_surface_imports() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "verticalslice/no-cross-slice-internal-import": ["error", { "note": "slice boundary" }]
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace.path().join("src/features/billing/index.ts"),
+        "export const billing = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/billing/contracts/billing-event.ts"),
+        "export type BillingEvent = { id: string };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/billing/handlers/create-billing.handler.ts"),
+        "export type BillingHandler = () => void;\nexport const createBilling = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/domain/order.service.ts"),
+        "export const orderService = 1;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/handlers/create-order.handler.ts"),
+        r#"import { billing } from "../../billing";
+import type { BillingEvent } from "../../billing/contracts/billing-event";
+import { orderService } from "../domain/order.service";
+import type { BillingHandler } from "../../billing/handlers/create-billing.handler";
+export { createBilling } from "../../billing/handlers/create-billing.handler";
+export const createOrder = { billing, orderService } satisfies { billing: unknown; orderService: unknown };
+export type OrderBillingHandler = BillingHandler;
+export type OrderBillingEvent = BillingEvent;
+"#,
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 2);
+    assert!(violations.iter().all(|violation| {
+        violation["rule"] == "verticalslice/no-cross-slice-internal-import"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("verticalSlice"))
+            && violation["suggestion"]
+                .as_str()
+                .is_some_and(|suggestion| suggestion.contains("features/billing"))
+    }));
+    assert!(violations.iter().all(|violation| {
+        violation["importSpecifier"] == "../../billing/handlers/create-billing.handler"
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("orders"))
+            && violation["message"]
+                .as_str()
+                .is_some_and(|message| message.contains("billing"))
+    }));
+}
+
+#[test]
+fn check_accepts_custom_vertical_slice_public_surface_and_root_level_slices() {
+    let custom_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &custom_workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "verticalSlice",
+    "verticalSlice": {
+      "sliceRoot": "modules",
+      "publicSurface": ["public.ts", "api"],
+      "artifactFolders": ["handlers", "domain"],
+      "artifactSuffixes": {
+        "handler": [".handler.ts"],
+        "service": [".service.ts"]
+      }
+    }
+  }"#,
+        r#"{
+    "verticalslice/no-cross-slice-internal-import": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &custom_workspace
+            .path()
+            .join("src/modules/billing/public.ts"),
+        "export const billing = 1;\n",
+    );
+    write_file(
+        &custom_workspace
+            .path()
+            .join("src/modules/billing/api/billing-contract.ts"),
+        "export type BillingContract = { id: string };\n",
+    );
+    write_file(
+        &custom_workspace
+            .path()
+            .join("src/modules/orders/handlers/create-order.handler.ts"),
+        r#"import { billing } from "../../billing/public";
+import type { BillingContract } from "../../billing/api/billing-contract";
+export const createOrder = billing;
+export type OrderContract = BillingContract;
+"#,
+    );
+
+    let custom_result = run_json_check(&custom_workspace, &["check", "--format", "json"]);
+    assert_eq!(custom_result["status"], "pass");
+    assert_eq!(custom_result["summary"]["violationCount"], 0);
+
+    let root_workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &root_workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "verticalSlice",
+    "verticalSlice": {
+      "sliceRoot": ".",
+      "allowedGlobalFolders": ["app", "config", "shared"]
+    }
+  }"#,
+        r#"{
+    "verticalslice/no-global-slice-artifacts": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &root_workspace
+            .path()
+            .join("src/orders/handlers/create-order.handler.ts"),
+        "export const createOrder = () => undefined;\n",
+    );
+    write_file(
+        &root_workspace.path().join("src/app/server.handler.ts"),
+        "export const server = 1;\n",
+    );
+
+    let root_result = run_json_check(&root_workspace, &["check", "--format", "json"]);
+    assert_eq!(root_result["status"], "pass");
+    assert_eq!(root_result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_reports_global_slice_artifacts_outside_slice_root() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "verticalSlice",
+    "verticalSlice": {
+      "sliceRoot": "features",
+      "allowedGlobalFolders": ["app", "config", "lib", "shared", "infra"]
+    }
+  }"#,
+        r#"{
+    "verticalslice/no-global-slice-artifacts": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/handlers/create-order.handler.ts"),
+        "export const createOrder = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/create-order.use-case.ts"),
+        "export const createOrderUseCase = () => undefined;\n",
+    );
+    write_file(
+        &workspace.path().join("src/shared/create-order.use-case.ts"),
+        "export const shared = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/infra/payment.adapter.ts"),
+        "export const payment = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const order = 1;\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 1);
+    assert_eq!(
+        violations[0]["rule"],
+        "verticalslice/no-global-slice-artifacts"
+    );
+    assert!(violations[0]["message"].as_str().is_some_and(|message| {
+        message.contains("verticalSlice")
+            && message.contains("use-cases")
+            && message.contains("features")
+    }));
+}
+
+#[test]
+fn check_applies_global_slice_artifact_allowed_global_folders() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "verticalSlice",
+    "verticalSlice": {
+      "sliceRoot": "features",
+      "allowedGlobalFolders": ["application"]
+    }
+  }"#,
+        r#"{
+    "verticalslice/no-global-slice-artifacts": "error"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/create-order.use-case.ts"),
+        "export const createOrderUseCase = () => undefined;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn check_accepts_disabled_vertical_slice_rules() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{ "mode": "verticalSlice" }"#,
+        r#"{
+    "verticalslice/no-cross-slice-internal-import": "off",
+    "verticalslice/no-global-slice-artifacts": "off"
+  }"#,
+        r#"[]"#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/billing/handlers/create-billing.handler.ts"),
+        "export const createBilling = () => undefined;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/features/orders/handlers/create-order.handler.ts"),
+        "import { createBilling } from '../../billing/handlers/create-billing.handler';\nexport const createOrder = createBilling;\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("src/application/use-cases/create-order.use-case.ts"),
+        "export const createOrderUseCase = () => undefined;\n",
+    );
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
     assert_eq!(result["summary"]["violationCount"], 0);
 }
 

@@ -150,6 +150,42 @@ Minimal shape:
     "include": ["packages/backend/src/**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"],
     "exclude": ["node_modules/**", "dist/**", "build/**", "coverage/**", "**/__tests__/**"]
   },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts",
+      "layerPathAliases": {
+        "infra": ["infra", "infrastructure"]
+      },
+      "artifactFolders": {
+        "domain": ["entities", "value-objects", "ports"],
+        "application": ["use-cases", "ports"],
+        "infra": ["repositories", "adapters", "controllers", "database", "workflows", "bootstrap"]
+      },
+      "artifactSuffixes": {
+        "repository": [".repository.ts", "-repository.ts", "-catalog.ts", ".writer.ts", "-writer.ts", "-writers.ts"],
+        "service": [".service.ts", "-service.ts"],
+        "useCase": [".use-case.ts", "-use-case.ts"],
+        "entity": [".entity.ts", "-entity.ts"],
+        "valueObject": [".value-object.ts", "-value-object.ts"],
+        "adapter": [".adapter.ts", "-adapter.ts", ".gateway.ts", "-gateway.ts", "/client.ts", ".client.ts", "-client.ts", "/handler.ts", ".mapper.ts", "-mapper.ts", "-mappers.ts", ".parser.ts", "-parser.ts", ".provider.ts", "-provider.ts", ".request.ts", "-request.ts", "-requests.ts", ".schema.ts", "-schema.ts", "-schemas.ts", "-normalization.ts", "-resilience.ts", "-composition.ts", "-scenario.ts", "-scenarios.ts", "-snapshot.ts", "-snapshots.ts"],
+        "handler": [".handler.ts", "-handler.ts"],
+        "port": [".port.ts", "-port.ts", "-ports.ts"]
+      },
+      "groupedArtifactFolders": [
+        "use-cases",
+        "entities",
+        "value-objects",
+        "ports",
+        "repositories",
+        "adapters",
+        "controllers",
+        "database",
+        "workflows",
+        "bootstrap"
+      ]
+    }
+  },
   "aliases": {
     "@/": "packages/backend/src/"
   },
@@ -207,6 +243,7 @@ Minimal shape:
     "cleanarch/no-public-surface-internal-reexport": "warn",
     "cleanarch/no-context-cycle": "warn",
     "cleanarch/no-unowned-schema-import": "warn",
+    "cleanarch/artifact-placement": "warn",
     "solid/no-concrete-dependency": "warn",
     "codesmells/feature-envy": "warn",
     "codesmells/shotgun-surgery": "off",
@@ -233,6 +270,13 @@ OnionCry focuses on architecture rules that need project-specific knowledge:
 - Framework or data-format dependencies from core layers.
 - Public-surface re-exports of internal implementation details.
 - Context-level cycles and ownership checks.
+- Context-first Clean Architecture artifact placement or Vertical Slice public
+  surface checks, depending on `architecture.mode`.
+
+See [`docs/architecture-modes.md`](docs/architecture-modes.md) for the
+`cleanArchitecture` and `verticalSlice` configuration contracts. OnionCry runs
+only the architecture-specific rule family selected by `architecture.mode`;
+architecture-neutral rules can run in either mode.
 
 Generic JavaScript and TypeScript checks belong to Oxlint, Biome, TypeScript, or
 similar tools. OnionCry does not report generic unresolved imports, file-level
@@ -248,6 +292,7 @@ them to `error` when the repository already follows the contract.
 ```jsonc
 {
   "rules": {
+    "cleanarch/artifact-placement": "warn",
     "repo/test-placement": "warn",
     "repo/path-naming": "warn",
     "frontend/feature-system-layout": "warn",
