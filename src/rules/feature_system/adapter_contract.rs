@@ -4,7 +4,14 @@ use super::helpers::{
 };
 use super::location::{is_file_in_area, is_route_file, system_location};
 use super::{FeatureSystemDependencyArea, FeatureSystemLocation};
-use crate::*;
+use crate::rules::catalog::RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT;
+use crate::{
+    DEFAULT_FEATURE_SYSTEM_ADAPTER_DIRECTORY, DEFAULT_FEATURE_SYSTEM_ADAPTER_FILE_TEMPLATE,
+    DEFAULT_FEATURE_SYSTEM_API_ERROR_TEMPLATE, DEFAULT_FEATURE_SYSTEM_API_EXPORT_TEMPLATE,
+    DEFAULT_FEATURE_SYSTEM_HTTP_CLIENT_NAMES, DEFAULT_ROUTE_ROOTS, DEFAULT_SYSTEMS_ROOTS,
+    ImportEdge, ImportResolution, OnionCryError, Result, RuleSetting, Severity, Violation,
+    normalize_path, path_roots, string_option, string_vec_option,
+};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};

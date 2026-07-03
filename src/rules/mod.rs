@@ -1,6 +1,9 @@
+pub(crate) mod catalog;
+
 mod clean_architecture;
 mod clean_boundaries;
 mod code_smells;
+mod collectors;
 mod feature_system;
 mod repo;
 mod vertical_slice;
@@ -16,6 +19,7 @@ pub(crate) use code_smells::{
     collect_concrete_dependency_violations, collect_feature_envy_violations,
     collect_shotgun_surgery_violations,
 };
+pub(crate) use collectors::{RuleCollectionContext, collect_rule_violations};
 pub(crate) use feature_system::{
     FeatureSystemDependencyArea, FeatureSystemLocation,
     collect_feature_system_adapter_contract_violations,

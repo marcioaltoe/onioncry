@@ -1,4 +1,9 @@
-use crate::*;
+use crate::rules::catalog::RULE_TEST_PLACEMENT;
+use crate::{
+    DEFAULT_TEST_FILE_SUFFIXES, Result, RulePolicy, RuleSetting, Severity, Violation, display_root,
+    path_has_prefix_components, path_roots, project_relative_components, project_relative_display,
+    string_set_option, string_vec_option,
+};
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 

@@ -1,4 +1,7 @@
-use crate::*;
+use crate::{
+    display_path_components, path_has_prefix_components, path_under_any_root,
+    project_relative_components,
+};
 use std::collections::HashSet;
 use std::path::Path;
 

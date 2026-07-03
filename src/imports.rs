@@ -1,4 +1,7 @@
-use crate::*;
+use crate::{
+    ImportEdge, ImportKind, ImportResolution, LoadedConfig, OnionCryError, Result, is_source_file,
+    normalize_path,
+};
 use oxc_allocator::Allocator;
 use oxc_ast::ast::{Argument, CallExpression, Expression, ImportExpression};
 use oxc_ast_visit::{Visit, walk};

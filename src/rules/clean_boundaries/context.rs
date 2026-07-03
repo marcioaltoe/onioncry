@@ -1,4 +1,11 @@
-use crate::*;
+use crate::rules::catalog::{
+    RULE_AMBIGUOUS_CONTEXT, RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT, RULE_NO_UNOWNED_SCHEMA_IMPORT,
+};
+use crate::{
+    ContextClassification, ContextClassifier, ContextPolicy, ImportEdge, ImportResolution,
+    LoadedConfig, Result, RulePolicy, Severity, Violation, path_ends_with_any,
+    path_has_any_segment, string_set_option, string_vec_option,
+};
 use std::path::{Path, PathBuf};
 
 pub(crate) fn collect_context_violations(

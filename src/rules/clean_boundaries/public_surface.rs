@@ -1,4 +1,8 @@
-use crate::*;
+use crate::rules::catalog::RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT;
+use crate::{
+    ContextClassification, ContextClassifier, ContextPolicy, ImportEdge, ImportKind,
+    ImportResolution, LoadedConfig, Result, RulePolicy, Severity, Violation,
+};
 use std::path::Path;
 
 pub(crate) fn collect_public_surface_reexport_violations(

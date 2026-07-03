@@ -1,4 +1,8 @@
-use crate::*;
+use crate::rules::catalog::RULE_NO_FORBIDDEN_IMPORTS;
+use crate::{
+    ExternalPackagePolicy, ImportEdge, ImportResolution, LayerClassification, LayerClassifier,
+    LoadedConfig, Result, RulePolicy, Severity, Violation, normalized_package_name,
+};
 use std::path::Path;
 
 pub(crate) fn collect_external_package_violations(

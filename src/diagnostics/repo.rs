@@ -1,5 +1,6 @@
 use super::builder::base_violation;
-use crate::*;
+use crate::rules::catalog::{RULE_PATH_NAMING, RULE_TEST_PLACEMENT};
+use crate::{Severity, Violation};
 use std::path::Path;
 
 impl Violation {

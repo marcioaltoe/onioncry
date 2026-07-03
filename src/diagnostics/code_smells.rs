@@ -1,4 +1,5 @@
-use crate::*;
+use crate::rules::catalog::{RULE_FEATURE_ENVY, RULE_NO_CONCRETE_DEPENDENCY, RULE_SHOTGUN_SURGERY};
+use crate::{ImportEdge, Severity, Violation};
 use std::path::Path;
 
 impl Violation {

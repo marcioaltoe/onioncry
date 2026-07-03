@@ -1,4 +1,9 @@
-use crate::*;
+use crate::rules::catalog::{RULE_NO_FRAMEWORK_IN_CORE, RULE_NO_OUTER_DATA_FORMAT_IN_CORE};
+use crate::{
+    ImportEdge, ImportResolution, LayerClassification, LayerClassifier, LoadedConfig, Result,
+    RulePolicy, Severity, Violation, normalized_package_name, package_pattern_option,
+    path_ends_with_any, path_has_any_segment, string_set_option, string_vec_option,
+};
 use std::path::Path;
 
 pub(crate) fn collect_framework_in_core_violations(

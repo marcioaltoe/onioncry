@@ -1,5 +1,9 @@
 use super::types::{ArchitectureMode, RuleSetting, Severity};
-use crate::*;
+use crate::rules::catalog::{
+    ArchitectureRuleFamily, RULE_NO_FORBIDDEN_IMPORTS, canonical_rule_name, default_rule_severity,
+    known_rule_names_display, rule_descriptor_for,
+};
+use crate::{ExternalPackageLayerPolicy, OnionCryError, PackageAllowlist, Result};
 use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 
@@ -20,13 +24,6 @@ impl ArchitectureMode {
             Self::VerticalSlice => "verticalSlice",
         }
     }
-
-    fn expected_rule_family(self) -> &'static str {
-        match self {
-            Self::CleanArchitecture => "cleanarch/*",
-            Self::VerticalSlice => "verticalslice/*",
-        }
-    }
 }
 
 fn severity_from_str(value: &str) -> Option<Severity> {
@@ -41,7 +38,11 @@ fn severity_from_str(value: &str) -> Option<Severity> {
 pub(crate) fn parse_rule_map(rules: &Map<String, Value>) -> Result<BTreeMap<String, RuleSetting>> {
     let mut parsed_rules = BTreeMap::new();
     for (rule, value) in rules {
-        let canonical_rule = canonical_rule_name(rule)?;
+        let canonical_rule =
+            canonical_rule_name(rule).ok_or_else(|| OnionCryError::UnknownRule {
+                rule: rule.to_string(),
+                expected: known_rule_names_display(),
+            })?;
         parsed_rules.insert(canonical_rule.to_string(), parse_rule_setting(rule, value)?);
     }
     Ok(parsed_rules)
@@ -143,124 +144,36 @@ fn parse_external_package_layer_policy(
     })
 }
 
-fn canonical_rule_name(rule: &str) -> Result<&'static str> {
-    let canonical = match rule {
-        RULE_UNCLASSIFIED_FILE | "onion/unclassified-file" => RULE_UNCLASSIFIED_FILE,
-        RULE_AMBIGUOUS_LAYER | "onion/ambiguous-layer" => RULE_AMBIGUOUS_LAYER,
-        RULE_AMBIGUOUS_CONTEXT | "onion/ambiguous-context" => RULE_AMBIGUOUS_CONTEXT,
-        RULE_NO_LAYER_LEAK | "onion/no-layer-leak" => RULE_NO_LAYER_LEAK,
-        RULE_NO_FORBIDDEN_IMPORTS | "onion/no-forbidden-imports" => RULE_NO_FORBIDDEN_IMPORTS,
-        RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT | "onion/no-cross-context-internal-import" => {
-            RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT
-        }
-        RULE_NO_FRAMEWORK_IN_CORE | "onion/no-framework-in-core" => RULE_NO_FRAMEWORK_IN_CORE,
-        RULE_NO_OUTER_DATA_FORMAT_IN_CORE | "onion/no-outer-data-format-in-core" => {
-            RULE_NO_OUTER_DATA_FORMAT_IN_CORE
-        }
-        RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT | "onion/no-public-surface-internal-reexport" => {
-            RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT
-        }
-        RULE_NO_CONTEXT_CYCLE | "onion/no-context-cycle" => RULE_NO_CONTEXT_CYCLE,
-        RULE_NO_UNOWNED_SCHEMA_IMPORT | "onion/no-unowned-schema-import" => {
-            RULE_NO_UNOWNED_SCHEMA_IMPORT
-        }
-        RULE_CLEAN_ARTIFACT_PLACEMENT => RULE_CLEAN_ARTIFACT_PLACEMENT,
-        RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT => {
-            RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
-        }
-        RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS => RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS,
-        RULE_VERTICAL_SLICE_ENTRY_POINT => RULE_VERTICAL_SLICE_ENTRY_POINT,
-        RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS => RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS,
-        RULE_NO_CONCRETE_DEPENDENCY | "onion/no-concrete-dependency" => RULE_NO_CONCRETE_DEPENDENCY,
-        RULE_FEATURE_ENVY => RULE_FEATURE_ENVY,
-        RULE_SHOTGUN_SURGERY => RULE_SHOTGUN_SURGERY,
-        RULE_TEST_PLACEMENT => RULE_TEST_PLACEMENT,
-        RULE_PATH_NAMING => RULE_PATH_NAMING,
-        RULE_FEATURE_SYSTEM_LAYOUT => RULE_FEATURE_SYSTEM_LAYOUT,
-        RULE_FEATURE_SYSTEM_PUBLIC_API => RULE_FEATURE_SYSTEM_PUBLIC_API,
-        RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW => RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW,
-        RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT => RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT,
-        RULE_FEATURE_SYSTEM_QUERY_CONTRACT => RULE_FEATURE_SYSTEM_QUERY_CONTRACT,
-        _ => {
-            return Err(OnionCryError::UnknownRule {
-                rule: rule.to_string(),
-                expected: KNOWN_RULE_NAMES_DISPLAY,
-            });
-        }
-    };
-
-    Ok(canonical)
-}
-
 pub(crate) fn validate_architecture_rule_mode(
     mode: ArchitectureMode,
     rules: &BTreeMap<String, RuleSetting>,
 ) -> Result<()> {
+    let expected_family = ArchitectureRuleFamily::expected_for_mode(mode);
     for (rule, setting) in rules {
         if setting.severity == Severity::Off {
             continue;
         }
-        let Some(family) = architecture_rule_family(rule) else {
+        let Some(family) =
+            rule_descriptor_for(rule).and_then(|descriptor| descriptor.architecture_family)
+        else {
             continue;
         };
-        if family == mode.expected_rule_family() {
+        if family == expected_family {
             continue;
         }
         return Err(OnionCryError::ArchitectureRuleModeMismatch {
             rule: rule.clone(),
             mode: mode.as_str(),
-            expected_family: mode.expected_rule_family(),
+            expected_family: expected_family.display(),
         });
     }
 
     Ok(())
 }
 
-fn architecture_rule_family(rule: &str) -> Option<&'static str> {
-    if rule.starts_with("cleanarch/") {
-        Some("cleanarch/*")
-    } else if rule.starts_with("verticalslice/") {
-        Some("verticalslice/*")
-    } else {
-        None
-    }
-}
-
 pub(crate) fn default_rule_setting(rule: &str) -> RuleSetting {
     RuleSetting {
         severity: default_rule_severity(rule),
         options: None,
-    }
-}
-
-fn default_rule_severity(rule: &str) -> Severity {
-    match rule {
-        RULE_NO_LAYER_LEAK => Severity::Error,
-        RULE_AMBIGUOUS_LAYER => Severity::Error,
-        RULE_AMBIGUOUS_CONTEXT => Severity::Error,
-        RULE_NO_FORBIDDEN_IMPORTS => Severity::Error,
-        RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT => Severity::Error,
-        RULE_UNCLASSIFIED_FILE => Severity::Warn,
-        RULE_NO_FRAMEWORK_IN_CORE
-        | RULE_NO_OUTER_DATA_FORMAT_IN_CORE
-        | RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT
-        | RULE_NO_CONTEXT_CYCLE
-        | RULE_NO_UNOWNED_SCHEMA_IMPORT
-        | RULE_CLEAN_ARTIFACT_PLACEMENT
-        | RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT
-        | RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS
-        | RULE_VERTICAL_SLICE_ENTRY_POINT
-        | RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS
-        | RULE_NO_CONCRETE_DEPENDENCY
-        | RULE_FEATURE_ENVY
-        | RULE_SHOTGUN_SURGERY
-        | RULE_TEST_PLACEMENT
-        | RULE_PATH_NAMING
-        | RULE_FEATURE_SYSTEM_LAYOUT
-        | RULE_FEATURE_SYSTEM_PUBLIC_API
-        | RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW
-        | RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT
-        | RULE_FEATURE_SYSTEM_QUERY_CONTRACT => Severity::Off,
-        _ => Severity::Warn,
     }
 }

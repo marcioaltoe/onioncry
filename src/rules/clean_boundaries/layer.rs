@@ -1,4 +1,8 @@
-use crate::*;
+use crate::rules::catalog::{RULE_AMBIGUOUS_LAYER, RULE_NO_LAYER_LEAK, RULE_UNCLASSIFIED_FILE};
+use crate::{
+    ImportEdge, ImportResolution, LayerClassification, LayerClassifier, LoadedConfig, Result,
+    RulePolicy, Severity, Violation,
+};
 use std::path::{Path, PathBuf};
 
 pub(crate) fn collect_layer_violations(

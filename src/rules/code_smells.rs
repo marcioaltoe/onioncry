@@ -1,4 +1,10 @@
-use crate::*;
+use crate::rules::catalog::{RULE_FEATURE_ENVY, RULE_NO_CONCRETE_DEPENDENCY, RULE_SHOTGUN_SURGERY};
+use crate::{
+    ContextClassification, ContextClassifier, ImportEdge, ImportResolution, LayerClassification,
+    LayerClassifier, LoadedConfig, Result, RulePolicy, Severity, Violation, bool_option,
+    normalize_path, path_ends_with_any, path_has_any_segment, project_relative_display,
+    string_set_option, string_vec_option, usize_option,
+};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;

@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{ImportEdge, Severity, Violation};
 use std::path::Path;
 
 pub(super) fn base_violation(
@@ -26,4 +26,17 @@ pub(super) fn base_violation(
         matched_layers: None,
         matched_contexts: None,
     }
+}
+
+pub(super) fn import_violation(
+    rule: &str,
+    severity: Severity,
+    edge: &ImportEdge,
+    message: impl Into<String>,
+) -> Violation {
+    let mut violation = base_violation(rule, severity, &edge.source, message);
+    violation.import_specifier = Some(edge.specifier.clone());
+    violation.line = Some(edge.line);
+    violation.column = Some(edge.column);
+    violation
 }

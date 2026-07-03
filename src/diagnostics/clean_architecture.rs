@@ -1,5 +1,12 @@
-use super::builder::base_violation;
-use crate::*;
+use super::builder::{base_violation, import_violation};
+use crate::rules::catalog::{
+    RULE_AMBIGUOUS_CONTEXT, RULE_AMBIGUOUS_LAYER, RULE_CLEAN_ARTIFACT_PLACEMENT,
+    RULE_NO_CONTEXT_CYCLE, RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT, RULE_NO_FORBIDDEN_IMPORTS,
+    RULE_NO_FRAMEWORK_IN_CORE, RULE_NO_LAYER_LEAK, RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+    RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT, RULE_NO_UNOWNED_SCHEMA_IMPORT,
+    RULE_UNCLASSIFIED_FILE,
+};
+use crate::{ImportEdge, Severity, Violation};
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -44,30 +51,22 @@ impl Violation {
         to_layer: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_LAYER_LEAK.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_LAYER_LEAK,
+            severity,
+            edge,
+            format!(
                 "{from_layer} may not import {to_layer} through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: Some(from_layer.to_string()),
-            to_layer: Some(to_layer.to_string()),
-            from_context: None,
-            to_context: None,
-            target_file: Some(target.display().to_string()),
-            cycle_path: None,
-            suggestion: Some(format!(
-                "add {to_layer:?} to layers.{from_layer}.mayImport only if this dependency is intentional"
-            )),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.from_layer = Some(from_layer.to_string());
+        violation.to_layer = Some(to_layer.to_string());
+        violation.target_file = Some(target.display().to_string());
+        violation.suggestion = Some(format!(
+            "add {to_layer:?} to layers.{from_layer}.mayImport only if this dependency is intentional"
+        ));
+        violation
     }
 
     pub(crate) fn forbidden_external_package(
@@ -76,30 +75,21 @@ impl Violation {
         package_name: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_FORBIDDEN_IMPORTS.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_FORBIDDEN_IMPORTS,
+            severity,
+            edge,
+            format!(
                 "{from_layer} may not import external package {package_name} through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: Some(package_name.to_string()),
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: Some(from_layer.to_string()),
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some(format!(
-                "add {package_name:?} to the cleanarch/no-forbidden-imports allowlist for {from_layer} only if this package is domain-safe for that layer"
-            )),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.package_name = Some(package_name.to_string());
+        violation.from_layer = Some(from_layer.to_string());
+        violation.suggestion = Some(format!(
+            "add {package_name:?} to the cleanarch/no-forbidden-imports allowlist for {from_layer} only if this package is domain-safe for that layer"
+        ));
+        violation
     }
 
     pub(crate) fn framework_in_core(
@@ -108,30 +98,21 @@ impl Violation {
         package_name: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_FRAMEWORK_IN_CORE.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_FRAMEWORK_IN_CORE,
+            severity,
+            edge,
+            format!(
                 "{from_layer} may not depend on framework package {package_name} through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: Some(package_name.to_string()),
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: Some(from_layer.to_string()),
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some(
-                "depend on a core-owned port and move framework code to an outer layer".to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.package_name = Some(package_name.to_string());
+        violation.from_layer = Some(from_layer.to_string());
+        violation.suggestion = Some(
+            "depend on a core-owned port and move framework code to an outer layer".to_string(),
+        );
+        violation
     }
 
     pub(crate) fn outer_data_format_in_core(
@@ -141,31 +122,23 @@ impl Violation {
         to_layer: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_OUTER_DATA_FORMAT_IN_CORE.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_OUTER_DATA_FORMAT_IN_CORE,
+            severity,
+            edge,
+            format!(
                 "{from_layer} may not import {to_layer} data format through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: Some(from_layer.to_string()),
-            to_layer: Some(to_layer.to_string()),
-            from_context: None,
-            to_context: None,
-            target_file: Some(target.display().to_string()),
-            cycle_path: None,
-            suggestion: Some(
-                "define a core-owned type or mapper instead of importing outer data formats"
-                    .to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.from_layer = Some(from_layer.to_string());
+        violation.to_layer = Some(to_layer.to_string());
+        violation.target_file = Some(target.display().to_string());
+        violation.suggestion = Some(
+            "define a core-owned type or mapper instead of importing outer data formats"
+                .to_string(),
+        );
+        violation
     }
 
     pub(crate) fn ambiguous_context(
@@ -198,35 +171,27 @@ impl Violation {
     ) -> Self {
         let mut segments = public_surface_segments.iter().cloned().collect::<Vec<_>>();
         segments.sort();
-        Self {
-            rule: RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_CROSS_CONTEXT_INTERNAL_IMPORT,
+            severity,
+            edge,
+            format!(
                 "{from_context} may not import {to_context} internal details through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: None,
-            to_layer: None,
-            from_context: Some(from_context.to_string()),
-            to_context: Some(to_context.to_string()),
-            target_file: Some(target.display().to_string()),
-            cycle_path: None,
-            suggestion: Some(format!(
-                "import from the {to_context} public surface segment instead{}",
-                if segments.is_empty() {
-                    String::new()
-                } else {
-                    format!(": {}", segments.join(", "))
-                }
-            )),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.from_context = Some(from_context.to_string());
+        violation.to_context = Some(to_context.to_string());
+        violation.target_file = Some(target.display().to_string());
+        violation.suggestion = Some(format!(
+            "import from the {to_context} public surface segment instead{}",
+            if segments.is_empty() {
+                String::new()
+            } else {
+                format!(": {}", segments.join(", "))
+            }
+        ));
+        violation
     }
 
     pub(crate) fn public_surface_internal_reexport(
@@ -235,30 +200,21 @@ impl Violation {
         context: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_PUBLIC_SURFACE_INTERNAL_REEXPORT,
+            severity,
+            edge,
+            format!(
                 "{context} public surface may not re-export internal detail through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: None,
-            to_layer: None,
-            from_context: Some(context.to_string()),
-            to_context: Some(context.to_string()),
-            target_file: Some(target.display().to_string()),
-            cycle_path: None,
-            suggestion: Some(
-                "move the contract into the public surface or stop re-exporting it".to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.from_context = Some(context.to_string());
+        violation.to_context = Some(context.to_string());
+        violation.target_file = Some(target.display().to_string());
+        violation.suggestion =
+            Some("move the contract into the public surface or stop re-exporting it".to_string());
+        violation
     }
 
     pub(crate) fn context_cycle(
@@ -267,28 +223,21 @@ impl Violation {
         context_path: &[String],
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_CONTEXT_CYCLE.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!("context dependency cycle: {}", context_path.join(" -> ")),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: None,
-            to_layer: None,
-            from_context: context_path.first().cloned(),
-            to_context: context_path.get(1).cloned(),
-            target_file: Some(target.display().to_string()),
-            cycle_path: Some(context_path.to_vec()),
-            suggestion: Some(
-                "extract a public contract or shared kernel so context dependencies point one way"
-                    .to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        let mut violation = import_violation(
+            RULE_NO_CONTEXT_CYCLE,
+            severity,
+            edge,
+            format!("context dependency cycle: {}", context_path.join(" -> ")),
+        );
+        violation.from_context = context_path.first().cloned();
+        violation.to_context = context_path.get(1).cloned();
+        violation.target_file = Some(target.display().to_string());
+        violation.cycle_path = Some(context_path.to_vec());
+        violation.suggestion = Some(
+            "extract a public contract or shared kernel so context dependencies point one way"
+                .to_string(),
+        );
+        violation
     }
 
     pub(crate) fn unowned_schema_import(
@@ -298,31 +247,23 @@ impl Violation {
         to_context: &str,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_NO_UNOWNED_SCHEMA_IMPORT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = import_violation(
+            RULE_NO_UNOWNED_SCHEMA_IMPORT,
+            severity,
+            edge,
+            format!(
                 "{from_context} may not import {to_context} owned schema through {}",
                 edge.specifier
             ),
-            file: edge.source.display().to_string(),
-            import_specifier: Some(edge.specifier.clone()),
-            package_name: None,
-            line: Some(edge.line),
-            column: Some(edge.column),
-            from_layer: None,
-            to_layer: None,
-            from_context: Some(from_context.to_string()),
-            to_context: Some(to_context.to_string()),
-            target_file: Some(target.display().to_string()),
-            cycle_path: None,
-            suggestion: Some(
-                "depend on the owning context contract instead of importing its storage schema"
-                    .to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.from_context = Some(from_context.to_string());
+        violation.to_context = Some(to_context.to_string());
+        violation.target_file = Some(target.display().to_string());
+        violation.suggestion = Some(
+            "depend on the owning context contract instead of importing its storage schema"
+                .to_string(),
+        );
+        violation
     }
 
     pub(crate) fn clean_artifact_placement(

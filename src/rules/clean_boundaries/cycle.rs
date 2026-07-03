@@ -1,4 +1,8 @@
-use crate::*;
+use crate::rules::catalog::RULE_NO_CONTEXT_CYCLE;
+use crate::{
+    ContextClassification, ContextClassifier, ImportEdge, ImportResolution, LoadedConfig, Result,
+    RulePolicy, Severity, Violation,
+};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
 
@@ -139,45 +143,43 @@ impl<'a> TarjanState<'a> {
                 }
                 if !self.indexes.contains_key(target) {
                     self.visit(target.clone());
-                    let target_lowlink = *self
-                        .lowlinks
-                        .get(target)
-                        .expect("visited target should have a lowlink");
-                    let node_lowlink = *self
-                        .lowlinks
-                        .get(&node)
-                        .expect("visited node should have a lowlink");
+                    let (Some(target_lowlink), Some(node_lowlink)) = (
+                        self.lowlinks.get(target).copied(),
+                        self.lowlinks.get(&node).copied(),
+                    ) else {
+                        debug_assert!(false, "visited nodes should have lowlinks");
+                        continue;
+                    };
                     self.lowlinks
                         .insert(node.clone(), node_lowlink.min(target_lowlink));
                 } else if self.on_stack.contains(target) {
-                    let target_index = *self
-                        .indexes
-                        .get(target)
-                        .expect("indexed target should have an index");
-                    let node_lowlink = *self
-                        .lowlinks
-                        .get(&node)
-                        .expect("visited node should have a lowlink");
+                    let (Some(target_index), Some(node_lowlink)) = (
+                        self.indexes.get(target).copied(),
+                        self.lowlinks.get(&node).copied(),
+                    ) else {
+                        debug_assert!(false, "indexed target and visited node should be tracked");
+                        continue;
+                    };
                     self.lowlinks
                         .insert(node.clone(), node_lowlink.min(target_index));
                 }
             }
         }
 
-        let node_lowlink = *self
-            .lowlinks
-            .get(&node)
-            .expect("visited node should have a lowlink");
+        let Some(node_lowlink) = self.lowlinks.get(&node).copied() else {
+            debug_assert!(false, "visited node should have a lowlink");
+            return;
+        };
         if node_lowlink != index {
             return;
         }
 
         let mut component = Vec::new();
         loop {
-            let member = self
-                .stack
-                .pop()
-                .expect("root component should have stack members");
+            let Some(member) = self.stack.pop() else {
+                debug_assert!(false, "root component should have stack members");
+                break;
+            };
             self.on_stack.remove(&member);
             component.push(member.clone());
             if member == node {

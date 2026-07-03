@@ -1,19 +1,12 @@
-use crate::rules::{
-    collect_clean_artifact_placement_violations, collect_concrete_dependency_violations,
-    collect_context_cycle_violations, collect_context_violations,
-    collect_external_package_violations, collect_feature_envy_violations,
-    collect_feature_system_adapter_contract_violations,
-    collect_feature_system_dependency_flow_violations, collect_feature_system_layout_violations,
-    collect_feature_system_public_api_violations, collect_feature_system_query_contract_violations,
-    collect_framework_in_core_violations, collect_global_slice_artifact_violations,
-    collect_layer_violations, collect_outer_data_format_violations, collect_path_naming_violations,
-    collect_public_surface_reexport_violations, collect_shotgun_surgery_violations,
-    collect_test_placement_violations, collect_unowned_schema_import_violations,
-    collect_vertical_shared_layer_artifact_violations,
-    collect_vertical_slice_entry_point_violations,
-    collect_vertical_slice_internal_import_violations,
+use crate::rules::catalog::RULE_NO_FORBIDDEN_IMPORTS;
+use crate::rules::{RuleCollectionContext, collect_rule_violations};
+use crate::{
+    BoundaryExplanation, CheckReport, Config, ContextConfig, ContextPolicy, DEFAULT_CONFIG_FILE,
+    ExplainReport, ExternalPackagePolicy, FailOn, INIT_CONFIG_TEMPLATE, ImportEdge,
+    ImportExplanation, ImportResolution, JSON_CONFIG_FILE, LayerClassification, LayerClassifier,
+    LayerConfig, LoadedConfig, OnionCryError, Result, RulePolicy, Severity, build_glob_set,
+    build_report, collect_import_edges, normalize_path, normalized_package_name, resolve_against,
 };
-use crate::*;
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
 use std::collections::BTreeMap;
@@ -83,7 +76,14 @@ pub fn run_check(
     let files = select_files(&loaded)?;
     let project_root = loaded.project_root()?;
     let edges = collect_import_edges(&loaded, &project_root, &files)?;
-    let violations = collect_all_violations(&loaded, &project_root, &files, &edges, &rule_policy)?;
+    let rule_context = RuleCollectionContext {
+        loaded: &loaded,
+        project_root: &project_root,
+        files: &files,
+        edges: &edges,
+        rule_policy: &rule_policy,
+    };
+    let violations = collect_rule_violations(&rule_context)?;
     Ok(build_report(files.len(), &violations, fail_on))
 }
 
@@ -98,7 +98,14 @@ pub fn run_explain(
     let project_root = loaded.project_root()?;
     let edges = collect_import_edges(&loaded, &project_root, &files)?;
     let target_file = normalize_path(&resolve_against(cwd, file));
-    let violations = collect_all_violations(&loaded, &project_root, &files, &edges, &rule_policy)?
+    let rule_context = RuleCollectionContext {
+        loaded: &loaded,
+        project_root: &project_root,
+        files: &files,
+        edges: &edges,
+        rule_policy: &rule_policy,
+    };
+    let violations = collect_rule_violations(&rule_context)?
         .into_iter()
         .filter(|violation| violation.file == target_file.display().to_string())
         .collect::<Vec<_>>();
@@ -147,159 +154,6 @@ pub fn select_files(loaded: &LoadedConfig) -> Result<Vec<PathBuf>> {
 
     files.sort();
     Ok(files)
-}
-
-fn collect_all_violations(
-    loaded: &LoadedConfig,
-    project_root: &Path,
-    files: &[PathBuf],
-    edges: &[ImportEdge],
-    rule_policy: &RulePolicy,
-) -> Result<Vec<Violation>> {
-    let mut violations = Vec::new();
-    match loaded.config.architecture.mode {
-        ArchitectureMode::CleanArchitecture => {
-            violations.extend(collect_layer_violations(
-                loaded,
-                project_root,
-                files,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_external_package_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_context_violations(
-                loaded,
-                project_root,
-                files,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_framework_in_core_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_outer_data_format_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_public_surface_reexport_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_context_cycle_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_unowned_schema_import_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_clean_artifact_placement_violations(
-                loaded,
-                project_root,
-                files,
-                rule_policy,
-            )?);
-        }
-        ArchitectureMode::VerticalSlice => {
-            violations.extend(collect_vertical_slice_internal_import_violations(
-                loaded,
-                project_root,
-                edges,
-                rule_policy,
-            )?);
-            violations.extend(collect_global_slice_artifact_violations(
-                loaded,
-                project_root,
-                files,
-                rule_policy,
-            )?);
-            violations.extend(collect_vertical_slice_entry_point_violations(
-                loaded,
-                project_root,
-                files,
-                rule_policy,
-            )?);
-            violations.extend(collect_vertical_shared_layer_artifact_violations(
-                loaded,
-                project_root,
-                files,
-                rule_policy,
-            )?);
-        }
-    }
-    violations.extend(collect_concrete_dependency_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_envy_violations(
-        loaded,
-        project_root,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_test_placement_violations(
-        project_root,
-        files,
-        rule_policy,
-    )?);
-    violations.extend(collect_path_naming_violations(
-        project_root,
-        files,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_system_layout_violations(
-        project_root,
-        files,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_system_public_api_violations(
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_system_dependency_flow_violations(
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_system_adapter_contract_violations(
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_feature_system_query_contract_violations(
-        project_root,
-        files,
-        edges,
-        rule_policy,
-    )?);
-    violations.extend(collect_shotgun_surgery_violations(
-        project_root,
-        files,
-        rule_policy,
-    )?);
-    Ok(violations)
 }
 
 fn explain_import(

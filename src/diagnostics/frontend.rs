@@ -1,5 +1,9 @@
 use super::builder::base_violation;
-use crate::*;
+use crate::rules::catalog::{
+    RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT, RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW,
+    RULE_FEATURE_SYSTEM_LAYOUT, RULE_FEATURE_SYSTEM_PUBLIC_API, RULE_FEATURE_SYSTEM_QUERY_CONTRACT,
+};
+use crate::{FeatureSystemDependencyArea, FeatureSystemLocation, ImportEdge, Severity, Violation};
 use std::path::Path;
 
 impl Violation {

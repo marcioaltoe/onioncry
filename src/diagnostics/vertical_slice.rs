@@ -1,4 +1,8 @@
-use crate::*;
+use crate::rules::catalog::{
+    RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT, RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS,
+    RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS, RULE_VERTICAL_SLICE_ENTRY_POINT,
+};
+use crate::{ImportEdge, Severity, SliceLocation, Violation};
 use std::path::Path;
 
 impl Violation {

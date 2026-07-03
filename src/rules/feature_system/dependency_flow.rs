@@ -1,6 +1,12 @@
 use super::location::{is_public_entry, is_route_file, system_location};
 use super::{FeatureSystemDependencyArea, FeatureSystemLocation};
-use crate::*;
+use crate::rules::catalog::RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW;
+use crate::{
+    DEFAULT_FEATURE_SYSTEM_ADAPTER_BRIDGE_FILES, DEFAULT_FEATURE_SYSTEM_ALLOWED_IMPORTS,
+    DEFAULT_FEATURE_SYSTEM_PUBLIC_ENTRY_POINTS, DEFAULT_ROUTE_ROOTS, DEFAULT_SYSTEMS_ROOTS,
+    ImportEdge, ImportResolution, Result, RuleSetting, Severity, Violation, path_roots,
+    string_set_map_option, string_set_option, string_vec_option,
+};
 use std::collections::{BTreeMap, HashSet};
 use std::path::Path;
 

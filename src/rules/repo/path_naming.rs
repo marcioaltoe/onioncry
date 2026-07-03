@@ -1,4 +1,12 @@
-use crate::*;
+use crate::rules::catalog::RULE_PATH_NAMING;
+use crate::{
+    DEFAULT_COLLECTION_DIRECTORIES, DEFAULT_FEATURE_ROOTS, DEFAULT_IGNORED_PATH_DIRECTORIES,
+    DEFAULT_LAYER_DIRECTORIES, DEFAULT_SUFFIXES_BY_COLLECTION, Result, RulePolicy, RuleSetting,
+    Severity, Violation, is_kebab_case_file_name, is_kebab_case_name, path_has_prefix_components,
+    path_roots, plural_like, project_relative_components, singular_directory_name,
+    source_file_stem, stem_matches_collection_suffix, string_set_option, string_vec_option,
+    suffix_map_option,
+};
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 

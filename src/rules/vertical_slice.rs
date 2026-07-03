@@ -1,4 +1,12 @@
-use crate::*;
+use crate::rules::catalog::{
+    RULE_VERTICAL_NO_CROSS_SLICE_INTERNAL_IMPORT, RULE_VERTICAL_NO_GLOBAL_SLICE_ARTIFACTS,
+    RULE_VERTICAL_NO_SHARED_LAYER_ARTIFACTS, RULE_VERTICAL_SLICE_ENTRY_POINT,
+};
+use crate::{
+    ImportEdge, ImportResolution, LoadedConfig, OnionCryError, Result, RulePolicy, Severity,
+    VerticalSliceConfig, Violation, artifact_role_folder, display_path_components,
+    is_test_file_name, path_components, path_has_prefix_components, project_relative_components,
+};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};

@@ -13,7 +13,11 @@ pub(crate) use location::{FeatureSystemDependencyArea, FeatureSystemLocation};
 use public_api::FeatureSystemPublicApiPolicy;
 use query_contract::FeatureSystemQueryContractPolicy;
 
-use crate::*;
+use crate::rules::catalog::{
+    RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT, RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW,
+    RULE_FEATURE_SYSTEM_LAYOUT, RULE_FEATURE_SYSTEM_PUBLIC_API, RULE_FEATURE_SYSTEM_QUERY_CONTRACT,
+};
+use crate::{ImportEdge, Result, RulePolicy, Severity, Violation};
 use std::path::{Path, PathBuf};
 
 pub(crate) fn collect_feature_system_layout_violations(
