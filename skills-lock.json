@@ -6,6 +6,12 @@
       "sourceType": "github",
       "computedHash": "76efd87702573d94f0140801085893ca6d4e26af2ee104aaeccf96304e562e4b"
     },
+    "clean-architecture": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/clean-architecture/SKILL.md",
+      "computedHash": "91e3c122b6951e485b4eca773472708fc08b9bbb68247aa9c75c975df380630c"
+    },
     "coding-guidelines": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
@@ -20,6 +26,12 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "computedHash": "816e7074089495888ecfceb1980657d961a708cf8b31e8a6cf35f1c0c76efbc3"
+    },
+    "design-patterns": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/design-patterns/SKILL.md",
+      "computedHash": "7921b815d7f47752faa9457a3c3983417ba3cf547385aedcf00ddadc83090d55"
     },
     "domain-modeling": {
       "source": "marcioaltoe/skills",
@@ -56,6 +68,12 @@
       "sourceType": "github",
       "computedHash": "c78133204862e0e422b07b8e6dc84507d482f84cbe11fdf02c4f8b33544b0478"
     },
+    "refactoring-analysis": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/06-review-repair/refactoring-analysis/SKILL.md",
+      "computedHash": "cb26e39774d399ebf64375f4b1a0edb5cc5e7190603ec688253a831ec641a304"
+    },
     "review": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
@@ -70,6 +88,12 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "computedHash": "9a02b9c154a6cd1c7e4095aeb2b56bf06fb9856b08f80f2f21a90e993d0968f7"
+    },
+    "solid": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/solid/SKILL.md",
+      "computedHash": "e6eff39466cdc6d80f84efa74e2318a3adf2ce42de0301f8b7fb19df2932c11e"
     },
     "systematic-debugging": {
       "source": "marcioaltoe/skills",
@@ -90,6 +114,12 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "computedHash": "5a733e19d825f22e83de52e68b8840c9fd2fa7501282277a122c1aa28a922059"
+    },
+    "vertical-slice-architecture": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/vertical-slice-architecture/SKILL.md",
+      "computedHash": "cd55c5721934ae5c98298d4f5256511a1c8f468eb5a9ff46015bcd8c37188ac7"
     }
   }
 }
