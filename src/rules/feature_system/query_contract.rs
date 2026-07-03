@@ -1,4 +1,3 @@
-use super::FeatureSystemDependencyArea;
 use super::helpers::{
     read_source_files, source_declares_query_key, source_has_mutation_invalidation,
     source_has_optimistic_update_contract, source_has_query_hook_read, source_has_query_ownership,
@@ -6,6 +5,7 @@ use super::helpers::{
     source_uses_query_options_surface,
 };
 use super::location::{is_file_in_area, is_route_file, system_location};
+use super::{FeatureSystemDependencyArea, FeatureSystemLocation};
 use crate::*;
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -369,10 +369,8 @@ impl FeatureSystemQueryContractPolicy {
     }
 
     fn imports_adapter(&self, project_root: &Path, file: &Path, edges: &[ImportEdge]) -> bool {
-        edges.iter().any(|edge| {
-            edge.source == file
-                && matches!(&edge.resolution, ImportResolution::Local(target) if system_location(project_root, target, &self.systems_roots)
-                    .is_some_and(|location| is_file_in_area(&location, &self.adapter_directory)))
+        self.imports_matching_system_location(project_root, file, edges, |location| {
+            is_file_in_area(location, &self.adapter_directory)
         })
     }
 
@@ -382,10 +380,28 @@ impl FeatureSystemQueryContractPolicy {
         file: &Path,
         edges: &[ImportEdge],
     ) -> bool {
+        self.imports_matching_system_location(project_root, file, edges, |location| {
+            location.relative_file == self.query_options_file
+        })
+    }
+
+    fn imports_matching_system_location(
+        &self,
+        project_root: &Path,
+        file: &Path,
+        edges: &[ImportEdge],
+        matches_location: impl Fn(&FeatureSystemLocation) -> bool,
+    ) -> bool {
         edges.iter().any(|edge| {
-            edge.source == file
-                && matches!(&edge.resolution, ImportResolution::Local(target) if system_location(project_root, target, &self.systems_roots)
-                    .is_some_and(|location| location.relative_file == self.query_options_file))
+            if edge.source != file {
+                return false;
+            }
+            let ImportResolution::Local(target) = &edge.resolution else {
+                return false;
+            };
+
+            system_location(project_root, target, &self.systems_roots)
+                .is_some_and(|location| matches_location(&location))
         })
     }
 

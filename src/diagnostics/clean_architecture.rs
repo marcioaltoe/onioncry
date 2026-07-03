@@ -1,30 +1,20 @@
+use super::builder::base_violation;
 use crate::*;
 use std::collections::HashSet;
 use std::path::Path;
 
 impl Violation {
     pub(crate) fn unclassified_file(file: &Path, severity: Severity) -> Self {
-        Self {
-            rule: RULE_UNCLASSIFIED_FILE.to_string(),
-            severity: severity.as_str().to_string(),
-            message: "file is not classified by any configured architectural layer".to_string(),
-            file: file.display().to_string(),
-            import_specifier: None,
-            package_name: None,
-            line: None,
-            column: None,
-            from_layer: None,
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some(
-                "add a matching layers.*.patterns entry or exclude the file".to_string(),
-            ),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        let mut violation = base_violation(
+            RULE_UNCLASSIFIED_FILE,
+            severity,
+            file,
+            "file is not classified by any configured architectural layer",
+        );
+        violation.suggestion =
+            Some("add a matching layers.*.patterns entry or exclude the file".to_string());
+
+        violation
     }
 
     pub(crate) fn ambiguous_layer(
@@ -32,28 +22,19 @@ impl Violation {
         matched_layers: Vec<String>,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_AMBIGUOUS_LAYER.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = base_violation(
+            RULE_AMBIGUOUS_LAYER,
+            severity,
+            file,
+            format!(
                 "file matches multiple architectural layers: {}",
                 matched_layers.join(", ")
             ),
-            file: file.display().to_string(),
-            import_specifier: None,
-            package_name: None,
-            line: None,
-            column: None,
-            from_layer: None,
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some("make layer patterns mutually exclusive".to_string()),
-            matched_layers: Some(matched_layers),
-            matched_contexts: None,
-        }
+        );
+        violation.suggestion = Some("make layer patterns mutually exclusive".to_string());
+        violation.matched_layers = Some(matched_layers);
+
+        violation
     }
 
     pub(crate) fn layer_leak(
@@ -192,28 +173,19 @@ impl Violation {
         matched_contexts: Vec<String>,
         severity: Severity,
     ) -> Self {
-        Self {
-            rule: RULE_AMBIGUOUS_CONTEXT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = base_violation(
+            RULE_AMBIGUOUS_CONTEXT,
+            severity,
+            file,
+            format!(
                 "file matches multiple architectural contexts: {}",
                 matched_contexts.join(", ")
             ),
-            file: file.display().to_string(),
-            import_specifier: None,
-            package_name: None,
-            line: None,
-            column: None,
-            from_layer: None,
-            to_layer: None,
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some("make context patterns mutually exclusive".to_string()),
-            matched_layers: None,
-            matched_contexts: Some(matched_contexts),
-        }
+        );
+        violation.suggestion = Some("make context patterns mutually exclusive".to_string());
+        violation.matched_contexts = Some(matched_contexts);
+
+        violation
     }
 
     pub(crate) fn cross_context_internal_import(
@@ -360,28 +332,19 @@ impl Violation {
         expected_layer: &str,
         expected_boundary: &str,
     ) -> Self {
-        Self {
-            rule: RULE_CLEAN_ARTIFACT_PLACEMENT.to_string(),
-            severity: severity.as_str().to_string(),
-            message: format!(
+        let mut violation = base_violation(
+            RULE_CLEAN_ARTIFACT_PLACEMENT,
+            severity,
+            file,
+            format!(
                 "cleanArchitecture artifact {role:?} should live in the {expected_layer} boundary {expected_boundary}"
             ),
-            file: file.display().to_string(),
-            import_specifier: None,
-            package_name: None,
-            line: None,
-            column: None,
-            from_layer: None,
-            to_layer: Some(expected_layer.to_string()),
-            from_context: None,
-            to_context: None,
-            target_file: None,
-            cycle_path: None,
-            suggestion: Some(format!(
-                "move this {role} artifact to {expected_boundary} or turn cleanarch/artifact-placement off with an override while migrating"
-            )),
-            matched_layers: None,
-            matched_contexts: None,
-        }
+        );
+        violation.to_layer = Some(expected_layer.to_string());
+        violation.suggestion = Some(format!(
+            "move this {role} artifact to {expected_boundary} or turn cleanarch/artifact-placement off with an override while migrating"
+        ));
+
+        violation
     }
 }
