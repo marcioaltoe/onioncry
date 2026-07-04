@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
-    CLI_VERSION, FailOn, OnionCryError, init_config, render_config_schema_json,
-    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, rule_catalog, run_check,
-    run_explain, write_config_schema,
+    CLI_VERSION, CheckOptions, FailOn, OnionCryError, init_config, render_config_schema_json,
+    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, rule_catalog,
+    run_check_with_options, run_explain, write_config_schema,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -37,6 +37,17 @@ struct CheckArgs {
     fail_on: FailOnArg,
     #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
     tips: bool,
+    #[arg(
+        long,
+        value_name = "PATH",
+        help = "Path to the violation baseline file"
+    )]
+    baseline: Option<PathBuf>,
+    #[arg(
+        long = "write-baseline",
+        help = "Write current violations to the baseline file"
+    )]
+    write_baseline: bool,
     #[arg(
         long = "llm-mode",
         conflicts_with_all = ["format", "tips"],
@@ -213,8 +224,26 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
         }
     };
 
-    match run_check(&cwd, args.config.as_deref(), args.fail_on.into()) {
-        Ok(report) => {
+    match run_check_with_options(
+        &cwd,
+        CheckOptions {
+            explicit_config: args.config.as_deref(),
+            fail_on: args.fail_on.into(),
+            baseline_path: args.baseline.as_deref(),
+            write_baseline: args.write_baseline,
+        },
+    ) {
+        Ok(outcome) => {
+            if let Some(baseline_write) = &outcome.baseline_write {
+                eprintln!(
+                    "wrote baseline {} ({} {})",
+                    baseline_write.path.display(),
+                    baseline_write.entry_count,
+                    pluralize_entry(baseline_write.entry_count)
+                );
+            }
+
+            let report = outcome.report;
             if args.llm_mode {
                 print!("{}", render_llm(&report));
             } else {
@@ -247,6 +276,10 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
 
 fn print_error(error: &OnionCryError) {
     eprintln!("error: {error}");
+}
+
+fn pluralize_entry(count: usize) -> &'static str {
+    if count == 1 { "entry" } else { "entries" }
 }
 
 impl std::fmt::Display for OutputFormat {

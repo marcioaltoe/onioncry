@@ -566,6 +566,162 @@ export const ignored = run;
 }
 
 #[test]
+fn check_write_baseline_records_current_violations_without_changing_failure() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        r#"import { repo } from "../infra/repo";
+import { repo as otherRepo } from "../infra/repo";
+export const run = repo + otherRepo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/repo.ts"),
+        "export const repo = 1;\n",
+    );
+
+    let output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--format", "json", "--write-baseline"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains(".onioncry-baseline.json")
+                .and(predicate::str::contains("1 entry")),
+        )
+        .get_output()
+        .stdout
+        .clone();
+    let report: Value = serde_json::from_slice(&output).expect("check should emit JSON");
+
+    assert_eq!(report["status"], "fail");
+    assert_eq!(report["summary"]["errorCount"], 2);
+    assert_eq!(report["summary"]["violationCount"], 2);
+
+    let baseline_path = workspace.path().join(".onioncry-baseline.json");
+    let baseline: Value = serde_json::from_str(
+        &fs::read_to_string(&baseline_path).expect("baseline should be written"),
+    )
+    .expect("baseline should be JSON");
+    assert_eq!(baseline["version"], 1);
+    assert_eq!(
+        baseline["entries"][0]["file"],
+        "src/application/use-case.ts"
+    );
+    assert_eq!(baseline["entries"][0]["rule"], "cleanarch/no-layer-leak");
+    assert_eq!(baseline["entries"][0]["target"], "../infra/repo");
+    assert_eq!(baseline["entries"][0]["count"], 2);
+    assert!(baseline["entries"][0].get("line").is_none());
+    assert!(baseline["entries"][0].get("column").is_none());
+}
+
+#[test]
+fn check_write_baseline_accepts_custom_path_and_rewrites_clean_project() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        &["src/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+    let baseline_path = workspace.path().join("baseline/custom.json");
+    write_file(
+        &baseline_path,
+        r#"{ "version": 1, "entries": [{ "rule": "old", "file": "old.ts", "target": "old", "count": 9 }] }"#,
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args([
+            "check",
+            "--baseline",
+            "baseline/custom.json",
+            "--write-baseline",
+        ])
+        .assert()
+        .success()
+        .stderr(
+            predicate::str::contains("baseline/custom.json")
+                .and(predicate::str::contains("0 entries")),
+        );
+
+    let baseline: Value = serde_json::from_str(
+        &fs::read_to_string(&baseline_path).expect("custom baseline should be written"),
+    )
+    .expect("baseline should be JSON");
+    assert_eq!(baseline["version"], 1);
+    assert_eq!(baseline["entries"].as_array().unwrap().len(), 0);
+}
+
+#[test]
+fn check_write_baseline_sorts_entries_deterministically() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/z-use-case.ts"),
+        r#"import { repo } from "../infra/z-repo";
+export const z = repo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/application/a-use-case.ts"),
+        r#"import { repo } from "../infra/z-repo";
+import { cache } from "../infra/a-cache";
+export const a = repo + cache;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/z-repo.ts"),
+        "export const repo = 1;\n",
+    );
+    write_file(
+        &workspace.path().join("src/infra/a-cache.ts"),
+        "export const cache = 1;\n",
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--write-baseline"])
+        .assert()
+        .failure();
+
+    let baseline: Value = serde_json::from_str(
+        &fs::read_to_string(workspace.path().join(".onioncry-baseline.json"))
+            .expect("baseline should be written"),
+    )
+    .expect("baseline should be JSON");
+    let entries = baseline["entries"]
+        .as_array()
+        .expect("entries should be an array");
+
+    let ordered_fingerprints = entries
+        .iter()
+        .map(|entry| {
+            format!(
+                "{}|{}|{}",
+                entry["file"].as_str().unwrap(),
+                entry["rule"].as_str().unwrap(),
+                entry["target"].as_str().unwrap()
+            )
+        })
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        ordered_fingerprints,
+        vec![
+            "src/application/a-use-case.ts|cleanarch/no-layer-leak|../infra/a-cache",
+            "src/application/a-use-case.ts|cleanarch/no-layer-leak|../infra/z-repo",
+            "src/application/z-use-case.ts|cleanarch/no-layer-leak|../infra/z-repo",
+        ]
+    );
+}
+
+#[test]
 fn check_reports_misplaced_test_files_with_suggestions() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_test_placement_config(

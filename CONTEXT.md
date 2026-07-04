@@ -232,6 +232,22 @@ _Avoid_: human review disguised as a hard rule
 A non-blocking review item for a convention that depends on intent, ownership, domain meaning, UX expectations, or sufficiency. Assisted reviews can explain likely gaps, but they should not fail a check without an explicit machine-checkable contract.
 _Avoid_: flaky rule, subjective error
 
+**Violation Baseline**:
+A committed `.onioncry-baseline.json` file that records existing violations so a project can adopt stricter rules gradually. Baselined debt remains visible, while only new violations affect the Check Status.
+_Avoid_: ignore list, disabled rules, hidden grandfathering
+
+**Baseline Fingerprint**:
+The stable identity of a violation baseline entry: `rule + file + target`. The target is the violating import specifier for import diagnostics or a rule-specific subject for file-level diagnostics; line and column are excluded.
+_Avoid_: location-only fingerprint, message hash, line-based baseline
+
+**Baselined Violation**:
+A current violation that matches a Violation Baseline entry within that entry's count. It is reported separately from active violations and does not affect the failure threshold.
+_Avoid_: ignored violation, fixed violation, suppressed warning
+
+**Stale Baseline Entry**:
+A Violation Baseline entry that matches no current violation. It indicates debt that may have been fixed and should be removed by rerunning `--write-baseline`, but it does not fail the run.
+_Avoid_: baseline error, missing violation, failed ratchet
+
 **Violation**:
 A reported rule finding with a linter-style rule name, severity, message, source location, optional suggestion, and rule-specific context. Violations use the same canonical rule names as configuration and include import line and column when available.
 _Avoid_: numeric rule id as the primary identifier

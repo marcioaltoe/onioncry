@@ -28,8 +28,19 @@ pub enum OnionCryError {
         #[source]
         source: std::io::Error,
     },
+    #[error("could not write baseline {path}: {source}")]
+    WriteBaseline {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
     #[error("could not render schema: {source}")]
     RenderSchema {
+        #[source]
+        source: serde_json::Error,
+    },
+    #[error("could not render baseline: {source}")]
+    RenderBaseline {
         #[source]
         source: serde_json::Error,
     },

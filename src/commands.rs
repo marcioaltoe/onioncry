@@ -1,11 +1,12 @@
 use crate::rules::catalog::RULE_NO_FORBIDDEN_IMPORTS;
 use crate::rules::{RuleCollectionContext, collect_rule_violations};
 use crate::{
-    BoundaryExplanation, CheckReport, Config, ContextConfig, ContextPolicy, DEFAULT_CONFIG_FILE,
-    ExplainReport, ExternalPackagePolicy, FailOn, INIT_CONFIG_TEMPLATE, ImportEdge,
-    ImportExplanation, ImportResolution, JSON_CONFIG_FILE, LayerClassification, LayerClassifier,
-    LayerConfig, LoadedConfig, OnionCryError, Result, RulePolicy, Severity, build_glob_set,
-    build_report, collect_import_edges, normalize_path, normalized_package_name, resolve_against,
+    BoundaryExplanation, CheckReport, Config, ContextConfig, ContextPolicy, DEFAULT_BASELINE_FILE,
+    DEFAULT_CONFIG_FILE, ExplainReport, ExternalPackagePolicy, FailOn, INIT_CONFIG_TEMPLATE,
+    ImportEdge, ImportExplanation, ImportResolution, JSON_CONFIG_FILE, LayerClassification,
+    LayerClassifier, LayerConfig, LoadedConfig, OnionCryError, Result, RulePolicy, Severity,
+    ViolationBaseline, build_glob_set, build_report, collect_import_edges, normalize_path,
+    normalized_package_name, resolve_against,
 };
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
@@ -14,6 +15,26 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
+
+#[derive(Clone, Copy, Debug)]
+pub struct CheckOptions<'a> {
+    pub explicit_config: Option<&'a Path>,
+    pub fail_on: FailOn,
+    pub baseline_path: Option<&'a Path>,
+    pub write_baseline: bool,
+}
+
+#[derive(Debug)]
+pub struct CheckOutcome {
+    pub report: CheckReport,
+    pub baseline_write: Option<BaselineWrite>,
+}
+
+#[derive(Debug)]
+pub struct BaselineWrite {
+    pub path: PathBuf,
+    pub entry_count: usize,
+}
 
 pub fn discover_config_path(cwd: &Path, explicit_path: Option<&Path>) -> Result<PathBuf> {
     match explicit_path {
@@ -95,7 +116,20 @@ pub fn run_check(
     explicit_config: Option<&Path>,
     fail_on: FailOn,
 ) -> Result<CheckReport> {
-    let loaded = load_config(cwd, explicit_config)?;
+    Ok(run_check_with_options(
+        cwd,
+        CheckOptions {
+            explicit_config,
+            fail_on,
+            baseline_path: None,
+            write_baseline: false,
+        },
+    )?
+    .report)
+}
+
+pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<CheckOutcome> {
+    let loaded = load_config(cwd, options.explicit_config)?;
     let rule_policy = RulePolicy::new(&loaded.config)?;
     let files = select_files(&loaded)?;
     let project_root = loaded.project_root()?;
@@ -108,7 +142,61 @@ pub fn run_check(
         rule_policy: &rule_policy,
     };
     let violations = collect_rule_violations(&rule_context)?;
-    Ok(build_report(files.len(), &violations, fail_on))
+    let baseline_write = if options.write_baseline {
+        Some(write_violation_baseline(
+            cwd,
+            &loaded,
+            &project_root,
+            options.baseline_path,
+            &violations,
+        )?)
+    } else {
+        None
+    };
+
+    Ok(CheckOutcome {
+        report: build_report(files.len(), &violations, options.fail_on),
+        baseline_write,
+    })
+}
+
+fn write_violation_baseline(
+    cwd: &Path,
+    loaded: &LoadedConfig,
+    project_root: &Path,
+    explicit_baseline_path: Option<&Path>,
+    violations: &[crate::Violation],
+) -> Result<BaselineWrite> {
+    let path = baseline_path(cwd, loaded, explicit_baseline_path);
+    let baseline = ViolationBaseline::from_violations(project_root, violations);
+    let json = serde_json::to_string_pretty(&baseline)
+        .map_err(|source| OnionCryError::RenderBaseline { source })?;
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|source| OnionCryError::WriteBaseline {
+            path: path.clone(),
+            source,
+        })?;
+    }
+    fs::write(&path, format!("{json}\n")).map_err(|source| OnionCryError::WriteBaseline {
+        path: path.clone(),
+        source,
+    })?;
+
+    Ok(BaselineWrite {
+        path,
+        entry_count: baseline.entries.len(),
+    })
+}
+
+fn baseline_path(
+    cwd: &Path,
+    loaded: &LoadedConfig,
+    explicit_baseline_path: Option<&Path>,
+) -> PathBuf {
+    explicit_baseline_path.map_or_else(
+        || loaded.config_dir.join(DEFAULT_BASELINE_FILE),
+        |path| resolve_against(cwd, path),
+    )
 }
 
 pub fn run_explain(
