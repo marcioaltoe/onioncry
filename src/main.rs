@@ -19,9 +19,13 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    #[command(about = "Check the configured file universe against architecture rules")]
     Check(CheckArgs),
+    #[command(about = "Render the boundary dependency graph as Mermaid or JSON")]
     Graph(GraphArgs),
+    #[command(about = "Create a conservative .onioncryrc.jsonc configuration template")]
     Init(InitArgs),
+    #[command(about = "Explain one file's classification, imports, and violations")]
     Explain(ExplainArgs),
     #[command(about = "List built-in rules")]
     Rules(RulesArgs),
