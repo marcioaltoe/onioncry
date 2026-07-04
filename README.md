@@ -5,40 +5,35 @@ TypeScript projects. It names architecture drift with linter-style diagnostics s
 teams can see when layers, bounded contexts, public surfaces, or core package
 policies are being crossed.
 
-The project is currently in alpha. The CLI is usable locally, but distribution is
-not published through Homebrew or npm yet. Maintainers publish crates.io
+The project is currently in alpha. Maintainers publish npm and crates.io
 releases through the tag-driven process in [docs/release.md](docs/release.md).
 
-## Install During Alpha
+## Install
 
-For now, build and install from this checkout:
+The primary install path for JavaScript and TypeScript projects is npm:
 
 ```bash
-cd ~/dev/onioncry
+npx onioncry --help
+npm install --save-dev onioncry
+```
+
+The npm package installs a small launcher and the matching prebuilt native
+binary package for your platform.
+
+Rust users can install from crates.io:
+
+```bash
+cargo install onioncry
+```
+
+For local development from this checkout:
+
+```bash
 make install
 ```
 
 `make install` builds the Rust project and installs the `onioncry` binary into
 Cargo's bin directory, usually `~/.cargo/bin/onioncry`.
-
-After pulling new OnionCry changes, run it again:
-
-```bash
-cd ~/dev/onioncry
-git pull
-make install
-```
-
-Make sure Cargo's bin directory is on your shell path:
-
-```bash
-echo $PATH
-which onioncry
-onioncry --help
-```
-
-After the first crates.io release, users can install with `cargo install
-onioncry`. Until then, `make install` is the supported local testing path.
 
 ## Quick Start
 

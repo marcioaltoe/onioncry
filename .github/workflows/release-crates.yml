@@ -1,4 +1,4 @@
-name: Release | Crates.io
+name: Release
 
 on:
   push:
@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  publish:
-    name: Publish crate
-    runs-on: ubuntu-latest
+  verify:
+    name: Verify release inputs
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,20 +21,159 @@ jobs:
           rustup toolchain install 1.88 --profile minimal --component clippy rustfmt
           rustup default 1.88
 
-      - name: Check tag matches Cargo version
-        run: |
-          tag_version="${GITHUB_REF_NAME#v}"
-          cargo_version="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "onioncry") | .version')"
-          if [ "$tag_version" != "$cargo_version" ]; then
-            echo "::error::tag v${tag_version} does not match Cargo.toml version ${cargo_version}"
-            exit 1
-          fi
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-      - name: Verify
+      - name: Check tag, Cargo, and npm versions
+        run: node npm/scripts/check-versions.mjs "${GITHUB_REF_NAME#v}"
+
+      - name: Verify Rust crate
         run: make verify
 
-      - name: Publish dry run
+      - name: Verify npm launcher
+        run: npm test --prefix npm
+
+      - name: Verify crate package
         run: cargo publish --dry-run --locked
+
+  build-npm-platforms:
+    name: Build npm binary package (${{ matrix.package }})
+    needs: verify
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: darwin-arm64
+            runner: macos-15
+            target: aarch64-apple-darwin
+            binary: onioncry
+          - package: darwin-x64
+            runner: macos-15-intel
+            target: x86_64-apple-darwin
+            binary: onioncry
+          - package: linux-arm64
+            runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            binary: onioncry
+          - package: linux-x64
+            runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            binary: onioncry
+          - package: win32-x64
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            binary: onioncry.exe
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        shell: bash
+        run: |
+          rustup toolchain install 1.88 --profile minimal
+          rustup default 1.88
+          rustup target add "${{ matrix.target }}"
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build binary
+        shell: bash
+        run: cargo build --release --locked --target "${{ matrix.target }}"
+
+      - name: Stage npm package
+        shell: bash
+        run: |
+          package_dir="npm/platforms/${{ matrix.package }}"
+          mkdir -p "$package_dir/bin" dist
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" "$package_dir/bin/${{ matrix.binary }}"
+          if [ "${{ runner.os }}" != "Windows" ]; then
+            chmod 755 "$package_dir/bin/${{ matrix.binary }}"
+          fi
+          npm pack "$package_dir" --pack-destination dist
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-${{ matrix.package }}
+          path: dist/*.tgz
+          if-no-files-found: error
+
+  verify-npm-install:
+    name: Verify npm install smoke test
+    needs: build-npm-platforms
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download Linux x64 package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-linux-x64
+          path: dist
+
+      - name: Pack main npm package
+        run: npm pack ./npm --pack-destination dist
+
+      - name: Install from local tarballs and run npx
+        run: |
+          mkdir npm-smoke
+          cd npm-smoke
+          npm init -y
+          npm install --ignore-scripts "../dist/onioncry-${GITHUB_REF_NAME#v}.tgz" ../dist/onioncry-cli-linux-x64-*.tgz
+          npx onioncry --help
+
+  publish:
+    name: Publish crates.io and npm
+    needs:
+      - verify
+      - build-npm-platforms
+      - verify-npm-install
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install 1.88 --profile minimal
+          rustup default 1.88
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download npm package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: npm-*
+          path: dist
+          merge-multiple: true
+
+      - name: Pack main npm package
+        run: npm pack ./npm --pack-destination dist
+
+      - name: Publish npm packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          for package in dist/onioncry-cli-*.tgz; do
+            npm publish "$package" --access public
+          done
+          npm publish "dist/onioncry-${GITHUB_REF_NAME#v}.tgz"
 
       - name: Publish to crates.io
         env:
