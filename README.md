@@ -169,6 +169,20 @@ gh api \
 OnionCry does not ship a maintained GitHub Action. In CI, generate the SARIF
 file and upload it with the integration surface your repository already uses.
 
+### Inline Suppressions
+
+Use an inline suppression for a narrow, reviewed source-level exception:
+
+```ts
+// onioncry-disable-next-line cleanarch/no-layer-leak -- legacy adapter migration
+import { repo } from "../infra/repo";
+```
+
+The reason after `--` is mandatory. Suppressions apply only to named rules on
+the next line, stay visible in reports, and do not affect the failure threshold.
+Unused suppressions are reported as `repo/unused-suppression`; malformed
+comments are reported as `repo/invalid-suppression`.
+
 ```bash
 onioncry explain <file>
 ```

@@ -10,6 +10,7 @@ mod path_utils;
 mod policy;
 mod render;
 mod rules;
+mod suppressions;
 
 pub use config::{
     ArchitectureConfig, ArchitectureMode, CONFIG_SCHEMA_URL, CleanArchitectureConfig, Config,
@@ -58,6 +59,7 @@ pub use render::{build_report, render_explain_pretty, render_llm, render_pretty,
 pub(crate) use rules::catalog::*;
 pub use rules::catalog::{RuleCatalogEntry, rule_catalog};
 pub(crate) use rules::{FeatureSystemDependencyArea, FeatureSystemLocation, SliceLocation};
+pub(crate) use suppressions::apply_inline_suppressions;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
 pub const JSON_CONFIG_FILE: &str = ".onioncryrc.json";

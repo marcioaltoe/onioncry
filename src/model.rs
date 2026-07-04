@@ -68,6 +68,8 @@ pub struct CheckSummary {
     pub violation_count: usize,
     #[serde(skip_serializing_if = "is_zero")]
     pub baselined_count: usize,
+    #[serde(skip_serializing_if = "is_zero")]
+    pub suppressed_count: usize,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -105,6 +107,10 @@ pub struct Violation {
     pub matched_contexts: Option<Vec<String>>,
     #[serde(skip_serializing_if = "is_false")]
     pub baselined: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    pub suppressed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suppression_reason: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -122,7 +122,7 @@ struct SarifResult<'a> {
     message: SarifMessage<'a>,
     locations: Vec<SarifLocation<'a>>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    suppressions: Vec<SarifSuppression>,
+    suppressions: Vec<SarifSuppression<'a>>,
 }
 
 impl<'a> SarifResult<'a> {
@@ -135,11 +135,7 @@ impl<'a> SarifResult<'a> {
                 text: &violation.message,
             },
             locations: vec![SarifLocation::from_violation(violation)],
-            suppressions: if violation.baselined {
-                vec![SarifSuppression::external_baseline()]
-            } else {
-                Vec::new()
-            },
+            suppressions: sarif_suppressions(violation),
         }
     }
 }
@@ -187,18 +183,26 @@ struct SarifRegion {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SarifSuppression {
+struct SarifSuppression<'a> {
     kind: &'static str,
     state: &'static str,
-    justification: &'static str,
+    justification: &'a str,
 }
 
-impl SarifSuppression {
+impl<'a> SarifSuppression<'a> {
     fn external_baseline() -> Self {
         Self {
             kind: "external",
             state: "accepted",
             justification: "Baselined by OnionCry violation baseline.",
+        }
+    }
+
+    fn in_source(reason: &'a str) -> Self {
+        Self {
+            kind: "inSource",
+            state: "accepted",
+            justification: reason,
         }
     }
 }
@@ -214,6 +218,23 @@ fn sarif_region(violation: &Violation) -> Option<SarifRegion> {
         start_line: line,
         start_column: violation.column,
     })
+}
+
+fn sarif_suppressions(violation: &Violation) -> Vec<SarifSuppression<'_>> {
+    if violation.baselined {
+        return vec![SarifSuppression::external_baseline()];
+    }
+
+    if violation.suppressed {
+        return vec![SarifSuppression::in_source(
+            violation
+                .suppression_reason
+                .as_deref()
+                .unwrap_or("Suppressed by inline OnionCry comment."),
+        )];
+    }
+
+    Vec::new()
 }
 
 fn sarif_level(severity: &str) -> &'static str {

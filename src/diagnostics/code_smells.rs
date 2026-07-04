@@ -34,6 +34,8 @@ impl Violation {
             matched_layers: None,
             matched_contexts: None,
             baselined: false,
+            suppressed: false,
+            suppression_reason: None,
         }
     }
 
@@ -69,6 +71,8 @@ impl Violation {
             matched_layers: None,
             matched_contexts: None,
             baselined: false,
+            suppressed: false,
+            suppression_reason: None,
         }
     }
 
@@ -102,6 +106,8 @@ impl Violation {
             matched_layers: None,
             matched_contexts: None,
             baselined: false,
+            suppressed: false,
+            suppression_reason: None,
         }
     }
 }

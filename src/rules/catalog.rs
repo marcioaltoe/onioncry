@@ -27,6 +27,8 @@ pub(crate) const RULE_FEATURE_ENVY: &str = "codesmells/feature-envy";
 pub(crate) const RULE_SHOTGUN_SURGERY: &str = "codesmells/shotgun-surgery";
 pub(crate) const RULE_TEST_PLACEMENT: &str = "repo/test-placement";
 pub(crate) const RULE_PATH_NAMING: &str = "repo/path-naming";
+pub(crate) const RULE_INVALID_SUPPRESSION: &str = "repo/invalid-suppression";
+pub(crate) const RULE_UNUSED_SUPPRESSION: &str = "repo/unused-suppression";
 pub(crate) const RULE_FEATURE_SYSTEM_LAYOUT: &str = "frontend/feature-system-layout";
 pub(crate) const RULE_FEATURE_SYSTEM_PUBLIC_API: &str = "frontend/feature-system-public-api";
 pub(crate) const RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW: &str =
@@ -225,6 +227,20 @@ pub(crate) const RULES: &[RuleDescriptor] = &[
         explanation: "Path naming checks observable file and directory names, not code symbols.",
     },
     RuleDescriptor {
+        id: RULE_INVALID_SUPPRESSION,
+        legacy_aliases: &[],
+        default_severity: Severity::Error,
+        architecture_family: None,
+        explanation: "Inline suppression comments must name known rules and include a non-empty reason.",
+    },
+    RuleDescriptor {
+        id: RULE_UNUSED_SUPPRESSION,
+        legacy_aliases: &[],
+        default_severity: Severity::Warn,
+        architecture_family: None,
+        explanation: "Inline suppression comments should match at least one current violation on the next line.",
+    },
+    RuleDescriptor {
         id: RULE_FEATURE_SYSTEM_LAYOUT,
         legacy_aliases: &[],
         default_severity: Severity::Off,
@@ -277,6 +293,31 @@ pub(crate) fn known_rule_names_display() -> String {
         .join(", ")
 }
 
+pub(crate) fn closest_rule_names(rule: &str, limit: usize) -> Vec<&'static str> {
+    let mut candidates = RULES
+        .iter()
+        .map(|descriptor| {
+            (
+                levenshtein(rule, descriptor.id),
+                descriptor.id.len().abs_diff(rule.len()),
+                descriptor.id,
+            )
+        })
+        .collect::<Vec<_>>();
+    candidates.sort_by(|left, right| {
+        left.0
+            .cmp(&right.0)
+            .then_with(|| left.1.cmp(&right.1))
+            .then_with(|| left.2.cmp(right.2))
+    });
+
+    candidates
+        .into_iter()
+        .take(limit)
+        .map(|(_, _, rule)| rule)
+        .collect()
+}
+
 pub(crate) fn rule_descriptor_for(rule: &str) -> Option<&'static RuleDescriptor> {
     RULES
         .iter()
@@ -303,4 +344,23 @@ pub fn rule_catalog() -> Vec<RuleCatalogEntry> {
             explanation: descriptor.explanation,
         })
         .collect()
+}
+
+fn levenshtein(left: &str, right: &str) -> usize {
+    let right_chars = right.chars().collect::<Vec<_>>();
+    let mut previous = (0..=right_chars.len()).collect::<Vec<_>>();
+    let mut current = vec![0; right_chars.len() + 1];
+
+    for (left_index, left_char) in left.chars().enumerate() {
+        current[0] = left_index + 1;
+        for (right_index, right_char) in right_chars.iter().enumerate() {
+            let deletion = previous[right_index + 1] + 1;
+            let insertion = current[right_index] + 1;
+            let substitution = previous[right_index] + usize::from(left_char != *right_char);
+            current[right_index + 1] = deletion.min(insertion).min(substitution);
+        }
+        std::mem::swap(&mut previous, &mut current);
+    }
+
+    previous[right_chars.len()]
 }

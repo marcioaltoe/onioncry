@@ -1,7 +1,15 @@
 use crate::{Violation, rule_explanation};
 
 pub(super) fn render_pretty_violation(violation: &Violation, include_tips: bool) -> String {
-    let mut output = if violation.baselined {
+    let mut output = if violation.suppressed {
+        format!(
+            "  {}:{}  suppressed {}  {}\n",
+            pretty_line(violation),
+            pretty_column(violation),
+            violation.message,
+            violation.rule
+        )
+    } else if violation.baselined {
         format!(
             "  {}:{}  baselined {}  {}\n",
             pretty_line(violation),
@@ -62,6 +70,14 @@ pub(super) fn render_pretty_violation(violation: &Violation, include_tips: bool)
     if violation.baselined {
         output.push_str(
             "    baseline: fix this violation, then rerun onioncry check --write-baseline to shrink the baseline\n",
+        );
+    }
+    if violation.suppressed {
+        if let Some(reason) = &violation.suppression_reason {
+            output.push_str(&format!("    suppression reason: {reason}\n"));
+        }
+        output.push_str(
+            "    suppression: remove the disable comment once this exception is no longer needed\n",
         );
     }
 

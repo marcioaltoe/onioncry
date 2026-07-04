@@ -244,6 +244,14 @@ _Avoid_: location-only fingerprint, message hash, line-based baseline
 A current violation that matches a Violation Baseline entry within that entry's count. It is reported separately from active violations and does not affect the failure threshold.
 _Avoid_: ignored violation, fixed violation, suppressed warning
 
+**Inline Suppression**:
+A source comment in the form `// onioncry-disable-next-line <rule>[, <rule>] -- <reason>` that marks matching violations on the next line as accepted exceptions. Inline suppressions are visible in reports and do not affect the failure threshold.
+_Avoid_: hidden ignore, file-level disable, undocumented exception
+
+**Suppression Reason**:
+The mandatory explanation after `--` in an Inline Suppression. It records why the exception exists so reviewers can decide whether the source-level exception is still justified.
+_Avoid_: empty reason, TODO-only reason, silent waiver
+
 **Stale Baseline Entry**:
 A Violation Baseline entry that matches no current violation. It indicates debt that may have been fixed and should be removed by rerunning `--write-baseline`, but it does not fail the run.
 _Avoid_: baseline error, missing violation, failed ratchet

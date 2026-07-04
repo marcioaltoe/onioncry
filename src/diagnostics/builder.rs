@@ -26,6 +26,8 @@ pub(super) fn base_violation(
         matched_layers: None,
         matched_contexts: None,
         baselined: false,
+        suppressed: false,
+        suppression_reason: None,
     }
 }
 

@@ -39,6 +39,9 @@ impl ViolationBaseline {
     pub fn from_violations(project_root: &Path, violations: &[Violation]) -> Self {
         let mut counts = BTreeMap::<BaselineFingerprint, usize>::new();
         for violation in violations {
+            if violation.suppressed {
+                continue;
+            }
             let fingerprint = BaselineFingerprint {
                 file: project_relative_display(project_root, Path::new(&violation.file)),
                 rule: violation.rule.clone(),
@@ -77,6 +80,9 @@ impl ViolationBaseline {
 
         let mut matched_fingerprints = BTreeSet::<BaselineFingerprint>::new();
         for violation in &mut violations {
+            if violation.suppressed {
+                continue;
+            }
             let fingerprint = BaselineFingerprint::from_violation(project_root, violation);
             let Some(remaining_count) = remaining_counts.get_mut(&fingerprint) else {
                 continue;

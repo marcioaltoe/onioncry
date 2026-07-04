@@ -29,9 +29,14 @@ fn render_pretty_summary(report: &CheckReport) -> String {
     } else {
         String::new()
     };
+    let suppressed_fragment = if report.summary.suppressed_count > 0 {
+        format!(", {} suppressed", report.summary.suppressed_count)
+    } else {
+        String::new()
+    };
 
     format!(
-        "{} {} ({} {}, {} {}{})\n{} {}\nstatus: {}\n",
+        "{} {} ({} {}, {} {}{}{})\n{} {}\nstatus: {}\n",
         report.summary.violation_count,
         pluralize(report.summary.violation_count, "problem", "problems"),
         report.summary.error_count,
@@ -39,6 +44,7 @@ fn render_pretty_summary(report: &CheckReport) -> String {
         report.summary.warning_count,
         pluralize(report.summary.warning_count, "warning", "warnings"),
         baseline_fragment,
+        suppressed_fragment,
         report.summary.file_count,
         pluralize(report.summary.file_count, "file checked", "files checked"),
         report.status.as_str()

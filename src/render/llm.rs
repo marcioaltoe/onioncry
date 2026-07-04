@@ -19,17 +19,19 @@ pub fn render_llm(report: &CheckReport) -> String {
             report.summary.baselined_count
         ));
     }
+    if report.summary.suppressed_count > 0 {
+        output.push_str(&format!(
+            "suppressedCount: {}\n",
+            report.summary.suppressed_count
+        ));
+    }
 
     for (index, group) in groups.iter().enumerate() {
         output.push_str(&format!(
             "\ngroup {}\nstate: {}\nactionable: {}\ncount: {}\nseverity: {}\nrule: {}\nmessage: {}\nwhy: {}\n",
             index + 1,
-            if group.key.baselined {
-                "baselined"
-            } else {
-                "active"
-            },
-            !group.key.baselined,
+            group.key.state(),
+            group.key.is_actionable(),
             group.violations.len(),
             group.key.severity,
             group.key.rule,
@@ -73,6 +75,14 @@ pub fn render_llm(report: &CheckReport) -> String {
                 "baseline: fix this violation, then rerun onioncry check --write-baseline to shrink the baseline\n",
             );
         }
+        if group.key.suppressed {
+            if let Some(reason) = &group.key.suppression_reason {
+                output.push_str(&format!("suppressionReason: {reason}\n"));
+            }
+            output.push_str(
+                "suppression: remove the disable comment once this exception is no longer needed\n",
+            );
+        }
         output.push_str("locations:\n");
         for violation in &group.violations {
             output.push_str(&format!(
@@ -101,6 +111,7 @@ struct LlmGroup<'a> {
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct LlmGroupKey {
     baselined: bool,
+    suppressed: bool,
     rule: String,
     severity: String,
     message: String,
@@ -115,12 +126,14 @@ struct LlmGroupKey {
     suggestion: Option<String>,
     matched_layers: Option<Vec<String>>,
     matched_contexts: Option<Vec<String>>,
+    suppression_reason: Option<String>,
 }
 
 impl LlmGroupKey {
     fn from_violation(violation: &Violation) -> Self {
         Self {
             baselined: violation.baselined,
+            suppressed: violation.suppressed,
             rule: violation.rule.clone(),
             severity: violation.severity.clone(),
             message: violation.message.clone(),
@@ -135,6 +148,31 @@ impl LlmGroupKey {
             suggestion: violation.suggestion.clone(),
             matched_layers: violation.matched_layers.clone(),
             matched_contexts: violation.matched_contexts.clone(),
+            suppression_reason: violation.suppression_reason.clone(),
+        }
+    }
+
+    fn state(&self) -> &'static str {
+        if self.baselined {
+            "baselined"
+        } else if self.suppressed {
+            "suppressed"
+        } else {
+            "active"
+        }
+    }
+
+    fn is_actionable(&self) -> bool {
+        !self.baselined && !self.suppressed
+    }
+
+    fn state_rank(&self) -> usize {
+        if self.is_actionable() {
+            0
+        } else if self.suppressed {
+            1
+        } else {
+            2
         }
     }
 }
@@ -163,8 +201,8 @@ fn llm_groups(report: &CheckReport) -> Vec<LlmGroup<'_>> {
 
     groups.sort_by(|left, right| {
         left.key
-            .baselined
-            .cmp(&right.key.baselined)
+            .state_rank()
+            .cmp(&right.key.state_rank())
             .then_with(|| {
                 severity_rank(&left.key.severity).cmp(&severity_rank(&right.key.severity))
             })

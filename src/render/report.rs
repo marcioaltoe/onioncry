@@ -3,15 +3,27 @@ use crate::{CheckReport, CheckStatus, CheckSummary, FailOn, Violation};
 pub fn build_report(file_count: usize, violations: &[Violation], fail_on: FailOn) -> CheckReport {
     let warning_count = violations
         .iter()
-        .filter(|violation| !violation.baselined && violation.severity == "warn")
+        .filter(|violation| {
+            !violation.baselined && !violation.suppressed && violation.severity == "warn"
+        })
         .count();
     let error_count = violations
         .iter()
-        .filter(|violation| !violation.baselined && violation.severity == "error")
+        .filter(|violation| {
+            !violation.baselined && !violation.suppressed && violation.severity == "error"
+        })
         .count();
     let baselined_count = violations
         .iter()
         .filter(|violation| violation.baselined)
+        .count();
+    let suppressed_count = violations
+        .iter()
+        .filter(|violation| violation.suppressed)
+        .count();
+    let violation_count = violations
+        .iter()
+        .filter(|violation| !violation.baselined && !violation.suppressed)
         .count();
     let should_fail = match fail_on {
         FailOn::Error => error_count > 0,
@@ -28,8 +40,9 @@ pub fn build_report(file_count: usize, violations: &[Violation], fail_on: FailOn
             file_count,
             warning_count,
             error_count,
-            violation_count: violations.len() - baselined_count,
+            violation_count,
             baselined_count,
+            suppressed_count,
         },
         violations: violations.to_vec(),
     }

@@ -219,7 +219,7 @@ fn append_extension(path: &Path, extension: &str) -> PathBuf {
     PathBuf::from(path_with_extension)
 }
 
-fn line_column(source: &str, byte_index: usize) -> (usize, usize) {
+pub(crate) fn line_column(source: &str, byte_index: usize) -> (usize, usize) {
     let safe_index = byte_index.min(source.len());
     let prefix = &source[..safe_index];
     let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;

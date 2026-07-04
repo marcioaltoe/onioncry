@@ -5,8 +5,8 @@ use crate::{
     DEFAULT_CONFIG_FILE, ExplainReport, ExternalPackagePolicy, FailOn, INIT_CONFIG_TEMPLATE,
     ImportEdge, ImportExplanation, ImportResolution, JSON_CONFIG_FILE, LayerClassification,
     LayerClassifier, LayerConfig, LoadedConfig, OnionCryError, Result, RulePolicy, Severity,
-    ViolationBaseline, build_glob_set, build_report, collect_import_edges, normalize_path,
-    normalized_package_name, resolve_against,
+    ViolationBaseline, apply_inline_suppressions, build_glob_set, build_report,
+    collect_import_edges, normalize_path, normalized_package_name, resolve_against,
 };
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
@@ -157,6 +157,7 @@ pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<C
         rule_policy: &rule_policy,
     };
     let mut violations = collect_rule_violations(&rule_context)?;
+    violations = apply_inline_suppressions(&project_root, &files, &rule_policy, violations)?;
     let baseline_warning = if options.write_baseline || options.no_baseline {
         None
     } else if let Some(loaded_baseline) =
