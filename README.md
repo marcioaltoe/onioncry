@@ -6,7 +6,8 @@ teams can see when layers, bounded contexts, public surfaces, or core package
 policies are being crossed.
 
 The project is currently in alpha. The CLI is usable locally, but distribution is
-not published through Homebrew, Cargo, or package managers yet.
+not published through Homebrew or npm yet. Maintainers publish crates.io
+releases through the tag-driven process in [docs/release.md](docs/release.md).
 
 ## Install During Alpha
 
@@ -36,8 +37,8 @@ which onioncry
 onioncry --help
 ```
 
-Later releases should be distributed through a Homebrew tap or another published
-installer. Until then, `make install` is the supported local testing path.
+After the first crates.io release, users can install with `cargo install
+onioncry`. Until then, `make install` is the supported local testing path.
 
 ## Quick Start
 
