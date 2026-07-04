@@ -9,7 +9,7 @@ CARGO := $(RTK) cargo
 .DEFAULT_GOAL := help
 
 .PHONY: help bootstrap verify rust-verify fmt fmt-check check lint test build install doc \
-  check-conventions check-pr-title publish-dry-run update clean skills-link
+  check-conventions check-pr-title publish-dry-run update clean skills-link skills-update
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make <target>\n"} \
