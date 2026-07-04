@@ -1,6 +1,6 @@
 # Add `onioncry rules`
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 
@@ -25,3 +25,7 @@ Add a `rules` subcommand that lists every rule in the built-in catalog so humans
 ## Blocked by
 
 None - can start immediately
+
+## Comments
+
+- 2026-07-04: Implemented `onioncry rules` with pretty and JSON output generated from `src/rules/catalog.rs`. Added CLI integration coverage for pretty grouping, JSON camelCase fields, legacy aliases, no-config execution, exit code, and help text. Verification passed with `rtk cargo test --test cli_rules`, `rtk cargo check --all-targets --all-features`, `rtk cargo clippy --all-targets --all-features -- -D warnings`, `rtk cargo test --all-features`, and `rtk make verify`. The exact commit SHA is reported in the loop handoff after the issue commit is created.

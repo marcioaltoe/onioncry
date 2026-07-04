@@ -59,6 +59,7 @@ For automation or agent workflows:
 ```bash
 onioncry check --llm-mode
 onioncry check --format json
+onioncry rules --format json
 ```
 
 To inspect one file:
@@ -132,6 +133,20 @@ Useful options:
 ```bash
 onioncry explain <file> --format json
 onioncry explain <file> --tips
+```
+
+```bash
+onioncry rules
+```
+
+Lists the built-in rule catalog without reading a project config. The output
+includes each rule name, default severity, architecture family, explanation, and
+legacy aliases where they exist.
+
+Useful options:
+
+```bash
+onioncry rules --format json
 ```
 
 ## Configuration

@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
     CLI_VERSION, FailOn, OnionCryError, init_config, render_explain_pretty, render_llm,
-    render_pretty, run_check, run_explain,
+    render_pretty, render_rules_pretty, rule_catalog, run_check, run_explain,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -20,6 +20,8 @@ enum Commands {
     Check(CheckArgs),
     Init(InitArgs),
     Explain(ExplainArgs),
+    #[command(about = "List built-in rules")]
+    Rules(RulesArgs),
 }
 
 #[derive(Debug, Parser)]
@@ -57,6 +59,12 @@ struct ExplainArgs {
     tips: bool,
 }
 
+#[derive(Debug, Parser)]
+struct RulesArgs {
+    #[arg(long, default_value_t = OutputFormat::Pretty)]
+    format: OutputFormat,
+}
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum OutputFormat {
     Pretty,
@@ -75,6 +83,27 @@ fn main() -> ExitCode {
         Commands::Check(args) => run_check_command(args),
         Commands::Init(args) => run_init_command(args),
         Commands::Explain(args) => run_explain_command(args),
+        Commands::Rules(args) => run_rules_command(args),
+    }
+}
+
+fn run_rules_command(args: RulesArgs) -> ExitCode {
+    let rules = rule_catalog();
+    match args.format {
+        OutputFormat::Pretty => {
+            print!("{}", render_rules_pretty(&rules));
+            ExitCode::SUCCESS
+        }
+        OutputFormat::Json => match serde_json::to_string_pretty(&rules) {
+            Ok(json) => {
+                println!("{json}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!("error: could not render JSON output: {error}");
+                ExitCode::from(2)
+            }
+        },
     }
 }
 

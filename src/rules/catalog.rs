@@ -1,4 +1,5 @@
 use crate::{ArchitectureMode, Severity};
+use serde::Serialize;
 
 pub(crate) const RULE_NO_LAYER_LEAK: &str = "cleanarch/no-layer-leak";
 pub(crate) const RULE_NO_FORBIDDEN_IMPORTS: &str = "cleanarch/no-forbidden-imports";
@@ -63,6 +64,16 @@ pub(crate) struct RuleDescriptor {
     pub(crate) default_severity: Severity,
     pub(crate) architecture_family: Option<ArchitectureRuleFamily>,
     pub(crate) explanation: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuleCatalogEntry {
+    pub name: &'static str,
+    pub legacy_aliases: &'static [&'static str],
+    pub default_severity: &'static str,
+    pub architecture_family: &'static str,
+    pub explanation: &'static str,
 }
 
 pub(crate) const RULES: &[RuleDescriptor] = &[
@@ -277,4 +288,19 @@ pub(crate) fn rule_explanation(rule: &str) -> &'static str {
         "This finding violates the configured OnionCry architecture policy.",
         |descriptor| descriptor.explanation,
     )
+}
+
+pub fn rule_catalog() -> Vec<RuleCatalogEntry> {
+    RULES
+        .iter()
+        .map(|descriptor| RuleCatalogEntry {
+            name: descriptor.id,
+            legacy_aliases: descriptor.legacy_aliases,
+            default_severity: descriptor.default_severity.as_str(),
+            architecture_family: descriptor
+                .architecture_family
+                .map_or("neutral", ArchitectureRuleFamily::display),
+            explanation: descriptor.explanation,
+        })
+        .collect()
 }
