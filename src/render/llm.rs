@@ -13,11 +13,23 @@ pub fn render_llm(report: &CheckReport) -> String {
         report.summary.warning_count,
         groups.len()
     );
+    if report.summary.baselined_count > 0 {
+        output.push_str(&format!(
+            "baselinedCount: {}\n",
+            report.summary.baselined_count
+        ));
+    }
 
     for (index, group) in groups.iter().enumerate() {
         output.push_str(&format!(
-            "\ngroup {}\ncount: {}\nseverity: {}\nrule: {}\nmessage: {}\nwhy: {}\n",
+            "\ngroup {}\nstate: {}\nactionable: {}\ncount: {}\nseverity: {}\nrule: {}\nmessage: {}\nwhy: {}\n",
             index + 1,
+            if group.key.baselined {
+                "baselined"
+            } else {
+                "active"
+            },
+            !group.key.baselined,
             group.violations.len(),
             group.key.severity,
             group.key.rule,
@@ -56,6 +68,11 @@ pub fn render_llm(report: &CheckReport) -> String {
         if let Some(suggestion) = &group.key.suggestion {
             output.push_str(&format!("tip: {suggestion}\n"));
         }
+        if group.key.baselined {
+            output.push_str(
+                "baseline: fix this violation, then rerun onioncry check --write-baseline to shrink the baseline\n",
+            );
+        }
         output.push_str("locations:\n");
         for violation in &group.violations {
             output.push_str(&format!(
@@ -83,6 +100,7 @@ struct LlmGroup<'a> {
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct LlmGroupKey {
+    baselined: bool,
     rule: String,
     severity: String,
     message: String,
@@ -102,6 +120,7 @@ struct LlmGroupKey {
 impl LlmGroupKey {
     fn from_violation(violation: &Violation) -> Self {
         Self {
+            baselined: violation.baselined,
             rule: violation.rule.clone(),
             severity: violation.severity.clone(),
             message: violation.message.clone(),
@@ -143,8 +162,12 @@ fn llm_groups(report: &CheckReport) -> Vec<LlmGroup<'_>> {
         .collect::<Vec<_>>();
 
     groups.sort_by(|left, right| {
-        severity_rank(&left.key.severity)
-            .cmp(&severity_rank(&right.key.severity))
+        left.key
+            .baselined
+            .cmp(&right.key.baselined)
+            .then_with(|| {
+                severity_rank(&left.key.severity).cmp(&severity_rank(&right.key.severity))
+            })
             .then_with(|| right.violations.len().cmp(&left.violations.len()))
             .then_with(|| left.key.rule.cmp(&right.key.rule))
             .then_with(|| left.key.message.cmp(&right.key.message))

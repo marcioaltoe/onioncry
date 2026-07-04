@@ -1,14 +1,24 @@
 use crate::{Violation, rule_explanation};
 
 pub(super) fn render_pretty_violation(violation: &Violation, include_tips: bool) -> String {
-    let mut output = format!(
-        "  {}:{}  {:<7} {}  {}\n",
-        pretty_line(violation),
-        pretty_column(violation),
-        pretty_severity(&violation.severity),
-        violation.message,
-        violation.rule
-    );
+    let mut output = if violation.baselined {
+        format!(
+            "  {}:{}  baselined {}  {}\n",
+            pretty_line(violation),
+            pretty_column(violation),
+            violation.message,
+            violation.rule
+        )
+    } else {
+        format!(
+            "  {}:{}  {:<7} {}  {}\n",
+            pretty_line(violation),
+            pretty_column(violation),
+            pretty_severity(&violation.severity),
+            violation.message,
+            violation.rule
+        )
+    };
 
     if !include_tips {
         return output;
@@ -48,6 +58,11 @@ pub(super) fn render_pretty_violation(violation: &Violation, include_tips: bool)
     }
     if let Some(suggestion) = &violation.suggestion {
         output.push_str(&format!("    tip: {suggestion}\n"));
+    }
+    if violation.baselined {
+        output.push_str(
+            "    baseline: fix this violation, then rerun onioncry check --write-baseline to shrink the baseline\n",
+        );
     }
 
     output

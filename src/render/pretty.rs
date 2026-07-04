@@ -24,14 +24,21 @@ pub fn render_pretty(report: &CheckReport, include_tips: bool) -> String {
 }
 
 fn render_pretty_summary(report: &CheckReport) -> String {
+    let baseline_fragment = if report.summary.baselined_count > 0 {
+        format!(", {} baselined", report.summary.baselined_count)
+    } else {
+        String::new()
+    };
+
     format!(
-        "{} {} ({} {}, {} {})\n{} {}\nstatus: {}\n",
+        "{} {} ({} {}, {} {}{})\n{} {}\nstatus: {}\n",
         report.summary.violation_count,
         pluralize(report.summary.violation_count, "problem", "problems"),
         report.summary.error_count,
         pluralize(report.summary.error_count, "error", "errors"),
         report.summary.warning_count,
         pluralize(report.summary.warning_count, "warning", "warnings"),
+        baseline_fragment,
         report.summary.file_count,
         pluralize(report.summary.file_count, "file checked", "files checked"),
         report.status.as_str()

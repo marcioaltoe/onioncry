@@ -119,7 +119,32 @@ onioncry check --format json
 onioncry check --fail-on warning
 onioncry check --tips
 onioncry check --llm-mode
+onioncry check --write-baseline
+onioncry check --baseline path/to/.onioncry-baseline.json
+onioncry check --no-baseline
 ```
+
+### Violation Baselines
+
+Use a violation baseline when a repository needs to adopt stricter rules before
+all existing architecture drift is fixed. The baseline keeps known debt visible
+without weakening rule defaults or hiding new violations.
+
+Adoption workflow:
+
+1. Enable the strict rules you want in `.onioncryrc.jsonc`.
+2. Run `onioncry check --write-baseline` to write the current violations to
+   `.onioncry-baseline.json` next to the resolved config file.
+3. Commit `.onioncry-baseline.json` with the config change so the grandfathered
+   debt is explicit and reviewable.
+4. Run `onioncry check` in automation. Baselined violations stay visible, but
+   only new violations affect the failure threshold.
+5. Fix baselined violations over time, then rerun
+   `onioncry check --write-baseline` to shrink the baseline.
+
+`--baseline <path>` reads or writes a custom baseline path. `--no-baseline`
+disables baseline consumption for one run, which is useful when auditing all
+current violations.
 
 ```bash
 onioncry explain <file>
