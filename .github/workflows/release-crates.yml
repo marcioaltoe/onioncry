@@ -18,8 +18,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.88 --profile minimal --component clippy --component rustfmt
-          rustup default 1.88
+          rustup toolchain install 1.93 --profile minimal --component clippy --component rustfmt
+          rustup default 1.93
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -73,8 +73,8 @@ jobs:
       - name: Install Rust toolchain
         shell: bash
         run: |
-          rustup toolchain install 1.88 --profile minimal
-          rustup default 1.88
+          rustup toolchain install 1.93 --profile minimal
+          rustup default 1.93
           rustup target add "${{ matrix.target }}"
 
       - name: Install Node
@@ -147,8 +147,8 @@ jobs:
 
       - name: Install Rust toolchain
         run: |
-          rustup toolchain install 1.88 --profile minimal
-          rustup default 1.88
+          rustup toolchain install 1.93 --profile minimal
+          rustup default 1.93
 
       - name: Install Node
         uses: actions/setup-node@v4

@@ -24,7 +24,7 @@ multi-manifest release (crates.io plus npm launcher packages).
   test gate.
 - **NEVER** use workarounds in production code or tests. Fix the root cause.
 - **NEVER** hand-edit `Cargo.toml` dependencies. Use `rtk cargo add` /
-  `rtk cargo remove`; respect the pinned `rust-version` (MSRV 1.88).
+  `rtk cargo remove`; respect the pinned `rust-version` (MSRV 1.93).
 - **NEVER** create commits unless the user explicitly asks for a commit in
   the current turn.
 - **ABSOLUTELY FORBIDDEN**: `git reset`, `git checkout --`, `git restore`,
@@ -126,7 +126,7 @@ Before editing, identify the task domain and **activate every matching skill**:
   JSON is rejected. Schema-validate SARIF output against the bundled 2.1.0
   fixture.
 - **NEVER** add dependencies casually. Each dependency needs a clear job and
-  is used directly by the crate that imports it. Respect MSRV 1.88.
+  is used directly by the crate that imports it. Respect MSRV 1.93.
 - **Integration tests drive the real binary**: `assert_cmd` + `predicates`
   in `tempfile::TempDir` sandboxes, sharing helpers through
   `tests/support/mod.rs` (config builders, `git()` wrapper, report
