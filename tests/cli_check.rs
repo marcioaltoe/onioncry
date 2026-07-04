@@ -617,6 +617,114 @@ export const run = repo + otherRepo;
 }
 
 #[test]
+fn check_write_baseline_keeps_the_report_identical_when_a_baseline_already_exists() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        r#"import { repo } from "../infra/repo";
+export const run = repo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/domain/user.ts"),
+        r#"import { repo } from "../infra/repo";
+export const user = repo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/repo.ts"),
+        "export const repo = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/application/use-case.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../infra/repo",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    let plain_output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--format", "json"])
+        .assert()
+        .failure()
+        .get_output()
+        .stdout
+        .clone();
+    let plain: Value = serde_json::from_slice(&plain_output).expect("check should emit JSON");
+
+    let write_output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--format", "json", "--write-baseline"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("stale").not())
+        .get_output()
+        .stdout
+        .clone();
+    let write: Value = serde_json::from_slice(&write_output).expect("check should emit JSON");
+
+    assert_eq!(plain["status"], write["status"]);
+    assert_eq!(plain["summary"], write["summary"]);
+    assert_eq!(write["summary"]["violationCount"], 1);
+    assert_eq!(write["summary"]["baselinedCount"], 1);
+
+    let baseline: Value = serde_json::from_str(
+        &fs::read_to_string(workspace.path().join(".onioncry-baseline.json"))
+            .expect("baseline should be rewritten"),
+    )
+    .expect("baseline should be JSON");
+    assert_eq!(
+        baseline["entries"]
+            .as_array()
+            .expect("entries should be an array")
+            .len(),
+        2
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check"])
+        .assert()
+        .success();
+}
+
+#[test]
+fn check_write_baseline_replaces_an_unsupported_baseline_version() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const order = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{ "version": 99, "entries": [] }"#,
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--write-baseline"])
+        .assert()
+        .success();
+
+    let baseline: Value = serde_json::from_str(
+        &fs::read_to_string(workspace.path().join(".onioncry-baseline.json"))
+            .expect("baseline should be rewritten"),
+    )
+    .expect("baseline should be JSON");
+    assert_eq!(baseline["version"], 1);
+}
+
+#[test]
 fn check_write_baseline_accepts_custom_path_and_rewrites_clean_project() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_minimal_config(

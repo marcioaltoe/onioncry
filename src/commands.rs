@@ -183,19 +183,31 @@ pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<C
     };
     let mut violations = collect_rule_violations(&rule_context)?;
     violations = apply_inline_suppressions(&project_root, &files, &rule_policy, violations)?;
-    let baseline_warning = if options.write_baseline || options.no_baseline {
+    let baseline_warning = if options.no_baseline {
         None
-    } else if let Some(loaded_baseline) =
-        load_violation_baseline(cwd, &loaded, options.baseline_path)?
-    {
-        let application = loaded_baseline.baseline.apply(&project_root, violations);
-        violations = application.violations;
-        (application.stale_entry_count > 0).then_some(BaselineWarning {
-            path: loaded_baseline.path,
-            stale_entry_count: application.stale_entry_count,
-        })
     } else {
-        None
+        match load_violation_baseline(cwd, &loaded, options.baseline_path) {
+            Ok(Some(loaded_baseline)) => {
+                let application = loaded_baseline.baseline.apply(&project_root, violations);
+                violations = application.violations;
+                // Stale entries are being removed by the rewrite itself, so the
+                // "rerun --write-baseline" warning would be noise on a write run.
+                (application.stale_entry_count > 0 && !options.write_baseline).then_some(
+                    BaselineWarning {
+                        path: loaded_baseline.path,
+                        stale_entry_count: application.stale_entry_count,
+                    },
+                )
+            }
+            Ok(None) => None,
+            // A rewrite replaces a missing or version-incompatible baseline instead
+            // of failing on the file it is about to overwrite.
+            Err(
+                OnionCryError::MissingBaseline { .. }
+                | OnionCryError::UnsupportedBaselineVersion { .. },
+            ) if options.write_baseline => None,
+            Err(error) => return Err(error),
+        }
     };
     let baseline_write = if options.write_baseline {
         Some(write_violation_baseline(
