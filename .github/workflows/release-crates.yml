@@ -154,6 +154,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Download npm package artifacts
         uses: actions/download-artifact@v4
@@ -169,7 +170,6 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           for package in dist/onioncry-cli-*.tgz; do
             npm publish "$package" --access public
           done
@@ -179,3 +179,26 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: cargo publish --locked --token "$CARGO_REGISTRY_TOKEN"
+
+  verify-npm-release:
+    name: Verify published npm release
+    needs: publish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run npx against the published version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for attempt in $(seq 1 10); do
+            if npx --yes "onioncry@${version}" --help; then
+              exit 0
+            fi
+            echo "registry not ready yet (attempt ${attempt}/10); retrying in 30s"
+            sleep 30
+          done
+          echo "npx onioncry@${version} --help never succeeded after publish"
+          exit 1
