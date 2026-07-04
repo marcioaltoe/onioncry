@@ -59,6 +59,7 @@ For automation or agent workflows:
 ```bash
 onioncry check --llm-mode
 onioncry check --format json
+onioncry check --format sarif
 onioncry rules --format json
 ```
 
@@ -116,6 +117,7 @@ Useful options:
 ```bash
 onioncry check --config path/to/.onioncryrc.jsonc
 onioncry check --format json
+onioncry check --format sarif
 onioncry check --fail-on warning
 onioncry check --tips
 onioncry check --llm-mode
@@ -145,6 +147,27 @@ Adoption workflow:
 `--baseline <path>` reads or writes a custom baseline path. `--no-baseline`
 disables baseline consumption for one run, which is useful when auditing all
 current violations.
+
+### SARIF Output
+
+`onioncry check --format sarif` emits SARIF 2.1.0 for code review and code
+scanning integrations. The SARIF result set includes active and baselined
+violations; baselined violations are marked with external suppressions so
+review tools can keep them visible without treating them as new findings.
+
+```bash
+onioncry check --format sarif > onioncry.sarif
+sarif="$(gzip -c onioncry.sarif | base64 | tr -d '\n')"
+gh api \
+  -X POST \
+  "repos/OWNER/REPO/code-scanning/sarifs" \
+  -f commit_sha="$(git rev-parse HEAD)" \
+  -f ref="$(git symbolic-ref -q HEAD)" \
+  -f sarif="$sarif"
+```
+
+OnionCry does not ship a maintained GitHub Action. In CI, generate the SARIF
+file and upload it with the integration surface your repository already uses.
 
 ```bash
 onioncry explain <file>

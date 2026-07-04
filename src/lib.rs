@@ -54,7 +54,7 @@ pub(crate) use policy::{
     ExternalPackageLayerPolicy, ExternalPackagePolicy, PackageAllowlist, RulePolicy,
 };
 pub use render::render_rules_pretty;
-pub use render::{build_report, render_explain_pretty, render_llm, render_pretty};
+pub use render::{build_report, render_explain_pretty, render_llm, render_pretty, render_sarif};
 pub(crate) use rules::catalog::*;
 pub use rules::catalog::{RuleCatalogEntry, rule_catalog};
 pub(crate) use rules::{FeatureSystemDependencyArea, FeatureSystemLocation, SliceLocation};

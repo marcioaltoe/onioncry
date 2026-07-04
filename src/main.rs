@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
     CLI_VERSION, CheckOptions, FailOn, OnionCryError, init_config, render_config_schema_json,
-    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, rule_catalog,
-    run_check_with_options, run_explain, write_config_schema,
+    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, render_sarif,
+    rule_catalog, run_check_with_options, run_explain, write_config_schema,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -31,8 +31,8 @@ enum Commands {
 struct CheckArgs {
     #[arg(long)]
     config: Option<PathBuf>,
-    #[arg(long, default_value_t = OutputFormat::Pretty)]
-    format: OutputFormat,
+    #[arg(long, default_value_t = CheckOutputFormat::Pretty)]
+    format: CheckOutputFormat,
     #[arg(long, default_value_t = FailOnArg::Error)]
     fail_on: FailOnArg,
     #[arg(long, alias = "tip", help = "Show remediation tips for diagnostics")]
@@ -88,6 +88,13 @@ struct RulesArgs {
 struct SchemaArgs {
     #[arg(long)]
     write: Option<PathBuf>,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum CheckOutputFormat {
+    Pretty,
+    Json,
+    Sarif,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -263,16 +270,26 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
                 print!("{}", render_llm(&report));
             } else {
                 match args.format {
-                    OutputFormat::Pretty => {
+                    CheckOutputFormat::Pretty => {
                         print!("{}", render_pretty(&report, args.tips));
                     }
-                    OutputFormat::Json => match serde_json::to_string_pretty(&report) {
+                    CheckOutputFormat::Json => match serde_json::to_string_pretty(&report) {
                         Ok(json) => println!("{json}"),
                         Err(error) => {
                             eprintln!("error: could not render JSON output: {error}");
                             return ExitCode::from(2);
                         }
                     },
+                    CheckOutputFormat::Sarif => {
+                        let rules = rule_catalog();
+                        match render_sarif(&report, &rules) {
+                            Ok(sarif) => println!("{sarif}"),
+                            Err(error) => {
+                                eprintln!("error: could not render SARIF output: {error}");
+                                return ExitCode::from(2);
+                            }
+                        }
+                    }
                 }
             };
 
@@ -295,6 +312,16 @@ fn print_error(error: &OnionCryError) {
 
 fn pluralize_entry(count: usize) -> &'static str {
     if count == 1 { "entry" } else { "entries" }
+}
+
+impl std::fmt::Display for CheckOutputFormat {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CheckOutputFormat::Pretty => formatter.write_str("pretty"),
+            CheckOutputFormat::Json => formatter.write_str("json"),
+            CheckOutputFormat::Sarif => formatter.write_str("sarif"),
+        }
+    }
 }
 
 impl std::fmt::Display for OutputFormat {
