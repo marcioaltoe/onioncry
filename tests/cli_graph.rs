@@ -144,6 +144,57 @@ fn graph_handles_empty_projects() {
     );
 }
 
+#[test]
+fn graph_reports_config_errors_with_exit_code_two() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["graph"])
+        .assert()
+        .code(2)
+        .stdout(predicate::str::is_empty())
+        .stderr(predicate::str::contains(".onioncryrc"));
+}
+
+#[test]
+fn graph_aggregates_contextless_files_into_a_single_node() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_context_graph_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/tools/report.ts"),
+        r#"import { invoice } from "../billing/contracts/invoice";
+export const report = invoice;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/tools/export.ts"),
+        r#"import { invoice } from "../billing/contracts/invoice";
+export const exported = invoice;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/billing/contracts/invoice.ts"),
+        "export const invoice = 1;\n",
+    );
+
+    let graph = run_json_graph(&workspace);
+    let nodes = graph["nodes"].as_array().expect("nodes should be an array");
+
+    assert_eq!(
+        nodes
+            .iter()
+            .filter(|node| node["kind"] == "contextless")
+            .count(),
+        1
+    );
+    assert!(nodes.iter().any(|node| node["id"] == "contextless"));
+    assert_eq!(graph["edges"][0]["from"], "contextless");
+    assert_eq!(graph["edges"][0]["to"], "billing");
+    assert_eq!(graph["edges"][0]["via"], "contracts");
+    assert_eq!(graph["edges"][0]["importCount"], 2);
+}
+
 fn run_json_graph(workspace: &TempDir) -> Value {
     let output = onioncry()
         .current_dir(workspace.path())
