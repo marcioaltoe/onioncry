@@ -28,7 +28,7 @@ pub(crate) use feature_system::{
 };
 pub(crate) use repo::{collect_path_naming_violations, collect_test_placement_violations};
 pub(crate) use vertical_slice::{
-    SliceLocation, collect_global_slice_artifact_violations,
+    SliceLocation, VerticalSlicePolicy, collect_global_slice_artifact_violations,
     collect_vertical_shared_layer_artifact_violations,
     collect_vertical_slice_entry_point_violations,
     collect_vertical_slice_internal_import_violations,

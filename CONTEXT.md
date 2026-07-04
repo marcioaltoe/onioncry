@@ -312,6 +312,10 @@ _Avoid_: harmless import type
 A dependency edge discovered from a source file. In the MVP, import edges come from static imports, type-only imports, re-exports, string-literal dynamic imports, and string-literal `require` calls.
 _Avoid_: only import declarations
 
+**Context Graph**:
+A diagnostic ownership graph derived from Import Edges. In Clean Architecture mode it shows dependencies between architectural contexts; in Vertical Slice mode it shows dependencies between slices. Contextless or slice-less files aggregate into one explicit node.
+_Avoid_: file graph, package graph, class diagram
+
 **Context Cycle**:
 A cycle of import edges between architectural contexts. Generic file-level import cycles belong to the JavaScript linter; OnionCry reports cycles at the ownership-boundary level.
 _Avoid_: file cycle when the important point is context ownership

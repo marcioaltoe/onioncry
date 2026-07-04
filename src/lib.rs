@@ -4,6 +4,7 @@ mod commands;
 mod config;
 mod diagnostics;
 mod errors;
+mod graph;
 mod imports;
 mod model;
 mod path_utils;
@@ -42,23 +43,29 @@ pub(crate) use classification::{
 pub use commands::{
     BaselineWarning, BaselineWrite, CheckOptions, CheckOutcome, discover_config_path, init_config,
     load_config, render_config_schema_json, run_check, run_check_with_options, run_explain,
-    select_files, write_config_schema,
+    run_graph, select_files, write_config_schema,
 };
 pub use errors::{OnionCryError, Result};
+pub(crate) use graph::build_graph_report;
 pub use imports::collect_import_edges;
 pub use model::{
-    BoundaryExplanation, CheckReport, CheckStatus, CheckSummary, ExplainReport, FailOn, ImportEdge,
-    ImportExplanation, ImportKind, ImportResolution, Violation,
+    BoundaryExplanation, CheckReport, CheckStatus, CheckSummary, ExplainReport, FailOn, GraphEdge,
+    GraphNode, GraphReport, ImportEdge, ImportExplanation, ImportKind, ImportResolution, Violation,
 };
 pub(crate) use path_utils::*;
 pub(crate) use policy::{
     ExternalPackageLayerPolicy, ExternalPackagePolicy, PackageAllowlist, RulePolicy,
 };
 pub use render::render_rules_pretty;
-pub use render::{build_report, render_explain_pretty, render_llm, render_pretty, render_sarif};
+pub use render::{
+    build_report, render_explain_pretty, render_graph_mermaid, render_llm, render_pretty,
+    render_sarif,
+};
 pub(crate) use rules::catalog::*;
 pub use rules::catalog::{RuleCatalogEntry, rule_catalog};
-pub(crate) use rules::{FeatureSystemDependencyArea, FeatureSystemLocation, SliceLocation};
+pub(crate) use rules::{
+    FeatureSystemDependencyArea, FeatureSystemLocation, SliceLocation, VerticalSlicePolicy,
+};
 pub(crate) use suppressions::apply_inline_suppressions;
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";

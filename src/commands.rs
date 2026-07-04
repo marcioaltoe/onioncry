@@ -2,11 +2,12 @@ use crate::rules::catalog::RULE_NO_FORBIDDEN_IMPORTS;
 use crate::rules::{RuleCollectionContext, collect_rule_violations};
 use crate::{
     BoundaryExplanation, CheckReport, Config, ContextConfig, ContextPolicy, DEFAULT_BASELINE_FILE,
-    DEFAULT_CONFIG_FILE, ExplainReport, ExternalPackagePolicy, FailOn, INIT_CONFIG_TEMPLATE,
-    ImportEdge, ImportExplanation, ImportResolution, JSON_CONFIG_FILE, LayerClassification,
-    LayerClassifier, LayerConfig, LoadedConfig, OnionCryError, Result, RulePolicy, Severity,
-    ViolationBaseline, apply_inline_suppressions, build_glob_set, build_report,
-    collect_import_edges, normalize_path, normalized_package_name, resolve_against,
+    DEFAULT_CONFIG_FILE, ExplainReport, ExternalPackagePolicy, FailOn, GraphReport,
+    INIT_CONFIG_TEMPLATE, ImportEdge, ImportExplanation, ImportResolution, JSON_CONFIG_FILE,
+    LayerClassification, LayerClassifier, LayerConfig, LoadedConfig, OnionCryError, Result,
+    RulePolicy, Severity, ViolationBaseline, apply_inline_suppressions, build_glob_set,
+    build_graph_report, build_report, collect_import_edges, normalize_path,
+    normalized_package_name, resolve_against,
 };
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
@@ -301,6 +302,15 @@ pub fn run_explain(
         imports,
         violations,
     })
+}
+
+pub fn run_graph(cwd: &Path, explicit_config: Option<&Path>) -> Result<GraphReport> {
+    let loaded = load_config(cwd, explicit_config)?;
+    let files = select_files(&loaded)?;
+    let project_root = loaded.project_root()?;
+    let edges = collect_import_edges(&loaded, &project_root, &files)?;
+
+    build_graph_report(&loaded, &project_root, &files, &edges)
 }
 
 pub fn select_files(loaded: &LoadedConfig) -> Result<Vec<PathBuf>> {

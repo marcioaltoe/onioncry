@@ -184,6 +184,32 @@ Unused suppressions are reported as `repo/unused-suppression`; malformed
 comments are reported as `repo/invalid-suppression`.
 
 ```bash
+onioncry graph
+```
+
+Prints a Mermaid ownership graph: Clean Architecture mode groups imports by
+architectural context, while Vertical Slice mode groups imports by slice.
+
+Useful options:
+
+```bash
+onioncry graph --format json
+onioncry graph --config path/to/.onioncryrc.jsonc
+```
+
+The JSON structure is public API for automation:
+
+```json
+{
+  "nodes": [{ "id": "sales", "label": "sales", "kind": "context" }],
+  "edges": [{ "from": "sales", "to": "billing", "via": "contracts", "importCount": 2 }]
+}
+```
+
+`via` is `null` when the target boundary is not entered through a configured
+public surface segment.
+
+```bash
 onioncry explain <file>
 ```
 

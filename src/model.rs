@@ -28,6 +28,30 @@ pub struct ExplainReport {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct GraphReport {
+    pub nodes: Vec<GraphNode>,
+    pub edges: Vec<GraphEdge>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphNode {
+    pub id: String,
+    pub label: String,
+    pub kind: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GraphEdge {
+    pub from: String,
+    pub to: String,
+    pub via: Option<String>,
+    pub import_count: usize,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BoundaryExplanation {
     pub status: String,
     #[serde(skip_serializing_if = "Option::is_none")]

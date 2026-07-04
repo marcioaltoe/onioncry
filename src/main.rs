@@ -1,8 +1,9 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
     CLI_VERSION, CheckOptions, FailOn, OnionCryError, init_config, render_config_schema_json,
-    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, render_sarif,
-    rule_catalog, run_check_with_options, run_explain, write_config_schema,
+    render_explain_pretty, render_graph_mermaid, render_llm, render_pretty, render_rules_pretty,
+    render_sarif, rule_catalog, run_check_with_options, run_explain, run_graph,
+    write_config_schema,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -19,6 +20,7 @@ struct Cli {
 #[derive(Debug, Subcommand)]
 enum Commands {
     Check(CheckArgs),
+    Graph(GraphArgs),
     Init(InitArgs),
     Explain(ExplainArgs),
     #[command(about = "List built-in rules")]
@@ -68,6 +70,14 @@ struct InitArgs {
 }
 
 #[derive(Debug, Parser)]
+struct GraphArgs {
+    #[arg(long)]
+    config: Option<PathBuf>,
+    #[arg(long, default_value_t = GraphOutputFormat::Mermaid)]
+    format: GraphOutputFormat,
+}
+
+#[derive(Debug, Parser)]
 struct ExplainArgs {
     file: PathBuf,
     #[arg(long)]
@@ -104,6 +114,12 @@ enum OutputFormat {
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
+enum GraphOutputFormat {
+    Mermaid,
+    Json,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
 enum FailOnArg {
     Error,
     Warning,
@@ -113,6 +129,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     match cli.command {
         Commands::Check(args) => run_check_command(args),
+        Commands::Graph(args) => run_graph_command(args),
         Commands::Init(args) => run_init_command(args),
         Commands::Explain(args) => run_explain_command(args),
         Commands::Rules(args) => run_rules_command(args),
@@ -227,6 +244,36 @@ fn run_init_command(args: InitArgs) -> ExitCode {
     }
 }
 
+fn run_graph_command(args: GraphArgs) -> ExitCode {
+    let cwd = match std::env::current_dir() {
+        Ok(cwd) => cwd,
+        Err(error) => {
+            eprintln!("error: could not determine current directory: {error}");
+            return ExitCode::from(2);
+        }
+    };
+
+    match run_graph(&cwd, args.config.as_deref()) {
+        Ok(report) => {
+            match args.format {
+                GraphOutputFormat::Mermaid => print!("{}", render_graph_mermaid(&report)),
+                GraphOutputFormat::Json => match serde_json::to_string_pretty(&report) {
+                    Ok(json) => println!("{json}"),
+                    Err(error) => {
+                        eprintln!("error: could not render JSON output: {error}");
+                        return ExitCode::from(2);
+                    }
+                },
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            print_error(&error);
+            ExitCode::from(2)
+        }
+    }
+}
+
 fn run_check_command(args: CheckArgs) -> ExitCode {
     let cwd = match std::env::current_dir() {
         Ok(cwd) => cwd,
@@ -329,6 +376,15 @@ impl std::fmt::Display for OutputFormat {
         match self {
             OutputFormat::Pretty => formatter.write_str("pretty"),
             OutputFormat::Json => formatter.write_str("json"),
+        }
+    }
+}
+
+impl std::fmt::Display for GraphOutputFormat {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GraphOutputFormat::Mermaid => formatter.write_str("mermaid"),
+            GraphOutputFormat::Json => formatter.write_str("json"),
         }
     }
 }

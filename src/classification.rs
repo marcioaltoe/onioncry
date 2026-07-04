@@ -89,14 +89,23 @@ impl ContextPolicy {
     }
 
     pub(crate) fn is_public_surface(&self, target: &Path, project_root: &Path) -> bool {
+        self.public_surface_segment(target, project_root).is_some()
+    }
+
+    pub(crate) fn public_surface_segment(
+        &self,
+        target: &Path,
+        project_root: &Path,
+    ) -> Option<String> {
         let relative_path = target.strip_prefix(project_root).unwrap_or(target);
-        relative_path.components().any(|component| {
+        relative_path.components().find_map(|component| {
             let Component::Normal(segment) = component else {
-                return false;
+                return None;
             };
-            segment
-                .to_str()
-                .is_some_and(|segment| self.allow_cross_context.contains(segment))
+            let segment = segment.to_str()?;
+            self.allow_cross_context
+                .contains(segment)
+                .then(|| segment.to_string())
         })
     }
 }

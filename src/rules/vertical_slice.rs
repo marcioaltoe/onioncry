@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-struct VerticalSlicePolicy {
+pub(crate) struct VerticalSlicePolicy {
     slice_root: Vec<String>,
     slice_depth: usize,
     public_surface: Vec<Vec<String>>,
@@ -241,7 +241,7 @@ fn is_javascript_identifier_continue(character: char) -> bool {
 }
 
 impl VerticalSlicePolicy {
-    fn from_config(config: &VerticalSliceConfig) -> Self {
+    pub(crate) fn from_config(config: &VerticalSliceConfig) -> Self {
         Self {
             slice_root: path_components(Path::new(&config.slice_root)),
             slice_depth: config.slice_depth.max(1),
@@ -267,7 +267,7 @@ impl VerticalSlicePolicy {
         }
     }
 
-    fn slice_location(&self, project_root: &Path, file: &Path) -> Option<SliceLocation> {
+    pub(crate) fn slice_location(&self, project_root: &Path, file: &Path) -> Option<SliceLocation> {
         let components = project_relative_components(project_root, file);
         if components.is_empty() {
             return None;
@@ -305,13 +305,18 @@ impl VerticalSlicePolicy {
         })
     }
 
-    fn is_public_surface_location(&self, location: &SliceLocation) -> bool {
+    pub(crate) fn is_public_surface_location(&self, location: &SliceLocation) -> bool {
+        self.public_surface_label(location).is_some()
+    }
+
+    pub(crate) fn public_surface_label(&self, location: &SliceLocation) -> Option<String> {
         let relative_file = &location.relative_file;
-        self.public_surface.iter().any(|surface| {
-            relative_file == surface
+        self.public_surface.iter().find_map(|surface| {
+            (relative_file == surface
                 || (!surface.is_empty()
-                    && path_has_prefix_components(relative_file.as_slice(), surface)
-                    && relative_file.len() > surface.len())
+                    && path_has_prefix_components(relative_file.as_slice(), surface.as_slice())
+                    && relative_file.len() > surface.len()))
+            .then(|| display_path_components(surface))
         })
     }
 
