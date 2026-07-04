@@ -1,0 +1,35 @@
+{
+  "name": "onioncry",
+  "version": "0.1.0",
+  "description": "Check architectural boundaries in JavaScript and TypeScript projects",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcioaltoe/onioncry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/marcioaltoe/onioncry/issues"
+  },
+  "homepage": "https://github.com/marcioaltoe/onioncry#readme",
+  "type": "commonjs",
+  "bin": {
+    "onioncry": "bin/onioncry.js"
+  },
+  "scripts": {
+    "test": "node scripts/check-versions.mjs && node scripts/test-launcher.mjs"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "@onioncry/cli-darwin-arm64": "0.1.0",
+    "@onioncry/cli-darwin-x64": "0.1.0",
+    "@onioncry/cli-linux-arm64": "0.1.0",
+    "@onioncry/cli-linux-x64": "0.1.0",
+    "@onioncry/cli-win32-x64": "0.1.0"
+  }
+}

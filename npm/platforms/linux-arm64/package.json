@@ -1,0 +1,19 @@
+{
+  "name": "@onioncry/cli-linux-arm64",
+  "version": "0.1.0",
+  "description": "Prebuilt OnionCry binary for Linux arm64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcioaltoe/onioncry.git"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "bin"
+  ]
+}

@@ -9,7 +9,7 @@ CARGO := $(RTK) cargo
 .DEFAULT_GOAL := help
 
 .PHONY: help bootstrap verify rust-verify fmt fmt-check check lint test build install doc \
-  check-conventions check-pr-title update clean skills-link
+  check-conventions check-pr-title publish-dry-run update clean skills-link skills-update
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make <target>\n"} \
@@ -112,6 +112,13 @@ check-pr-title: ## Validate a PR title: make check-pr-title TITLE="feat(cli): ad
 	fi
 	./scripts/check-conventional-title.sh "$(TITLE)"
 
+publish-dry-run: ## Verify the crate package can be published
+	@if [ -f Cargo.toml ]; then \
+		$(CARGO) publish --dry-run --locked --allow-dirty; \
+	else \
+		echo "No Cargo.toml yet; skipping cargo publish --dry-run."; \
+	fi
+
 
 ##@ Dependencies & Cleanup
 
@@ -131,7 +138,11 @@ clean: ## Remove Rust build artifacts when scaffolded
 
 
 ##@ Agent Skills
-
+skills-update: ## Install missing skills and update existing ones to latest (reads skills-lock.json)
+	@bunx skills experimental_install
+	@bunx skills update -p -y
+	@$(MAKE) fmt
+	
 skills-link: ## Recreate .claude/skills symlinks from .agents/skills
 	@mkdir -p .claude/skills
 	@rm -f .claude/skills/*

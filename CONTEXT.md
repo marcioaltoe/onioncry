@@ -20,12 +20,84 @@ _Avoid_: feature folder, module when meaning context, package when meaning conte
 A starter vocabulary of architectural boundaries and rules that reflects a common architectural style without making that style mandatory.
 _Avoid_: built-in architecture, mandatory onion model
 
+**Project Architecture Mode**:
+The configured architecture style that selects exactly one architecture-specific rule family for a project. It is configured with `architecture.mode`; if a configuration file does not select a mode, OnionCry uses the Clean Architecture mode.
+_Avoid_: mixed architecture validation, simultaneous clean and vertical slice mode
+
+**Architecture Mode Options**:
+Configuration nested under the selected architecture mode, such as `architecture.cleanArchitecture`, that describes structural conventions for that mode. Rule severities remain under `rules` rather than inside mode options.
+_Avoid_: rule severity in architecture shape, scattering mode options under unrelated config sections
+
+**Architecture-Specific Rule Family**:
+A set of rules that only makes sense for one Project Architecture Mode, such as `cleanarch/*` or `verticalslice/*`. OnionCry activates only the architecture-specific rule family selected by the project mode; architecture-neutral rules remain independent.
+_Avoid_: always-on architecture rule, running every architecture pattern at once
+
+**Architecture Rule Mode Mismatch**:
+A configuration error raised when a project enables a rule from an Architecture-Specific Rule Family that does not match `architecture.mode`. OnionCry fails configuration validation instead of silently ignoring the incompatible rule.
+_Avoid_: silently skipped architecture rule, mixed-mode warning only
+
 **Clean Architecture Preset**:
-The default architecture preset that uses pragmatic layer names: domain, application, infra, and shared. It follows Clean Architecture dependency direction while grouping interface adapters and framework details under infra.
+The default architecture preset and Project Architecture Mode that uses pragmatic layer names: domain, application, infra, and shared. It follows Clean Architecture dependency direction while grouping interface adapters and framework details under infra.
 _Avoid_: Uncle Bob names only, splitting adapters/frameworks by default
 
+**Context-First Clean Architecture Layout**:
+A Clean Architecture code organization where contextual code lives under the configured context root segment, defaulting to `contexts/<context>/`, and each context contains its own `domain/`, `application/`, and `infra/` layers. Code that does not belong to an Architectural Context uses the same layer shape directly under the source root.
+_Avoid_: layer-first clean architecture layout, global use-case dump
+
+**Context Root Segment**:
+The configured source path segment that contains Architectural Context folders. OnionCry defaults this to `contexts`, while projects may configure aliases such as `modules`.
+_Avoid_: hardcoded modules folder, treating context root as a context
+
+**Layer Path Alias**:
+A configured directory-name alias for a canonical Architectural Layer. For example, OnionCry's canonical outer layer is `infra`, but a project may map it to a path segment such as `infrastructure`.
+_Avoid_: new layer when meaning path spelling, renaming the architecture vocabulary
+
+**Artifact Folder Map**:
+A Project Architecture Mode option that lists the expected artifact folder names for each canonical layer. It lets OnionCry check placement of use cases, ports, repositories, adapters, entities, and value objects without hardcoding every team's directory spelling.
+_Avoid_: fixed folder list, unconfigurable artifact taxonomy
+
+**Artifact Filename Suffix**:
+A configured filename suffix that helps OnionCry infer an artifact's role, such as `.repository.ts`, `.service.ts`, `.use-case.ts`, `.entity.ts`, `.value-object.ts`, `.adapter.ts`, or `.handler.ts`. Suffix inference complements folder-based classification and should be configurable because teams use different naming conventions.
+_Avoid_: class-name inspection as path rule, hardcoded TypeScript suffixes
+
+**Service Artifact**:
+A file whose configured suffix marks it as a service, commonly `.service.ts`. In Clean Architecture, a service's architectural role comes from its containing layer or artifact folder; in Vertical Slice, a service is an internal slice detail unless exposed through the slice public surface.
+_Avoid_: global service layer, service as default place for all logic
+
+**Global Slice Artifact**:
+A file that appears to belong to a Vertical Slice, usually by configured filename suffix or artifact role, but lives outside the configured slice root. In Vertical Slice mode, OnionCry may warn about these files without treating configured global bootstrap, shared, config, library, or platform infrastructure folders as automatic violations.
+_Avoid_: every global folder is invalid, clean architecture fallback check
+
+**Artifact Placement Rule**:
+A Clean Architecture code organization rule, named `cleanarch/artifact-placement`, that reports artifacts placed outside the configured Context-First Clean Architecture Layout. It defaults to a warning so existing projects can expose structure drift before making it a blocking gate.
+_Avoid_: migration blocker by default, folder nitpick rule
+
+**Presence-Based Structure Rule**:
+A code organization rule that validates where an artifact belongs when that artifact exists, without requiring every possible folder to exist up front. It prevents misplaced use cases, ports, repositories, adapters, entities, and value objects while allowing small contexts to omit unused layers.
+_Avoid_: empty folder requirement, scaffold completeness rule
+
+**Vertical Slice Preset**:
+An architecture preset and Project Architecture Mode that organizes code around complete slices of user or business capability instead of global technical layers. It favors slice-local cohesion and cross-slice encapsulation over Clean Architecture layer validation.
+_Avoid_: feature folder when meaning context, clean architecture with different folders
+
+**Vertical Slice Layout**:
+A code organization where each complete slice of user or business capability lives under the configured slice root segment, defaulting to `features/<domain>/<operation>/`. The slice root may be configured to alternatives such as `slices`, `modules`, or `.`, and `sliceDepth: 1` supports projects that intentionally use `features/<feature>` or root-level feature folders.
+_Avoid_: layer-first vertical slice, hardcoded features folder
+
+**Slice Public Surface**:
+The explicit files or folders other slices may import from, defaulting to a slice root `index.ts` and `contracts/`. Other slice files are internal details unless the project configures them as public.
+_Avoid_: any exported file is public, importable slice internals
+
+**Slice Handler**:
+The entrypoint inside a Vertical Slice that handles a command, query, endpoint, or equivalent user/business request. Handlers coordinate slice-local logic and adapters without becoming shared services for unrelated slices.
+_Avoid_: global use case when meaning slice handler, controller-only slice
+
+**Slice Root Segment**:
+The configured source path segment that contains Vertical Slice folders. OnionCry defaults this to `features`; using `.` means the source root itself contains slice folders and should be an explicit project choice because it is more ambiguous.
+_Avoid_: implicit root-level feature detection, treating every source folder as a slice
+
 **Default Rule Preset**:
-The starter rule policy generated by the configuration template. It treats layer leaks and cross-context internal imports as errors, external packages as default-deny in sensitive layers, architecture-specific clean architecture checks as warnings, shotgun-surgery history analysis as off, and generic import resolution or file-cycle checks as delegated to the JavaScript linter.
+The starter rule policy generated by the configuration template. It treats layer leaks and cross-context internal imports as errors, external packages as default-deny in sensitive layers, the selected Project Architecture Mode's architecture-specific checks as warnings, shotgun-surgery history analysis as off, and generic import resolution or file-cycle checks as delegated to the JavaScript linter.
 _Avoid_: silent starter config
 
 **Domain Layer**:
@@ -104,6 +176,10 @@ _Avoid_: one-size-fits-all severity
 A named architecture check that can be turned off or reported as a warning or error. Rule names use intent-specific namespaces, such as `cleanarch/...`, `codesmells/...`, and future families such as `solid/...`.
 _Avoid_: numbered rule code as the primary name
 
+**Rule Catalog Listing**:
+The rules introspection output produced by `onioncry rules`, generated from the built-in rule catalog so canonical names, default severities, architecture families, legacy aliases, and explanations cannot drift from the implementation.
+_Avoid_: hand-maintained rule table, rule documentation divorced from the catalog
+
 **Code Organization Rule**:
 A rule that checks observable repository structure, such as file naming, test placement, required folders, or required barrel files. It verifies code state, not whether a contributor followed a process or activated an agent skill.
 _Avoid_: plugin when meaning configured convention, skill enforcement, process audit
@@ -160,6 +236,30 @@ _Avoid_: human review disguised as a hard rule
 A non-blocking review item for a convention that depends on intent, ownership, domain meaning, UX expectations, or sufficiency. Assisted reviews can explain likely gaps, but they should not fail a check without an explicit machine-checkable contract.
 _Avoid_: flaky rule, subjective error
 
+**Violation Baseline**:
+A committed `.onioncry-baseline.json` file that records existing violations so a project can adopt stricter rules gradually. Baselined debt remains visible, while only new violations affect the Check Status.
+_Avoid_: ignore list, disabled rules, hidden grandfathering
+
+**Baseline Fingerprint**:
+The stable identity of a violation baseline entry: `rule + file + target`. The target is the violating import specifier for import diagnostics or a rule-specific subject for file-level diagnostics; line and column are excluded.
+_Avoid_: location-only fingerprint, message hash, line-based baseline
+
+**Baselined Violation**:
+A current violation that matches a Violation Baseline entry within that entry's count. It is reported separately from active violations and does not affect the failure threshold.
+_Avoid_: ignored violation, fixed violation, suppressed warning
+
+**Inline Suppression**:
+A source comment in the form `// onioncry-disable-next-line <rule>[, <rule>] -- <reason>` that marks matching violations on the next line as accepted exceptions. Inline suppressions are visible in reports and do not affect the failure threshold.
+_Avoid_: hidden ignore, file-level disable, undocumented exception
+
+**Suppression Reason**:
+The mandatory explanation after `--` in an Inline Suppression. It records why the exception exists so reviewers can decide whether the source-level exception is still justified.
+_Avoid_: empty reason, TODO-only reason, silent waiver
+
+**Stale Baseline Entry**:
+A Violation Baseline entry that matches no current violation. It indicates debt that may have been fixed and should be removed by rerunning `--write-baseline`, but it does not fail the run.
+_Avoid_: baseline error, missing violation, failed ratchet
+
 **Violation**:
 A reported rule finding with a linter-style rule name, severity, message, source location, optional suggestion, and rule-specific context. Violations use the same canonical rule names as configuration and include import line and column when available.
 _Avoid_: numeric rule id as the primary identifier
@@ -167,6 +267,10 @@ _Avoid_: numeric rule id as the primary identifier
 **Check Status**:
 The pass/fail result of an OnionCry run after applying the configured or CLI-selected failure threshold. Status reflects whether the run should block automation, while the summary keeps the raw warning and error counts.
 _Avoid_: failed whenever warnings exist
+
+**File-Scoped Check**:
+A check run whose report is filtered to explicitly listed files while the analysis stays whole-project, so scoped results never disagree with a full run. Project-level findings without a single file location, such as context cycles, are always reported, and paths outside the file universe are skipped with a warning instead of failing.
+_Avoid_: partial analysis when meaning a filtered report, per-file rule evaluation without the import graph
 
 **File Explanation**:
 An interactive report for one source file that shows boundary classification, matched patterns, resolved imports, and violations for that file. A file explanation is diagnostic and does not act as a CI gate.
@@ -192,6 +296,10 @@ _Avoid_: override as include
 The JSONC file that defines project paths, aliases, boundaries, rules, and overrides for OnionCry. Auto-discovery checks `.onioncryrc.jsonc` first and `.onioncryrc.json` second.
 _Avoid_: YAML config as the default
 
+**Configuration Schema**:
+The JSON Schema for the configuration file, derived from the configuration types and exposed by `onioncry schema`. The generated template references it through `$schema` so editors validate and autocomplete configuration without the schema drifting from the parser.
+_Avoid_: hand-written config schema, schema divorced from the config types
+
 **Configuration Field Naming**:
 Configuration and JSON output fields use camelCase. This keeps OnionCry aligned with JSON and JavaScript tooling conventions.
 _Avoid_: snake_case fields in JSONC examples
@@ -199,6 +307,10 @@ _Avoid_: snake_case fields in JSONC examples
 **Alias Mapping**:
 An explicit mapping from an import prefix to a project path in the OnionCry configuration. The MVP uses configured aliases rather than inferring TypeScript path mappings.
 _Avoid_: implicit tsconfig alias
+
+**Tsconfig Alias Generation**:
+The explicit `onioncry init --from-tsconfig` step that translates a tsconfig's wildcard path mappings into the configuration's alias mappings for team review. Entries that cannot become prefix aliases are listed for manual mapping, and check-time alias resolution still reads only the OnionCry configuration.
+_Avoid_: runtime tsconfig inference, silent alias discovery
 
 **Local Import Resolution**:
 The MVP process for mapping relative and aliased imports to project files by trying common TypeScript and JavaScript file extensions and index files. It does not resolve package exports, package main fields, TypeScript project references, or declaration files.
@@ -215,6 +327,10 @@ _Avoid_: harmless import type
 **Import Edge**:
 A dependency edge discovered from a source file. In the MVP, import edges come from static imports, type-only imports, re-exports, string-literal dynamic imports, and string-literal `require` calls.
 _Avoid_: only import declarations
+
+**Context Graph**:
+A diagnostic ownership graph derived from Import Edges. In Clean Architecture mode it shows dependencies between architectural contexts; in Vertical Slice mode it shows dependencies between slices. Contextless or slice-less files aggregate into one explicit node.
+_Avoid_: file graph, package graph, class diagram
 
 **Context Cycle**:
 A cycle of import edges between architectural contexts. Generic file-level import cycles belong to the JavaScript linter; OnionCry reports cycles at the ownership-boundary level.
@@ -257,6 +373,54 @@ Domain expert: "That is an ambiguous boundary classification, not a precedence p
 Dev: "What if a scanned file matches no layer?"
 
 Domain expert: "That is an unclassified file. The default preset reports it as a warning so coverage gaps are visible."
+
+Dev: "Can a project run Clean Architecture and Vertical Slice validation at the same time?"
+
+Domain expert: "No. The project selects one Project Architecture Mode. If it does not select one, OnionCry uses Clean Architecture by default."
+
+Dev: "What if a Vertical Slice project configures a `cleanarch/*` rule?"
+
+Domain expert: "That is an Architecture Rule Mode Mismatch. OnionCry fails configuration validation instead of ignoring the rule."
+
+Dev: "Where should Vertical Slice code live by default?"
+
+Domain expert: "Use the Vertical Slice Layout: `src/features/<domain>/<operation>` by default. Keep `sliceRoot` configurable to alternatives such as `slices`, `modules`, or `.`, and use `sliceDepth: 1` when a project intentionally uses `features/<feature>`."
+
+Dev: "What folders should a default Vertical Slice contain?"
+
+Domain expert: "Use `index.ts` and `contracts/` as the public surface, with optional internal `handlers/`, `adapters/`, `domain/`, and `__tests__/` folders. Do not require empty folders. A slice should expose a configured entry point such as `setup`, `Map`, or `register` when that rule is enabled."
+
+Dev: "Can OnionCry use filename conventions such as `.repository.ts` and `.service.ts`?"
+
+Domain expert: "Yes. Artifact Filename Suffixes complement folder placement so rules can identify artifact roles during migrations or in flatter layouts."
+
+Dev: "Does `.service.ts` mean the same thing in Clean Architecture and Vertical Slice?"
+
+Domain expert: "No. In Clean Architecture, folder placement decides whether it is a domain, application, or infra service. In Vertical Slice, it is a slice-internal detail unless exposed through the slice public surface."
+
+Dev: "Can a Vertical Slice project keep global `repositories`, `services`, `handlers`, or `use-cases` folders?"
+
+Domain expert: "Only as explicit migration debt or project-specific exceptions. The default Vertical Slice rule treats those shared technical layers as drift because implementation details should live inside the owning slice."
+
+Dev: "If a project selects Vertical Slice, are global `domain`, `application`, or `infra` folders automatically invalid?"
+
+Domain expert: "No. Vertical Slice mode does not run Clean Architecture checks. It may warn about Global Slice Artifacts outside the slice root while still allowing configured global folders for bootstrap, shared code, config, libraries, and platform infrastructure."
+
+Dev: "Where do layout options such as context root, layer path aliases, and artifact folders live?"
+
+Domain expert: "Under the selected mode's Architecture Mode Options, such as `architecture.cleanArchitecture`. Rule severities stay under `rules`."
+
+Dev: "How should a large Clean Architecture backend avoid long global use-case and repository folders?"
+
+Domain expert: "Use the Context-First Clean Architecture Layout: `src/contexts/<context>/{domain,application,infra}` for contextual code and `src/{domain,application,infra}` for contextless base code."
+
+Dev: "Must every context contain every Clean Architecture layer folder from the start?"
+
+Domain expert: "No. Use Presence-Based Structure Rules: validate artifacts when they exist, but do not require empty layer folders."
+
+Dev: "Should artifact placement violations block existing projects by default?"
+
+Domain expert: "No. `cleanarch/artifact-placement` defaults to warning so teams can migrate gradually, then raise it to error when the layout is clean."
 
 Dev: "What if a scanned file matches no context?"
 

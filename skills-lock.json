@@ -4,92 +4,140 @@
     "agentic-cli-design": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/agentic-cli-design/SKILL.md",
       "computedHash": "76efd87702573d94f0140801085893ca6d4e26af2ee104aaeccf96304e562e4b"
+    },
+    "clean-architecture": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/clean-architecture/SKILL.md",
+      "computedHash": "91e3c122b6951e485b4eca773472708fc08b9bbb68247aa9c75c975df380630c"
     },
     "coding-guidelines": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/coding-guidelines/SKILL.md",
       "computedHash": "28a414c715d3c41aae28a25e2f109813ec3f246f76b5567c1e7d6a128cd289ff"
     },
     "context7": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/01-discovery/context7/SKILL.md",
       "computedHash": "23f0178420043f01cd0f00745eb06eaac6f3eee4ef58f87f1ae353c2a408f79c"
     },
     "conventional-commits": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/07-evidence-delivery/conventional-commits/SKILL.md",
       "computedHash": "816e7074089495888ecfceb1980657d961a708cf8b31e8a6cf35f1c0c76efbc3"
+    },
+    "design-patterns": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/design-patterns/SKILL.md",
+      "computedHash": "7921b815d7f47752faa9457a3c3983417ba3cf547385aedcf00ddadc83090d55"
     },
     "domain-modeling": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
-      "computedHash": "eddf13d44c2bb1bcc0c40fea14ee85fd21802055afb3105b9b4dbbda0bc20642"
+      "skillPath": "skills/03-engineering-design/domain-modeling/SKILL.md",
+      "computedHash": "67343881f5def98487d56243155716110afbcbf22ec92421c882d532b941cb17"
     },
     "evidence-gate": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/06-review-repair/evidence-gate/SKILL.md",
       "computedHash": "85eeb74a08d1668de5220263be81a3e988f78d5d82b3fe90cfc9a32c71946c4c"
     },
     "grill-with-docs": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/01-discovery/grill-with-docs/SKILL.md",
       "computedHash": "e7ef25bbee50cda2eb7b3a8ef541db0a0396dad7d369f7d14fb610671dd1864b"
     },
     "grilling": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
-      "computedHash": "c993f67a5ab0e0b04cfde15848554bca97b83b013469ddbeee691b95c9563e78"
+      "skillPath": "skills/01-discovery/grilling/SKILL.md",
+      "computedHash": "bf1e75d96966edd298902d63348c828921b8b095d7306d0cdd56b4a591a7a82b"
     },
     "implement": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
-      "computedHash": "f7b0f3636d20c12d1596336efa6943346f85c97f6419371347ac96c089dca08f"
+      "skillPath": "skills/05-implementation-loop/implement/SKILL.md",
+      "computedHash": "5eedab2e36a68278662484e8e243624fe0bb74040299aa6c8a525feb65b0365c"
     },
     "no-workarounds": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/no-workarounds/SKILL.md",
       "computedHash": "9b34a293a4a836612b1f8509c521b0ab163cec2105eafc270ebb347badea8471"
     },
     "onioncry": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/06-review-repair/onioncry/SKILL.md",
       "computedHash": "c78133204862e0e422b07b8e6dc84507d482f84cbe11fdf02c4f8b33544b0478"
+    },
+    "refactoring-analysis": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/06-review-repair/refactoring-analysis/SKILL.md",
+      "computedHash": "cb26e39774d399ebf64375f4b1a0edb5cc5e7190603ec688253a831ec641a304"
     },
     "review": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/06-review-repair/review/SKILL.md",
       "computedHash": "4a2b10bb81e568516c52018e73b8255a02066024257d7c907fa65826d62bc8dd"
     },
     "rust": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/rust/SKILL.md",
       "computedHash": "cdd0d8521c93f1f5e1c06f513c255b33dade20872e78a142d013e644e71e606a"
     },
     "rust-cli": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/rust-cli/SKILL.md",
       "computedHash": "9a02b9c154a6cd1c7e4095aeb2b56bf06fb9856b08f80f2f21a90e993d0968f7"
+    },
+    "solid": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/solid/SKILL.md",
+      "computedHash": "e6eff39466cdc6d80f84efa74e2318a3adf2ce42de0301f8b7fb19df2932c11e"
     },
     "systematic-debugging": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/06-review-repair/systematic-debugging/SKILL.md",
       "computedHash": "7527b8f518cf265cc3f63345885bca98b095d2836ece773dadd3e8ca76315583"
     },
     "testing-boss": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/05-implementation-loop/testing-boss/SKILL.md",
       "computedHash": "36865bc741803fd1485d7b17789d583591ca2a6bcc3c249b42a3e0d294adb6c3"
     },
     "to-issues": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/04-issue-decomposition/to-issues/SKILL.md",
       "computedHash": "4e2a11d35f018490d42a79234432f779d7131b9920373ef24cfbc68229bfef6c"
     },
     "to-prd": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
+      "skillPath": "skills/02-planning/to-prd/SKILL.md",
       "computedHash": "5a733e19d825f22e83de52e68b8840c9fd2fa7501282277a122c1aa28a922059"
+    },
+    "vertical-slice-architecture": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/03-engineering-design/vertical-slice-architecture/SKILL.md",
+      "computedHash": "cd55c5721934ae5c98298d4f5256511a1c8f468eb5a9ff46015bcd8c37188ac7"
     }
   }
 }

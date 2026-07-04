@@ -3,6 +3,22 @@ name = "onioncry"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.88"
+description = "A CLI for checking architectural boundaries in JavaScript and TypeScript projects"
+license = "MIT"
+repository = "https://github.com/marcioaltoe/onioncry"
+readme = "README.md"
+keywords = ["architecture", "boundaries", "cli", "typescript", "lint"]
+categories = ["command-line-utilities", "development-tools"]
+include = [
+    "src/**",
+    "Cargo.toml",
+    "Cargo.lock",
+    "build.rs",
+    "README.md",
+    "LICENSE",
+    "docs/release.md",
+    "docs/schema/onioncryrc.schema.json",
+]
 
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
@@ -14,6 +30,7 @@ oxc_ast = "0.133.0"
 oxc_ast_visit = "0.133.0"
 oxc_parser = "0.133.0"
 oxc_span = "0.133.0"
+schemars = { version = "1.2.1", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 thiserror = "2.0.18"
@@ -21,5 +38,6 @@ walkdir = "2.5.0"
 
 [dev-dependencies]
 assert_cmd = "2.2.2"
+jsonschema = { version = "0.46.9", default-features = false }
 predicates = "3.1.4"
 tempfile = "3.27.0"
