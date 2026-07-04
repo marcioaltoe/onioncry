@@ -27,7 +27,7 @@ pub(crate) use rule_options::{
     string_vec_option, suffix_map_option, usize_option,
 };
 pub use template::CONFIG_SCHEMA_URL;
-pub(crate) use template::INIT_CONFIG_TEMPLATE;
+pub(crate) use template::{INIT_CONFIG_TEMPLATE, TEMPLATE_ALIAS_BLOCK};
 pub use types::{
     ArchitectureConfig, ArchitectureMode, CleanArchitectureConfig, Config, ContextConfig,
     ContextRuleDefaultConfig, ContextRulesConfig, LayerConfig, LoadedConfig, OverrideConfig,

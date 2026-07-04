@@ -1,5 +1,11 @@
 pub const CONFIG_SCHEMA_URL: &str = "https://raw.githubusercontent.com/marcioaltoe/onioncry/main/docs/schema/onioncryrc.schema.json";
 
+// `init --from-tsconfig` replaces exactly this block with generated aliases.
+pub(crate) const TEMPLATE_ALIAS_BLOCK: &str = r#"  // TODO: map import aliases used by your project.
+  "aliases": {
+    "@app/": "src/"
+  },"#;
+
 pub(crate) const INIT_CONFIG_TEMPLATE: &str = r#"{
   "$schema": "https://raw.githubusercontent.com/marcioaltoe/onioncry/main/docs/schema/onioncryrc.schema.json",
   "version": 1,

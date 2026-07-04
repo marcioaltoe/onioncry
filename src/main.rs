@@ -1,9 +1,9 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
-    CLI_VERSION, CheckOptions, FailOn, OnionCryError, init_config, render_config_schema_json,
-    render_explain_pretty, render_graph_mermaid, render_llm, render_pretty, render_rules_pretty,
-    render_sarif, rule_catalog, run_check_with_options, run_explain, run_graph,
-    write_config_schema,
+    CLI_VERSION, CheckOptions, FailOn, OnionCryError, init_config_with_options,
+    render_config_schema_json, render_explain_pretty, render_graph_mermaid, render_llm,
+    render_pretty, render_rules_pretty, render_sarif, rule_catalog, run_check_with_options,
+    run_explain, run_graph, write_config_schema,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -56,6 +56,14 @@ struct CheckArgs {
     )]
     no_baseline: bool,
     #[arg(
+        long,
+        value_name = "PATH",
+        num_args = 1..,
+        conflicts_with = "write_baseline",
+        help = "Scope the report to these files; analysis stays whole-project"
+    )]
+    files: Vec<PathBuf>,
+    #[arg(
         long = "llm-mode",
         conflicts_with_all = ["format", "tips"],
         help = "Show an LLM-optimized grouped diagnostic report"
@@ -67,6 +75,14 @@ struct CheckArgs {
 struct InitArgs {
     #[arg(long)]
     force: bool,
+    #[arg(
+        long = "from-tsconfig",
+        value_name = "PATH",
+        num_args = 0..=1,
+        default_missing_value = "tsconfig.json",
+        help = "Generate the aliases block from a tsconfig's compilerOptions.paths for review"
+    )]
+    from_tsconfig: Option<PathBuf>,
 }
 
 #[derive(Debug, Parser)]
@@ -232,7 +248,7 @@ fn run_init_command(args: InitArgs) -> ExitCode {
         }
     };
 
-    match init_config(&cwd, args.force) {
+    match init_config_with_options(&cwd, args.force, args.from_tsconfig.as_deref()) {
         Ok(path) => {
             println!("created {}", path.display());
             ExitCode::SUCCESS
@@ -291,9 +307,17 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
             baseline_path: args.baseline.as_deref(),
             write_baseline: args.write_baseline,
             no_baseline: args.no_baseline,
+            scope_files: (!args.files.is_empty()).then_some(args.files.as_slice()),
         },
     ) {
         Ok(outcome) => {
+            for skipped_path in &outcome.skipped_scope_paths {
+                eprintln!(
+                    "warning: --files path is not in the analyzed file universe, skipped: {}",
+                    skipped_path.display()
+                );
+            }
+
             if let Some(baseline_warning) = &outcome.baseline_warning {
                 eprintln!(
                     "warning: {} stale baseline {} in {}; rerun --write-baseline to remove fixed entries",

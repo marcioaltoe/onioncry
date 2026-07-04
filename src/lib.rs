@@ -12,6 +12,7 @@ mod policy;
 mod render;
 mod rules;
 mod suppressions;
+mod tsconfig;
 
 pub use config::{
     ArchitectureConfig, ArchitectureMode, CONFIG_SCHEMA_URL, CleanArchitectureConfig, Config,
@@ -30,10 +31,10 @@ pub(crate) use config::{
     DEFAULT_FEATURE_SYSTEM_ROOT_INDEX_FILE, DEFAULT_IGNORED_PATH_DIRECTORIES,
     DEFAULT_LAYER_DIRECTORIES, DEFAULT_LEGACY_FEATURE_ROOTS, DEFAULT_ROUTE_ROOTS,
     DEFAULT_SUFFIXES_BY_COLLECTION, DEFAULT_SURFACE_CSS_NAME_TEMPLATE, DEFAULT_SYSTEMS_ROOTS,
-    DEFAULT_TEST_FILE_SUFFIXES, INIT_CONFIG_TEMPLATE, bool_option, default_rule_setting,
-    package_pattern_option, parse_external_package_layer_policies, parse_rule_map, string_option,
-    string_set_map_option, string_set_option, string_vec_option, suffix_map_option, usize_option,
-    validate_architecture_rule_mode,
+    DEFAULT_TEST_FILE_SUFFIXES, INIT_CONFIG_TEMPLATE, TEMPLATE_ALIAS_BLOCK, bool_option,
+    default_rule_setting, package_pattern_option, parse_external_package_layer_policies,
+    parse_rule_map, string_option, string_set_map_option, string_set_option, string_vec_option,
+    suffix_map_option, usize_option, validate_architecture_rule_mode,
 };
 
 pub use baseline::{BaselineEntry, ViolationBaseline};
@@ -42,8 +43,8 @@ pub(crate) use classification::{
 };
 pub use commands::{
     BaselineWarning, BaselineWrite, CheckOptions, CheckOutcome, discover_config_path, init_config,
-    load_config, render_config_schema_json, run_check, run_check_with_options, run_explain,
-    run_graph, select_files, write_config_schema,
+    init_config_with_options, load_config, render_config_schema_json, run_check,
+    run_check_with_options, run_explain, run_graph, select_files, write_config_schema,
 };
 pub use errors::{OnionCryError, Result};
 pub(crate) use graph::build_graph_report;
@@ -67,6 +68,7 @@ pub(crate) use rules::{
     FeatureSystemDependencyArea, FeatureSystemLocation, SliceLocation, VerticalSlicePolicy,
 };
 pub(crate) use suppressions::apply_inline_suppressions;
+pub(crate) use tsconfig::{load_tsconfig_aliases, render_generated_alias_block};
 
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
 pub const JSON_CONFIG_FILE: &str = ".onioncryrc.json";

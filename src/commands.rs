@@ -5,9 +5,9 @@ use crate::{
     DEFAULT_CONFIG_FILE, ExplainReport, ExternalPackagePolicy, FailOn, GraphReport,
     INIT_CONFIG_TEMPLATE, ImportEdge, ImportExplanation, ImportResolution, JSON_CONFIG_FILE,
     LayerClassification, LayerClassifier, LayerConfig, LoadedConfig, OnionCryError, Result,
-    RulePolicy, Severity, ViolationBaseline, apply_inline_suppressions, build_glob_set,
-    build_graph_report, build_report, collect_import_edges, normalize_path,
-    normalized_package_name, resolve_against,
+    RulePolicy, Severity, TEMPLATE_ALIAS_BLOCK, ViolationBaseline, apply_inline_suppressions,
+    build_glob_set, build_graph_report, build_report, collect_import_edges, load_tsconfig_aliases,
+    normalize_path, normalized_package_name, render_generated_alias_block, resolve_against,
 };
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
@@ -24,6 +24,7 @@ pub struct CheckOptions<'a> {
     pub baseline_path: Option<&'a Path>,
     pub write_baseline: bool,
     pub no_baseline: bool,
+    pub scope_files: Option<&'a [PathBuf]>,
 }
 
 #[derive(Debug)]
@@ -31,6 +32,8 @@ pub struct CheckOutcome {
     pub report: CheckReport,
     pub baseline_write: Option<BaselineWrite>,
     pub baseline_warning: Option<BaselineWarning>,
+    pub skipped_scope_paths: Vec<PathBuf>,
+    pub project_root: PathBuf,
 }
 
 #[derive(Debug)]
@@ -91,12 +94,32 @@ pub fn load_config(cwd: &Path, explicit_path: Option<&Path>) -> Result<LoadedCon
 }
 
 pub fn init_config(cwd: &Path, force: bool) -> Result<PathBuf> {
+    init_config_with_options(cwd, force, None)
+}
+
+pub fn init_config_with_options(
+    cwd: &Path,
+    force: bool,
+    from_tsconfig: Option<&Path>,
+) -> Result<PathBuf> {
     let path = cwd.join(DEFAULT_CONFIG_FILE);
     if path.exists() && !force {
         return Err(OnionCryError::ConfigAlreadyExists { path });
     }
 
-    fs::write(&path, INIT_CONFIG_TEMPLATE).map_err(|source| OnionCryError::WriteConfig {
+    // Generate the template (and fail on tsconfig errors) before touching the config file.
+    let contents = match from_tsconfig {
+        Some(tsconfig_path) => {
+            let generated = load_tsconfig_aliases(cwd, cwd, tsconfig_path)?;
+            INIT_CONFIG_TEMPLATE.replace(
+                TEMPLATE_ALIAS_BLOCK,
+                &render_generated_alias_block(&generated),
+            )
+        }
+        None => INIT_CONFIG_TEMPLATE.to_string(),
+    };
+
+    fs::write(&path, contents).map_err(|source| OnionCryError::WriteConfig {
         path: path.clone(),
         source,
     })?;
@@ -139,6 +162,7 @@ pub fn run_check(
             baseline_path: None,
             write_baseline: false,
             no_baseline: false,
+            scope_files: None,
         },
     )?
     .report)
@@ -184,12 +208,47 @@ pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<C
     } else {
         None
     };
+    let skipped_scope_paths = if let Some(scope_paths) = options.scope_files {
+        let scope = resolve_report_scope(cwd, &files, scope_paths);
+        violations.retain(|violation| {
+            violation.cycle_path.is_some() || scope.files.contains(&violation.file)
+        });
+        scope.skipped_paths
+    } else {
+        Vec::new()
+    };
 
     Ok(CheckOutcome {
         report: build_report(files.len(), &violations, options.fail_on),
         baseline_write,
         baseline_warning,
+        skipped_scope_paths,
+        project_root,
     })
+}
+
+struct ReportScope {
+    files: std::collections::BTreeSet<String>,
+    skipped_paths: Vec<PathBuf>,
+}
+
+fn resolve_report_scope(cwd: &Path, universe: &[PathBuf], scope_paths: &[PathBuf]) -> ReportScope {
+    let mut scope_files = std::collections::BTreeSet::new();
+    let mut skipped_paths = Vec::new();
+
+    for path in scope_paths {
+        let resolved = normalize_path(&resolve_against(cwd, path));
+        if universe.binary_search(&resolved).is_ok() {
+            scope_files.insert(resolved.display().to_string());
+        } else {
+            skipped_paths.push(path.clone());
+        }
+    }
+
+    ReportScope {
+        files: scope_files,
+        skipped_paths,
+    }
 }
 
 fn load_violation_baseline(

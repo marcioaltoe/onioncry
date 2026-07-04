@@ -66,6 +66,18 @@ pub enum OnionCryError {
     UnsupportedBaselineVersion { path: PathBuf, version: u8 },
     #[error("could not parse JSONC config {path}: {message}")]
     ParseConfig { path: PathBuf, message: String },
+    #[error(
+        "tsconfig does not exist at {path}; pass --from-tsconfig <path> to point at your TypeScript config"
+    )]
+    MissingTsconfig { path: PathBuf },
+    #[error("could not read tsconfig {path}: {source}")]
+    ReadTsconfig {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("could not parse tsconfig {path}: {message}")]
+    ParseTsconfig { path: PathBuf, message: String },
     #[error("project root does not exist: {path}")]
     MissingProjectRoot { path: PathBuf },
     #[error("invalid glob pattern {pattern:?}: {source}")]
