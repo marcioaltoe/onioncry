@@ -31,6 +31,12 @@ multi-manifest release (crates.io plus npm launcher packages).
   `git clean`, or any command that discards working-directory changes
   **WITHOUT EXPLICIT USER PERMISSION**. These can permanently lose code.
 - Agent-created branches **MUST** use the `ma/` prefix.
+- **HARD RULE**: before opening any PR, confirm
+  `.agents/skills/onioncry/SKILL.md` still matches the shipped CLI behavior
+  (commands, flags, output formats, exit codes, baseline semantics). If the
+  PR changes any of those, the skill update ships in the same PR. The
+  project-local copy is canonical, and its `metadata.version` tracks the
+  released CLI version (the `v*` tag), not an independent skill version.
 
 ## Agent docs
 
@@ -188,8 +194,10 @@ Scopes are optional, but if a scope is used it **MUST** come from the allowed
 list. PR titles follow the same format because squash-merge titles become
 release-history entries.
 
-Before opening a PR, run `make verify`. PR bodies summarize changes, call out
-risk, and list validation commands run.
+Before opening a PR, run `make verify` and confirm
+`.agents/skills/onioncry/SKILL.md` matches the shipped CLI behavior (see the
+hard rule in High priority). PR bodies summarize changes, call out risk, and
+list validation commands run.
 
 ## Release
 
@@ -229,18 +237,25 @@ risk, and list validation commands run.
 11. Asking for confirmation before running spec tasks — invocation is the
     authorization
 12. Reformatting unrelated files
+13. Opening a PR that changes CLI behavior without updating
+    `.agents/skills/onioncry/SKILL.md` in the same PR
 
 ## Agent skills
 
 Skills are installed from the `rust-cli` setup in
-[marcioaltoe/skills](https://github.com/marcioaltoe/skills), plus the
-project-local `onioncry` skill. Reinstall with:
+[marcioaltoe/skills](https://github.com/marcioaltoe/skills). Reinstall with:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/marcioaltoe/skills/main/install.sh | bash -s -- rust-cli
-bunx skills add marcioaltoe/skills --agent universal --copy -y --skill onioncry
 make skills-link
 ```
+
+The `onioncry` skill is different: `.agents/skills/onioncry/SKILL.md` is
+maintained **in this repo** and is the canonical copy (see the hard rule in
+High priority). Do not let `bunx skills update` or a reinstall overwrite it
+with the marcioaltoe/skills mirror; if that happens, restore the local
+version from git history. Sync improvements outward to marcioaltoe/skills,
+never inward.
 
 ### Issue tracker
 
