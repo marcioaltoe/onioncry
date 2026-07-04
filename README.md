@@ -236,7 +236,10 @@ The JSON structure is public API for automation:
 ```
 
 `via` is `null` when the target boundary is not entered through a configured
-public surface segment.
+public surface segment. `importCount` is the number of import edges aggregated
+into the boundary edge. Node `kind` is one of `context`, `slice`,
+`contextless` (all files outside any boundary, aggregated into one node), or
+`ambiguous` (files matching more than one boundary pattern).
 
 ```bash
 onioncry explain <file>

@@ -30,3 +30,12 @@ Ship OnionCry to its JavaScript/TypeScript audience as an npm package with prebu
 ## Comments
 
 - 2026-07-04: Added the `npm/` package layout with a main `onioncry` launcher, optional platform packages for darwin-arm64, darwin-x64, linux-arm64, linux-x64, and win32-x64, version lockstep checks, launcher tests, and README install docs. Extended the tag-driven release workflow to build all platform tarballs, smoke-test Linux x64 with local npm tarballs and `npx onioncry --help`, publish npm packages with `NPM_TOKEN` scoped to the npm publish step, and publish crates.io with `CARGO_REGISTRY_TOKEN` scoped to the cargo publish step. Verification: `rtk node npm/scripts/check-versions.mjs` passed; `rtk npm test --prefix npm` passed; `rtk npm pack ./npm --dry-run` produced `onioncry-0.1.0.tgz`; workflow YAML parsed with Ruby; `rtk make verify` passed with clippy clean and 115 tests. The exact commit SHA is reported by the implementation loop after the slice commit is created.
+
+## Comments
+
+Post-review fix: the release workflow now runs a `verify-npm-release` job after
+publish that retries `npx onioncry@<version> --help` against the live registry,
+closing the gap where only local tarballs were smoke-tested. The npm token now
+flows through setup-node's `registry-url` + `NODE_AUTH_TOKEN` instead of an
+echoed `~/.npmrc`, and the launcher exits 2 (operational error) instead of 1
+(violations found) to match the native exit-code contract.

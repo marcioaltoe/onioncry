@@ -31,3 +31,15 @@ None - can start immediately
 ## Comments
 
 - 2026-07-04: Implemented the baseline serde model, deterministic fingerprint aggregation, `check --write-baseline`, custom `--baseline <path>` writes, ADR 0010, and CONTEXT.md glossary entries. Verification: `rtk cargo test --test cli_check write_baseline` passed with 3 tests; `rtk make verify` passed with clippy clean and 91 tests. The exact commit SHA is reported by the implementation loop after the slice commit is created.
+
+## Comments
+
+Post-review fix: `--write-baseline` previously skipped baseline consumption, so
+on a repo with a committed baseline the write run reported baselined debt as
+active and failed while a plain `check` passed — contradicting the "writing
+does not change the run's report or exit code" criterion. Write runs now
+consume the existing baseline for the report exactly like a plain run (without
+the stale-entry warning, since the rewrite removes stale entries itself) and
+rewrite the file from the full current violation set. Missing or
+version-incompatible baselines no longer block the rewrite that replaces them.
+Covered by dedicated integration tests.

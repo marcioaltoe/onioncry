@@ -31,3 +31,11 @@ None - can start immediately
 ## Comments
 
 - 2026-07-04: Added `onioncry graph` with Mermaid and JSON output, deterministic context/slice node and edge aggregation, public-surface `via` labels, contextless/sliceless nodes, README JSON contract docs, and a Context Graph glossary entry. Verification: `rtk cargo test --test cli_graph` passed with 5 tests; `rtk make verify` passed with clippy clean and 115 tests. The exact commit SHA is reported by the implementation loop after the slice commit is created.
+
+## Comments
+
+Accepted API extensions beyond the original `from`/`to`/`via` contract, found
+in spec review and kept deliberately: edge `importCount` (aggregated import
+edge count, useful for weighting) and the `ambiguous` node kind (files matching
+more than one boundary pattern surface as their own node instead of being
+hidden). Both are documented in the README JSON contract.
