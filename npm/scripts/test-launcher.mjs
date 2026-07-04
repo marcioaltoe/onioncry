@@ -40,6 +40,24 @@ if (!result.stdout.includes("args:--sentinel")) {
   throw new Error("expected launcher to forward arguments and stdout");
 }
 
+const missingBinary = spawnSync(
+  process.execPath,
+  [path.join(root, "npm", "bin", "onioncry.js"), "--help"],
+  { encoding: "utf8" },
+);
+
+if (missingBinary.status !== 2) {
+  console.error(missingBinary.stderr);
+  throw new Error(
+    `expected launcher to exit 2 when the platform package is missing, got ${missingBinary.status}`,
+  );
+}
+
+if (!missingBinary.stderr.includes(platformPackage)) {
+  console.error(missingBinary.stderr);
+  throw new Error("expected launcher error to name the missing platform package");
+}
+
 function platformPackageName() {
   const packages = {
     "darwin-arm64": "@onioncry/cli-darwin-arm64",

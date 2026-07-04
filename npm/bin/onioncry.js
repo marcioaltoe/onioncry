@@ -50,7 +50,9 @@ if (result.signal) {
 
 process.exit(result.status ?? 1);
 
+// Exit 2 matches the native binary's contract: 1 means violations found,
+// 2 means the operation itself failed.
 function fail(message) {
   console.error(`onioncry: ${message}`);
-  process.exit(1);
+  process.exit(2);
 }
