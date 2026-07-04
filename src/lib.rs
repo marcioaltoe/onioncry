@@ -39,9 +39,9 @@ pub(crate) use classification::{
     ContextClassification, ContextClassifier, ContextPolicy, LayerClassification, LayerClassifier,
 };
 pub use commands::{
-    BaselineWrite, CheckOptions, CheckOutcome, discover_config_path, init_config, load_config,
-    render_config_schema_json, run_check, run_check_with_options, run_explain, select_files,
-    write_config_schema,
+    BaselineWarning, BaselineWrite, CheckOptions, CheckOutcome, discover_config_path, init_config,
+    load_config, render_config_schema_json, run_check, run_check_with_options, run_explain,
+    select_files, write_config_schema,
 };
 pub use errors::{OnionCryError, Result};
 pub use imports::collect_import_edges;
@@ -62,6 +62,7 @@ pub(crate) use rules::{FeatureSystemDependencyArea, FeatureSystemLocation, Slice
 pub const DEFAULT_CONFIG_FILE: &str = ".onioncryrc.jsonc";
 pub const JSON_CONFIG_FILE: &str = ".onioncryrc.json";
 pub const DEFAULT_BASELINE_FILE: &str = baseline::DEFAULT_BASELINE_FILE;
+pub const BASELINE_VERSION: u8 = baseline::BASELINE_VERSION;
 pub const BUILD_REVISION: &str = env!("ONIONCRY_BUILD_REVISION");
 pub const CLI_VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),

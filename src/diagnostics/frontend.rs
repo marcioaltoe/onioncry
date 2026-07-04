@@ -68,6 +68,7 @@ impl Violation {
             )),
             matched_layers: None,
             matched_contexts: None,
+            baselined: false,
         }
     }
 
@@ -104,6 +105,7 @@ impl Violation {
             suggestion: Some(suggestion),
             matched_layers: None,
             matched_contexts: None,
+            baselined: false,
         }
     }
 
@@ -154,6 +156,7 @@ impl Violation {
             ),
             matched_layers: None,
             matched_contexts: None,
+            baselined: false,
         }
     }
 

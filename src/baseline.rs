@@ -1,6 +1,6 @@
 use crate::{Violation, project_relative_display};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 pub const DEFAULT_BASELINE_FILE: &str = ".onioncry-baseline.json";
@@ -11,6 +11,12 @@ pub const BASELINE_VERSION: u8 = 1;
 pub struct ViolationBaseline {
     pub version: u8,
     pub entries: Vec<BaselineEntry>,
+}
+
+#[derive(Debug)]
+pub struct BaselineApplication {
+    pub violations: Vec<Violation>,
+    pub stale_entry_count: usize,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd, Serialize)]
@@ -54,6 +60,61 @@ impl ViolationBaseline {
         Self {
             version: BASELINE_VERSION,
             entries,
+        }
+    }
+
+    pub fn apply(
+        &self,
+        project_root: &Path,
+        mut violations: Vec<Violation>,
+    ) -> BaselineApplication {
+        let mut remaining_counts = BTreeMap::<BaselineFingerprint, usize>::new();
+        for entry in &self.entries {
+            *remaining_counts
+                .entry(BaselineFingerprint::from_entry(entry))
+                .or_default() += entry.count;
+        }
+
+        let mut matched_fingerprints = BTreeSet::<BaselineFingerprint>::new();
+        for violation in &mut violations {
+            let fingerprint = BaselineFingerprint::from_violation(project_root, violation);
+            let Some(remaining_count) = remaining_counts.get_mut(&fingerprint) else {
+                continue;
+            };
+            matched_fingerprints.insert(fingerprint);
+            if *remaining_count > 0 {
+                violation.baselined = true;
+                *remaining_count -= 1;
+            }
+        }
+
+        let stale_entry_count = self
+            .entries
+            .iter()
+            .filter(|entry| !matched_fingerprints.contains(&BaselineFingerprint::from_entry(entry)))
+            .count();
+
+        BaselineApplication {
+            violations,
+            stale_entry_count,
+        }
+    }
+}
+
+impl BaselineFingerprint {
+    fn from_entry(entry: &BaselineEntry) -> Self {
+        Self {
+            file: entry.file.clone(),
+            rule: entry.rule.clone(),
+            target: entry.target.clone(),
+        }
+    }
+
+    fn from_violation(project_root: &Path, violation: &Violation) -> Self {
+        Self {
+            file: project_relative_display(project_root, Path::new(&violation.file)),
+            rule: violation.rule.clone(),
+            target: baseline_target(violation),
         }
     }
 }

@@ -66,6 +66,8 @@ pub struct CheckSummary {
     pub warning_count: usize,
     pub error_count: usize,
     pub violation_count: usize,
+    #[serde(skip_serializing_if = "is_zero")]
+    pub baselined_count: usize,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -101,6 +103,8 @@ pub struct Violation {
     pub matched_layers: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub matched_contexts: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "is_false")]
+    pub baselined: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -153,4 +157,12 @@ impl ImportKind {
             ImportKind::Require => "require",
         }
     }
+}
+
+fn is_false(value: &bool) -> bool {
+    !value
+}
+
+fn is_zero(value: &usize) -> bool {
+    *value == 0
 }

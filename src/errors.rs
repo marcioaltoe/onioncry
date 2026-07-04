@@ -34,6 +34,16 @@ pub enum OnionCryError {
         #[source]
         source: std::io::Error,
     },
+    #[error(
+        "baseline file does not exist at {path}; pass --write-baseline to create it or --no-baseline to skip baseline consumption"
+    )]
+    MissingBaseline { path: PathBuf },
+    #[error("could not read baseline {path}: {source}")]
+    ReadBaseline {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
     #[error("could not render schema: {source}")]
     RenderSchema {
         #[source]
@@ -44,6 +54,16 @@ pub enum OnionCryError {
         #[source]
         source: serde_json::Error,
     },
+    #[error("could not parse baseline {path}: {source}")]
+    ParseBaseline {
+        path: PathBuf,
+        #[source]
+        source: serde_json::Error,
+    },
+    #[error(
+        "unsupported baseline version {version} at {path}; expected version 1, or rerun --write-baseline to rewrite it"
+    )]
+    UnsupportedBaselineVersion { path: PathBuf, version: u8 },
     #[error("could not parse JSONC config {path}: {message}")]
     ParseConfig { path: PathBuf, message: String },
     #[error("project root does not exist: {path}")]

@@ -722,6 +722,286 @@ export const a = repo + cache;
 }
 
 #[test]
+fn check_consumes_default_baseline_without_failing_matched_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        r#"import { repo } from "../infra/repo";
+export const run = repo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/repo.ts"),
+        "export const repo = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/application/use-case.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../infra/repo",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    let report = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(report["status"], "pass");
+    assert_eq!(report["summary"]["fileCount"], 2);
+    assert_eq!(report["summary"]["errorCount"], 0);
+    assert_eq!(report["summary"]["violationCount"], 0);
+    assert_eq!(report["summary"]["baselinedCount"], 1);
+    assert_eq!(report["violations"][0]["baselined"], true);
+}
+
+#[test]
+fn check_reports_excess_baseline_matches_as_new_violations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        r#"import { repo } from "../infra/repo";
+import { repo as otherRepo } from "../infra/repo";
+export const run = repo + otherRepo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/repo.ts"),
+        "export const repo = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/application/use-case.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../infra/repo",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    let report = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = report["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(report["status"], "fail");
+    assert_eq!(report["summary"]["errorCount"], 1);
+    assert_eq!(report["summary"]["violationCount"], 1);
+    assert_eq!(report["summary"]["baselinedCount"], 1);
+    assert_eq!(
+        violations
+            .iter()
+            .filter(|violation| violation["baselined"] == true)
+            .count(),
+        1
+    );
+    assert_eq!(
+        violations
+            .iter()
+            .filter(|violation| violation.get("baselined").is_none())
+            .count(),
+        1
+    );
+}
+
+#[test]
+fn check_warns_about_stale_baseline_entries_without_failing() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        &["src/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/application/old-use-case.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../infra/repo",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("status: pass"))
+        .stderr(
+            predicate::str::contains("1 stale baseline entry")
+                .and(predicate::str::contains("--write-baseline")),
+        );
+}
+
+#[test]
+fn check_no_baseline_disables_consumption_for_one_run() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_layer_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        r#"import { repo } from "../infra/repo";
+export const run = repo;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/infra/repo.ts"),
+        "export const repo = 1;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/application/use-case.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../infra/repo",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    let report =
+        run_json_check_failure(&workspace, &["check", "--format", "json", "--no-baseline"]);
+
+    assert_eq!(report["status"], "fail");
+    assert_eq!(report["summary"]["errorCount"], 1);
+    assert!(report["summary"].get("baselinedCount").is_none());
+    assert!(report["violations"][0].get("baselined").is_none());
+}
+
+#[test]
+fn check_rejects_missing_or_unsupported_explicit_baseline() {
+    let missing_workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &missing_workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        &["src/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &missing_workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+
+    onioncry()
+        .current_dir(missing_workspace.path())
+        .args(["check", "--baseline", "missing-baseline.json"])
+        .assert()
+        .code(2)
+        .stderr(
+            predicate::str::contains("missing-baseline.json")
+                .and(predicate::str::contains("--write-baseline")),
+        );
+
+    let unsupported_workspace = TempDir::new().expect("workspace should be creatable");
+    write_minimal_config(
+        &unsupported_workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        &["src/**/*.ts"],
+        &[],
+    );
+    write_file(
+        &unsupported_workspace.path().join("src/domain/order.ts"),
+        "export const id = 1;\n",
+    );
+    write_file(
+        &unsupported_workspace.path().join("baseline.json"),
+        r#"{ "version": 99, "entries": [] }"#,
+    );
+
+    onioncry()
+        .current_dir(unsupported_workspace.path())
+        .args(["check", "--baseline", "baseline.json"])
+        .assert()
+        .code(2)
+        .stderr(
+            predicate::str::contains("unsupported baseline version 99")
+                .and(predicate::str::contains("baseline.json"))
+                .and(predicate::str::contains("--write-baseline")),
+        );
+}
+
+#[test]
+fn check_baseline_interacts_with_warning_failure_threshold() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_rule_policy_config(&workspace.path().join(".onioncryrc.jsonc"));
+    write_file(
+        &workspace.path().join("src/domain/strict.ts"),
+        r#"import { run } from "../application/use-case";
+export const strict = run;
+"#,
+    );
+    write_file(
+        &workspace.path().join("src/application/use-case.ts"),
+        "export const run = () => undefined;\n",
+    );
+    write_file(
+        &workspace.path().join(".onioncry-baseline.json"),
+        r#"{
+  "version": 1,
+  "entries": [
+    {
+      "file": "src/domain/strict.ts",
+      "rule": "cleanarch/no-layer-leak",
+      "target": "../application/use-case",
+      "count": 1
+    }
+  ]
+}"#,
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--fail-on", "warning"])
+        .assert()
+        .success();
+
+    write_file(
+        &workspace.path().join("src/domain/strict.ts"),
+        r#"import { run } from "../application/use-case";
+import { run as otherRun } from "../application/use-case";
+export const strict = run ?? otherRun;
+"#,
+    );
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--fail-on", "error"])
+        .assert()
+        .success();
+
+    onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--fail-on", "warning"])
+        .assert()
+        .failure();
+}
+
+#[test]
 fn check_reports_misplaced_test_files_with_suggestions() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_test_placement_config(

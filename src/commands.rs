@@ -22,18 +22,32 @@ pub struct CheckOptions<'a> {
     pub fail_on: FailOn,
     pub baseline_path: Option<&'a Path>,
     pub write_baseline: bool,
+    pub no_baseline: bool,
 }
 
 #[derive(Debug)]
 pub struct CheckOutcome {
     pub report: CheckReport,
     pub baseline_write: Option<BaselineWrite>,
+    pub baseline_warning: Option<BaselineWarning>,
 }
 
 #[derive(Debug)]
 pub struct BaselineWrite {
     pub path: PathBuf,
     pub entry_count: usize,
+}
+
+#[derive(Debug)]
+pub struct BaselineWarning {
+    pub path: PathBuf,
+    pub stale_entry_count: usize,
+}
+
+#[derive(Debug)]
+struct LoadedBaseline {
+    path: PathBuf,
+    baseline: ViolationBaseline,
 }
 
 pub fn discover_config_path(cwd: &Path, explicit_path: Option<&Path>) -> Result<PathBuf> {
@@ -123,6 +137,7 @@ pub fn run_check(
             fail_on,
             baseline_path: None,
             write_baseline: false,
+            no_baseline: false,
         },
     )?
     .report)
@@ -141,7 +156,21 @@ pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<C
         edges: &edges,
         rule_policy: &rule_policy,
     };
-    let violations = collect_rule_violations(&rule_context)?;
+    let mut violations = collect_rule_violations(&rule_context)?;
+    let baseline_warning = if options.write_baseline || options.no_baseline {
+        None
+    } else if let Some(loaded_baseline) =
+        load_violation_baseline(cwd, &loaded, options.baseline_path)?
+    {
+        let application = loaded_baseline.baseline.apply(&project_root, violations);
+        violations = application.violations;
+        (application.stale_entry_count > 0).then_some(BaselineWarning {
+            path: loaded_baseline.path,
+            stale_entry_count: application.stale_entry_count,
+        })
+    } else {
+        None
+    };
     let baseline_write = if options.write_baseline {
         Some(write_violation_baseline(
             cwd,
@@ -157,7 +186,42 @@ pub fn run_check_with_options(cwd: &Path, options: CheckOptions<'_>) -> Result<C
     Ok(CheckOutcome {
         report: build_report(files.len(), &violations, options.fail_on),
         baseline_write,
+        baseline_warning,
     })
+}
+
+fn load_violation_baseline(
+    cwd: &Path,
+    loaded: &LoadedConfig,
+    explicit_baseline_path: Option<&Path>,
+) -> Result<Option<LoadedBaseline>> {
+    let path = baseline_path(cwd, loaded, explicit_baseline_path);
+    if !path.exists() {
+        return if explicit_baseline_path.is_some() {
+            Err(OnionCryError::MissingBaseline { path })
+        } else {
+            Ok(None)
+        };
+    }
+
+    let contents = fs::read_to_string(&path).map_err(|source| OnionCryError::ReadBaseline {
+        path: path.clone(),
+        source,
+    })?;
+    let baseline = serde_json::from_str::<ViolationBaseline>(&contents).map_err(|source| {
+        OnionCryError::ParseBaseline {
+            path: path.clone(),
+            source,
+        }
+    })?;
+    if baseline.version != crate::baseline::BASELINE_VERSION {
+        return Err(OnionCryError::UnsupportedBaselineVersion {
+            path,
+            version: baseline.version,
+        });
+    }
+
+    Ok(Some(LoadedBaseline { path, baseline }))
 }
 
 fn write_violation_baseline(

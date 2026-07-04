@@ -49,6 +49,11 @@ struct CheckArgs {
     )]
     write_baseline: bool,
     #[arg(
+        long = "no-baseline",
+        help = "Disable violation baseline consumption for this run"
+    )]
+    no_baseline: bool,
+    #[arg(
         long = "llm-mode",
         conflicts_with_all = ["format", "tips"],
         help = "Show an LLM-optimized grouped diagnostic report"
@@ -231,9 +236,19 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
             fail_on: args.fail_on.into(),
             baseline_path: args.baseline.as_deref(),
             write_baseline: args.write_baseline,
+            no_baseline: args.no_baseline,
         },
     ) {
         Ok(outcome) => {
+            if let Some(baseline_warning) = &outcome.baseline_warning {
+                eprintln!(
+                    "warning: {} stale baseline {} in {}; rerun --write-baseline to remove fixed entries",
+                    baseline_warning.stale_entry_count,
+                    pluralize_entry(baseline_warning.stale_entry_count),
+                    baseline_warning.path.display()
+                );
+            }
+
             if let Some(baseline_write) = &outcome.baseline_write {
                 eprintln!(
                     "wrote baseline {} ({} {})",
