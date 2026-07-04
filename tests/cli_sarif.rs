@@ -64,11 +64,9 @@ export const run = repo;
     );
 
     let location = &result["locations"][0]["physicalLocation"];
-    assert!(
-        location["artifactLocation"]["uri"]
-            .as_str()
-            .expect("SARIF uri should be a string")
-            .ends_with("src/application/use-case.ts")
+    assert_eq!(
+        location["artifactLocation"]["uri"], "src/application/use-case.ts",
+        "SARIF uris must be project-relative so code-scanning tools can annotate files"
     );
     assert_eq!(location["region"]["startLine"], 1);
     assert!(

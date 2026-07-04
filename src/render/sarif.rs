@@ -1,5 +1,6 @@
 use crate::{CheckReport, RuleCatalogEntry, Violation};
 use serde::Serialize;
+use std::path::{Component, Path};
 
 const SARIF_SCHEMA_URI: &str =
     "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json";
@@ -8,8 +9,9 @@ const SARIF_VERSION: &str = "2.1.0";
 pub fn render_sarif(
     report: &CheckReport,
     rules: &[RuleCatalogEntry],
+    project_root: &Path,
 ) -> serde_json::Result<String> {
-    serde_json::to_string_pretty(&SarifLog::from_report(report, rules))
+    serde_json::to_string_pretty(&SarifLog::from_report(report, rules, project_root))
 }
 
 #[derive(Serialize)]
@@ -22,11 +24,15 @@ struct SarifLog<'a> {
 }
 
 impl<'a> SarifLog<'a> {
-    fn from_report(report: &'a CheckReport, rules: &'a [RuleCatalogEntry]) -> Self {
+    fn from_report(
+        report: &'a CheckReport,
+        rules: &'a [RuleCatalogEntry],
+        project_root: &Path,
+    ) -> Self {
         Self {
             schema: SARIF_SCHEMA_URI,
             version: SARIF_VERSION,
-            runs: vec![SarifRun::from_report(report, rules)],
+            runs: vec![SarifRun::from_report(report, rules, project_root)],
         }
     }
 }
@@ -39,7 +45,11 @@ struct SarifRun<'a> {
 }
 
 impl<'a> SarifRun<'a> {
-    fn from_report(report: &'a CheckReport, rules: &'a [RuleCatalogEntry]) -> Self {
+    fn from_report(
+        report: &'a CheckReport,
+        rules: &'a [RuleCatalogEntry],
+        project_root: &Path,
+    ) -> Self {
         Self {
             tool: SarifTool {
                 driver: SarifToolComponent::from_rules(rules),
@@ -47,7 +57,7 @@ impl<'a> SarifRun<'a> {
             results: report
                 .violations
                 .iter()
-                .map(|violation| SarifResult::from_violation(violation, rules))
+                .map(|violation| SarifResult::from_violation(violation, rules, project_root))
                 .collect(),
         }
     }
@@ -120,13 +130,17 @@ struct SarifResult<'a> {
     rule_index: Option<usize>,
     level: &'static str,
     message: SarifMessage<'a>,
-    locations: Vec<SarifLocation<'a>>,
+    locations: Vec<SarifLocation>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     suppressions: Vec<SarifSuppression<'a>>,
 }
 
 impl<'a> SarifResult<'a> {
-    fn from_violation(violation: &'a Violation, rules: &'a [RuleCatalogEntry]) -> Self {
+    fn from_violation(
+        violation: &'a Violation,
+        rules: &'a [RuleCatalogEntry],
+        project_root: &Path,
+    ) -> Self {
         Self {
             rule_id: &violation.rule,
             rule_index: rules.iter().position(|rule| rule.name == violation.rule),
@@ -134,7 +148,7 @@ impl<'a> SarifResult<'a> {
             message: SarifMessage {
                 text: &violation.message,
             },
-            locations: vec![SarifLocation::from_violation(violation)],
+            locations: vec![SarifLocation::from_violation(violation, project_root)],
             suppressions: sarif_suppressions(violation),
         }
     }
@@ -142,16 +156,16 @@ impl<'a> SarifResult<'a> {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SarifLocation<'a> {
-    physical_location: SarifPhysicalLocation<'a>,
+struct SarifLocation {
+    physical_location: SarifPhysicalLocation,
 }
 
-impl<'a> SarifLocation<'a> {
-    fn from_violation(violation: &'a Violation) -> Self {
+impl SarifLocation {
+    fn from_violation(violation: &Violation, project_root: &Path) -> Self {
         Self {
             physical_location: SarifPhysicalLocation {
                 artifact_location: SarifArtifactLocation {
-                    uri: &violation.file,
+                    uri: sarif_uri(&violation.file, project_root),
                 },
                 region: sarif_region(violation),
             },
@@ -161,16 +175,16 @@ impl<'a> SarifLocation<'a> {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SarifPhysicalLocation<'a> {
-    artifact_location: SarifArtifactLocation<'a>,
+struct SarifPhysicalLocation {
+    artifact_location: SarifArtifactLocation,
     #[serde(skip_serializing_if = "Option::is_none")]
     region: Option<SarifRegion>,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct SarifArtifactLocation<'a> {
-    uri: &'a str,
+struct SarifArtifactLocation {
+    uri: String,
 }
 
 #[derive(Serialize)]
@@ -211,6 +225,21 @@ impl<'a> SarifSuppression<'a> {
 #[serde(rename_all = "camelCase")]
 struct SarifMessage<'a> {
     text: &'a str,
+}
+
+// SARIF consumers such as GitHub code scanning match results to repository files
+// by relative, forward-slash URIs, so absolute local paths would never annotate a PR.
+fn sarif_uri(file: &str, project_root: &Path) -> String {
+    let path = Path::new(file);
+    let relative = path.strip_prefix(project_root).unwrap_or(path);
+    relative
+        .components()
+        .filter_map(|component| match component {
+            Component::Normal(segment) => segment.to_str(),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 fn sarif_region(violation: &Violation) -> Option<SarifRegion> {

@@ -353,7 +353,7 @@ fn run_check_command(args: CheckArgs) -> ExitCode {
                     },
                     CheckOutputFormat::Sarif => {
                         let rules = rule_catalog();
-                        match render_sarif(&report, &rules) {
+                        match render_sarif(&report, &rules, &outcome.project_root) {
                             Ok(sarif) => println!("{sarif}"),
                             Err(error) => {
                                 eprintln!("error: could not render SARIF output: {error}");
