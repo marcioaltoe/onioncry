@@ -1,6 +1,6 @@
 # Add `onioncry check --files`
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 
@@ -26,3 +26,13 @@ Add a `--files <path>...` option to `check` that filters the report to the given
 ## Blocked by
 
 None - can start immediately
+
+## Comments
+
+Implemented as report scoping in `run_check_with_options` after baseline
+application; violations with a `cyclePath` are treated as project-level and
+always reported. One deliberate deviation from the acceptance criteria:
+`--files` conflicts with `--write-baseline` (clap-level error) instead of
+composing with it, because writing a baseline from a scoped run would silently
+drop entries for out-of-scope files. `--baseline` and `--no-baseline` compose
+normally. Glossary entry: File-Scoped Check.

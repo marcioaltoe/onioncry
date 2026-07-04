@@ -101,6 +101,21 @@ onioncry init
 Creates a conservative `.onioncryrc.jsonc` template. Use `--force` to overwrite
 an existing config.
 
+Use `--from-tsconfig [path]` to generate the `aliases` block from a tsconfig's
+`compilerOptions.paths` for review (the path defaults to `tsconfig.json`):
+
+```bash
+onioncry init --from-tsconfig
+onioncry init --from-tsconfig packages/backend/tsconfig.json
+```
+
+Generation happens only at init time and the result is meant to be reviewed:
+runtime alias resolution still reads only `.onioncryrc.jsonc`. Entries that
+cannot be expressed as prefix aliases — non-wildcard keys, multiple targets, or
+targets outside the project root — are listed in a template comment so the team
+maps them manually. `extends` is not followed and is called out in the comment
+when present.
+
 ```bash
 onioncry check
 ```
@@ -120,7 +135,25 @@ onioncry check --llm-mode
 onioncry check --write-baseline
 onioncry check --baseline path/to/.onioncry-baseline.json
 onioncry check --no-baseline
+onioncry check --files src/domain/user.ts src/domain/order.ts
 ```
+
+### File-Scoped Checks
+
+`--files <path>...` filters the report to the given files while the analysis
+stays whole-project, so scoped results never disagree with a full run. This
+fits pre-commit hooks and agent loops that only care about the files they
+touched:
+
+```bash
+onioncry check --files $(git diff --cached --name-only -- 'src/**/*.ts')
+```
+
+Project-level findings without a single file location, such as
+`cleanarch/no-context-cycle`, are always reported. Paths outside the analyzed
+file universe are listed on stderr as skipped without failing the run.
+`--files` cannot be combined with `--write-baseline` because a scoped run would
+silently drop baseline entries for files outside the scope.
 
 ### Violation Baselines
 
@@ -512,15 +545,17 @@ make verify
 
 ## Status
 
-Alpha. The MVP supports `init`, `check`, and `explain` for JavaScript and
-TypeScript import graphs using configured aliases, layers, contexts, rules, and
-overrides.
+Alpha. The CLI supports `init`, `check`, `graph`, `explain`, `rules`, and
+`schema` for JavaScript and TypeScript import graphs using configured aliases,
+layers, contexts, rules, and overrides.
 
 Known alpha constraints:
 
-- Distribution is local-only through `make install`.
-- Alias resolution is explicit in `.onioncryrc.jsonc`; OnionCry does not infer
-  `tsconfig` paths yet.
+- Releases are published to npm and crates.io by the tag-driven release
+  workflow; between releases, `make install` builds the latest source locally.
+- Alias resolution at check time is explicit in `.onioncryrc.jsonc`;
+  `onioncry init --from-tsconfig` generates the alias block from `tsconfig`
+  paths for review, but OnionCry never infers `tsconfig` paths at runtime.
 - Local import resolution handles common JS/TS source extensions and index
   files, but it is not a full TypeScript or Node resolver.
 - Generic JS/TS lint rules are intentionally delegated to JS linters.

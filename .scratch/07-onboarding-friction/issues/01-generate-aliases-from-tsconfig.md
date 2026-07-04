@@ -1,6 +1,6 @@
 # Add `onioncry init --from-tsconfig`
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 
@@ -27,3 +27,10 @@ Let `onioncry init` generate the `aliases` block of the configuration template f
 ## Blocked by
 
 None - can start immediately
+
+## Comments
+
+Implemented in `src/tsconfig.rs` + `init_config_with_options`. Skip reasons are
+stable strings covered by tests: `non-wildcard key`, `catch-all key`,
+`multiple targets`, `non-wildcard target`, `target outside the project root`.
+Decision captured as ADR 0011; glossary entry: Tsconfig Alias Generation.

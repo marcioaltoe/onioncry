@@ -176,6 +176,10 @@ _Avoid_: one-size-fits-all severity
 A named architecture check that can be turned off or reported as a warning or error. Rule names use intent-specific namespaces, such as `cleanarch/...`, `codesmells/...`, and future families such as `solid/...`.
 _Avoid_: numbered rule code as the primary name
 
+**Rule Catalog Listing**:
+The rules introspection output produced by `onioncry rules`, generated from the built-in rule catalog so canonical names, default severities, architecture families, legacy aliases, and explanations cannot drift from the implementation.
+_Avoid_: hand-maintained rule table, rule documentation divorced from the catalog
+
 **Code Organization Rule**:
 A rule that checks observable repository structure, such as file naming, test placement, required folders, or required barrel files. It verifies code state, not whether a contributor followed a process or activated an agent skill.
 _Avoid_: plugin when meaning configured convention, skill enforcement, process audit
@@ -264,6 +268,10 @@ _Avoid_: numeric rule id as the primary identifier
 The pass/fail result of an OnionCry run after applying the configured or CLI-selected failure threshold. Status reflects whether the run should block automation, while the summary keeps the raw warning and error counts.
 _Avoid_: failed whenever warnings exist
 
+**File-Scoped Check**:
+A check run whose report is filtered to explicitly listed files while the analysis stays whole-project, so scoped results never disagree with a full run. Project-level findings without a single file location, such as context cycles, are always reported, and paths outside the file universe are skipped with a warning instead of failing.
+_Avoid_: partial analysis when meaning a filtered report, per-file rule evaluation without the import graph
+
 **File Explanation**:
 An interactive report for one source file that shows boundary classification, matched patterns, resolved imports, and violations for that file. A file explanation is diagnostic and does not act as a CI gate.
 _Avoid_: whole architecture report
@@ -288,6 +296,10 @@ _Avoid_: override as include
 The JSONC file that defines project paths, aliases, boundaries, rules, and overrides for OnionCry. Auto-discovery checks `.onioncryrc.jsonc` first and `.onioncryrc.json` second.
 _Avoid_: YAML config as the default
 
+**Configuration Schema**:
+The JSON Schema for the configuration file, derived from the configuration types and exposed by `onioncry schema`. The generated template references it through `$schema` so editors validate and autocomplete configuration without the schema drifting from the parser.
+_Avoid_: hand-written config schema, schema divorced from the config types
+
 **Configuration Field Naming**:
 Configuration and JSON output fields use camelCase. This keeps OnionCry aligned with JSON and JavaScript tooling conventions.
 _Avoid_: snake_case fields in JSONC examples
@@ -295,6 +307,10 @@ _Avoid_: snake_case fields in JSONC examples
 **Alias Mapping**:
 An explicit mapping from an import prefix to a project path in the OnionCry configuration. The MVP uses configured aliases rather than inferring TypeScript path mappings.
 _Avoid_: implicit tsconfig alias
+
+**Tsconfig Alias Generation**:
+The explicit `onioncry init --from-tsconfig` step that translates a tsconfig's wildcard path mappings into the configuration's alias mappings for team review. Entries that cannot become prefix aliases are listed for manual mapping, and check-time alias resolution still reads only the OnionCry configuration.
+_Avoid_: runtime tsconfig inference, silent alias discovery
 
 **Local Import Resolution**:
 The MVP process for mapping relative and aliased imports to project files by trying common TypeScript and JavaScript file extensions and index files. It does not resolve package exports, package main fields, TypeScript project references, or declaration files.

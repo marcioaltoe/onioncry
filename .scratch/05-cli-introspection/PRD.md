@@ -26,3 +26,9 @@ OnionCry will expose its rule catalog and configuration contract through the CLI
 ## Dependencies
 
 - `schemars` is the only new dependency; it is added with Cargo tooling and used directly by the config module.
+
+## Comments
+
+Post-delivery follow-up: the CONTEXT.md glossary entries required by the
+Decisions section (Rule Catalog Listing, Configuration Schema) were missing
+from the initial delivery and have been added.

@@ -30,3 +30,10 @@ violation-baseline/03-render-baseline-in-outputs (suppressions mapping needs bas
 ## Comments
 
 - 2026-07-04: Added `onioncry check --format sarif` with serde-backed SARIF 2.1.0 rendering, rule-catalog driver metadata, severity mapping, parser span locations, and external suppressions for baselined violations. Added fixture-backed SARIF schema validation plus clean/failing/baselined CLI tests, and documented the plain `gh api` upload workflow in README.md. Verification: `rtk cargo test --test cli_sarif` passed with 3 tests; `rtk make verify` passed with clippy clean and 103 tests. The exact commit SHA is reported by the implementation loop after the slice commit is created.
+
+## Comments
+
+Post-delivery fix: SARIF `artifactLocation.uri` values were absolute local
+paths, which GitHub code scanning cannot map to repository files. URIs are now
+project-root-relative with forward slashes; the integration test asserts the
+exact relative URI.
