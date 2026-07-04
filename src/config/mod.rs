@@ -26,6 +26,7 @@ pub(crate) use rule_options::{
     bool_option, package_pattern_option, string_option, string_set_map_option, string_set_option,
     string_vec_option, suffix_map_option, usize_option,
 };
+pub use template::CONFIG_SCHEMA_URL;
 pub(crate) use template::INIT_CONFIG_TEMPLATE;
 pub use types::{
     ArchitectureConfig, ArchitectureMode, CleanArchitectureConfig, Config, ContextConfig,

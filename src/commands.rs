@@ -9,6 +9,7 @@ use crate::{
 };
 use globset::Glob;
 use jsonc_parser::{ParseOptions, parse_to_serde_value};
+use schemars::schema_for;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -64,6 +65,29 @@ pub fn init_config(cwd: &Path, force: bool) -> Result<PathBuf> {
         source,
     })?;
     Ok(path)
+}
+
+pub fn render_config_schema_json() -> Result<String> {
+    serde_json::to_string_pretty(&schema_for!(Config))
+        .map_err(|source| OnionCryError::RenderSchema { source })
+}
+
+pub fn write_config_schema(cwd: &Path, path: &Path) -> Result<PathBuf> {
+    let schema_json = render_config_schema_json()?;
+    let resolved_path = resolve_against(cwd, path);
+    if let Some(parent) = resolved_path.parent() {
+        fs::create_dir_all(parent).map_err(|source| OnionCryError::WriteSchema {
+            path: resolved_path.clone(),
+            source,
+        })?;
+    }
+    fs::write(&resolved_path, format!("{schema_json}\n")).map_err(|source| {
+        OnionCryError::WriteSchema {
+            path: resolved_path.clone(),
+            source,
+        }
+    })?;
+    Ok(resolved_path)
 }
 
 pub fn run_check(

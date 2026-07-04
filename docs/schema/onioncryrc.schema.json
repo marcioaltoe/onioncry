@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "aliases": {
+      "type": "object",
+      "additionalProperties": true,
+      "default": {}
+    },
+    "architecture": {
+      "$ref": "#/$defs/ArchitectureConfig"
+    },
+    "contextRules": {
+      "$ref": "#/$defs/ContextRulesConfig"
+    },
+    "contexts": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/ContextConfig"
+      }
+    },
+    "layers": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/LayerConfig"
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/OverrideConfig"
+      }
+    },
+    "project": {
+      "$ref": "#/$defs/ProjectConfig"
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/Severity"
+          },
+          {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 1,
+            "prefixItems": [
+              {
+                "$ref": "#/$defs/Severity"
+              },
+              true
+            ]
+          }
+        ]
+      },
+      "default": {}
+    },
+    "version": true
+  },
+  "required": [
+    "version",
+    "project"
+  ],
+  "$defs": {
+    "ArchitectureConfig": {
+      "type": "object",
+      "properties": {
+        "cleanArchitecture": {
+          "$ref": "#/$defs/CleanArchitectureConfig"
+        },
+        "mode": {
+          "$ref": "#/$defs/ArchitectureMode"
+        },
+        "verticalSlice": {
+          "$ref": "#/$defs/VerticalSliceConfig"
+        }
+      }
+    },
+    "ArchitectureMode": {
+      "type": "string",
+      "enum": [
+        "cleanArchitecture",
+        "verticalSlice"
+      ]
+    },
+    "CleanArchitectureConfig": {
+      "type": "object",
+      "properties": {
+        "artifactFolders": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "application": [
+              "use-cases",
+              "ports",
+              "dtos",
+              "mappers",
+              "services",
+              "events"
+            ],
+            "domain": [
+              "entities",
+              "value-objects",
+              "aggregates",
+              "events",
+              "services",
+              "errors"
+            ],
+            "infra": [
+              "repositories",
+              "adapters",
+              "controllers",
+              "database",
+              "workflows",
+              "bootstrap"
+            ]
+          }
+        },
+        "artifactSuffixes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "adapter": [
+              ".adapter.ts",
+              "-adapter.ts",
+              ".gateway.ts",
+              "-gateway.ts",
+              "/client.ts",
+              ".client.ts",
+              "-client.ts",
+              "/handler.ts",
+              ".mapper.ts",
+              "-mapper.ts",
+              "-mappers.ts",
+              ".parser.ts",
+              "-parser.ts",
+              ".provider.ts",
+              "-provider.ts",
+              ".request.ts",
+              "-request.ts",
+              "-requests.ts",
+              ".schema.ts",
+              "-schema.ts",
+              "-schemas.ts",
+              "-normalization.ts",
+              "-resilience.ts",
+              "-composition.ts",
+              "-scenario.ts",
+              "-scenarios.ts",
+              "-snapshot.ts",
+              "-snapshots.ts"
+            ],
+            "entity": [
+              ".entity.ts",
+              "-entity.ts"
+            ],
+            "handler": [
+              ".handler.ts",
+              "-handler.ts"
+            ],
+            "port": [
+              ".port.ts",
+              "-port.ts",
+              "-ports.ts"
+            ],
+            "repository": [
+              ".repository.ts",
+              "-repository.ts",
+              "-catalog.ts",
+              ".writer.ts",
+              "-writer.ts",
+              "-writers.ts"
+            ],
+            "service": [
+              ".service.ts",
+              "-service.ts"
+            ],
+            "useCase": [
+              ".use-case.ts",
+              "-use-case.ts"
+            ],
+            "valueObject": [
+              ".value-object.ts",
+              "-value-object.ts"
+            ]
+          }
+        },
+        "contextRoot": {
+          "type": "string",
+          "default": "contexts"
+        },
+        "groupedArtifactFolders": {
+          "type": "array",
+          "default": [
+            "use-cases",
+            "entities",
+            "value-objects",
+            "ports",
+            "repositories",
+            "adapters",
+            "controllers",
+            "database",
+            "workflows",
+            "bootstrap"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "layerPathAliases": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "application": [
+              "application"
+            ],
+            "domain": [
+              "domain"
+            ],
+            "infra": [
+              "infra",
+              "infrastructure"
+            ]
+          }
+        }
+      }
+    },
+    "ContextConfig": {
+      "type": "object",
+      "properties": {
+        "patterns": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ContextRuleDefaultConfig": {
+      "type": "object",
+      "properties": {
+        "allowCrossContext": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowSameContext": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "ContextRulesConfig": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/ContextRuleDefaultConfig"
+        }
+      }
+    },
+    "LayerConfig": {
+      "type": "object",
+      "properties": {
+        "mayImport": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "patterns": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "OverrideConfig": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "rules": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/Severity"
+              },
+              {
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 1,
+                "prefixItems": [
+                  {
+                    "$ref": "#/$defs/Severity"
+                  },
+                  true
+                ]
+              }
+            ]
+          },
+          "default": {}
+        }
+      }
+    },
+    "ProjectConfig": {
+      "type": "object",
+      "properties": {
+        "exclude": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          }
+        },
+        "include": {
+          "type": "array",
+          "default": [
+            "**/*.js",
+            "**/*.jsx",
+            "**/*.ts",
+            "**/*.tsx"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "root": {
+          "type": "string",
+          "default": "."
+        }
+      }
+    },
+    "Severity": {
+      "type": "string",
+      "enum": [
+        "off",
+        "warn",
+        "error"
+      ]
+    },
+    "VerticalSliceConfig": {
+      "type": "object",
+      "properties": {
+        "allowedGlobalFolders": {
+          "type": "array",
+          "default": [
+            "app",
+            "config",
+            "lib",
+            "shared",
+            "platform"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "artifactFolders": {
+          "type": "array",
+          "default": [
+            "handlers",
+            "adapters",
+            "domain",
+            "__tests__"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "artifactSuffixes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "default": {
+            "adapter": [
+              ".adapter.ts"
+            ],
+            "entity": [
+              ".entity.ts"
+            ],
+            "handler": [
+              ".handler.ts"
+            ],
+            "repository": [
+              ".repository.ts"
+            ],
+            "service": [
+              ".service.ts"
+            ],
+            "useCase": [
+              ".use-case.ts"
+            ],
+            "valueObject": [
+              ".value-object.ts"
+            ]
+          }
+        },
+        "entryPointNames": {
+          "type": "array",
+          "default": [
+            "setup",
+            "Setup",
+            "map",
+            "Map",
+            "register",
+            "Register",
+            "registerRoute",
+            "RegisterRoute"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "publicSurface": {
+          "type": "array",
+          "default": [
+            "index.ts",
+            "contracts"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "sharedLayerFolders": {
+          "type": "array",
+          "default": [
+            "controllers",
+            "handlers",
+            "services",
+            "repositories",
+            "use-cases"
+          ],
+          "items": {
+            "type": "string"
+          }
+        },
+        "sliceDepth": {
+          "type": "integer",
+          "format": "uint",
+          "default": 2,
+          "minimum": 0
+        },
+        "sliceRoot": {
+          "type": "string",
+          "default": "features"
+        }
+      }
+    }
+  }
+}

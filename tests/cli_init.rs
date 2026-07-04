@@ -24,7 +24,9 @@ fn init_creates_parseable_mvp_template() {
     let config_path = workspace.path().join(".onioncryrc.jsonc");
     let config = fs::read_to_string(&config_path).expect("init config should be readable");
 
-    assert!(config.contains(r#""$schema""#));
+    assert!(config.contains(
+        r#""$schema": "https://raw.githubusercontent.com/marcioaltoe/onioncry/main/docs/schema/onioncryrc.schema.json""#
+    ));
     assert!(config.contains(r#""version""#));
     assert!(config.contains(r#""project""#));
     assert!(config.contains(r#""architecture""#));

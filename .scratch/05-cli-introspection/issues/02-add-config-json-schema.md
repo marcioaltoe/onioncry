@@ -1,6 +1,6 @@
 # Add configuration JSON Schema and `onioncry schema`
 
-Status: ready-for-agent
+Status: done
 
 ## Parent
 
@@ -25,3 +25,7 @@ Derive a JSON Schema for `.onioncryrc.jsonc` from the Rust configuration types w
 ## Blocked by
 
 None - can start immediately
+
+## Comments
+
+- 2026-07-04: Implemented `onioncry schema` with stdout and `--write <path>` modes, generated `docs/schema/onioncryrc.schema.json`, added `schemars` through Cargo, and updated the `init` template to reference the raw GitHub schema URL on `main`. Added CLI integration coverage for schema stdout, schema writes, committed-schema freshness, and init `$schema` output. Verification passed with `rtk cargo test --test cli_schema --test cli_init`, `rtk cargo check --all-targets --all-features`, `rtk cargo clippy --all-targets --all-features -- -D warnings`, `rtk cargo test --all-features`, and `rtk make verify`. The exact commit SHA is reported in the loop handoff after the issue commit is created.

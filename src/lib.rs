@@ -11,9 +11,9 @@ mod render;
 mod rules;
 
 pub use config::{
-    ArchitectureConfig, ArchitectureMode, CleanArchitectureConfig, Config, ContextConfig,
-    ContextRuleDefaultConfig, ContextRulesConfig, LayerConfig, LoadedConfig, OverrideConfig,
-    ProjectConfig, RuleSetting, Severity, VerticalSliceConfig,
+    ArchitectureConfig, ArchitectureMode, CONFIG_SCHEMA_URL, CleanArchitectureConfig, Config,
+    ContextConfig, ContextRuleDefaultConfig, ContextRulesConfig, LayerConfig, LoadedConfig,
+    OverrideConfig, ProjectConfig, RuleSetting, Severity, VerticalSliceConfig,
 };
 pub(crate) use config::{
     DEFAULT_ALLOWED_SHARED_COMPONENT_ROOTS, DEFAULT_COLLECTION_DIRECTORIES,
@@ -37,7 +37,8 @@ pub(crate) use classification::{
     ContextClassification, ContextClassifier, ContextPolicy, LayerClassification, LayerClassifier,
 };
 pub use commands::{
-    discover_config_path, init_config, load_config, run_check, run_explain, select_files,
+    discover_config_path, init_config, load_config, render_config_schema_json, run_check,
+    run_explain, select_files, write_config_schema,
 };
 pub use errors::{OnionCryError, Result};
 pub use imports::collect_import_edges;

@@ -1,7 +1,8 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use onioncry::{
-    CLI_VERSION, FailOn, OnionCryError, init_config, render_explain_pretty, render_llm,
-    render_pretty, render_rules_pretty, rule_catalog, run_check, run_explain,
+    CLI_VERSION, FailOn, OnionCryError, init_config, render_config_schema_json,
+    render_explain_pretty, render_llm, render_pretty, render_rules_pretty, rule_catalog, run_check,
+    run_explain, write_config_schema,
 };
 use std::path::PathBuf;
 use std::process::ExitCode;
@@ -22,6 +23,8 @@ enum Commands {
     Explain(ExplainArgs),
     #[command(about = "List built-in rules")]
     Rules(RulesArgs),
+    #[command(about = "Print the .onioncryrc JSON Schema")]
+    Schema(SchemaArgs),
 }
 
 #[derive(Debug, Parser)]
@@ -65,6 +68,12 @@ struct RulesArgs {
     format: OutputFormat,
 }
 
+#[derive(Debug, Parser)]
+struct SchemaArgs {
+    #[arg(long)]
+    write: Option<PathBuf>,
+}
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum OutputFormat {
     Pretty,
@@ -84,6 +93,41 @@ fn main() -> ExitCode {
         Commands::Init(args) => run_init_command(args),
         Commands::Explain(args) => run_explain_command(args),
         Commands::Rules(args) => run_rules_command(args),
+        Commands::Schema(args) => run_schema_command(args),
+    }
+}
+
+fn run_schema_command(args: SchemaArgs) -> ExitCode {
+    if let Some(path) = args.write {
+        let cwd = match std::env::current_dir() {
+            Ok(cwd) => cwd,
+            Err(error) => {
+                eprintln!("error: could not determine current directory: {error}");
+                return ExitCode::from(2);
+            }
+        };
+
+        match write_config_schema(&cwd, &path) {
+            Ok(_) => {
+                println!("created {}", path.display());
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                print_error(&error);
+                ExitCode::from(2)
+            }
+        }
+    } else {
+        match render_config_schema_json() {
+            Ok(schema) => {
+                println!("{schema}");
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                print_error(&error);
+                ExitCode::from(2)
+            }
+        }
     }
 }
 

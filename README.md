@@ -149,11 +149,33 @@ Useful options:
 onioncry rules --format json
 ```
 
+```bash
+onioncry schema
+```
+
+Prints the JSON Schema for `.onioncryrc.jsonc` so editors and automation can
+discover the supported configuration shape.
+
+Useful options:
+
+```bash
+onioncry schema --write docs/schema/onioncryrc.schema.json
+```
+
 ## Configuration
 
 OnionCry auto-discovers `.onioncryrc.jsonc` first, then `.onioncryrc.json`.
 JSONC remains the default because the configuration works like a linter config,
 with comments, rules, severities, options, and overrides.
+
+The `onioncry init` template includes a `$schema` field pointing at the schema
+published from `main`, so editors that understand JSON Schema can validate and
+autocomplete the config. Regenerate the committed schema after config type
+changes with:
+
+```bash
+onioncry schema --write docs/schema/onioncryrc.schema.json
+```
 
 Minimal shape:
 

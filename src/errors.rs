@@ -22,6 +22,17 @@ pub enum OnionCryError {
         #[source]
         source: std::io::Error,
     },
+    #[error("could not write schema {path}: {source}")]
+    WriteSchema {
+        path: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("could not render schema: {source}")]
+    RenderSchema {
+        #[source]
+        source: serde_json::Error,
+    },
     #[error("could not parse JSONC config {path}: {message}")]
     ParseConfig { path: PathBuf, message: String },
     #[error("project root does not exist: {path}")]
