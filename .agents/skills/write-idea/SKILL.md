@@ -1,14 +1,14 @@
 ---
 name: write-idea
-description: Expand a raw product idea into a research-backed spec at docs/specs/<slug>/_idea.md — targeted questions, parallel codebase + market research, business-viability scoring, council debate, and an opportunity scan before drafting. The _idea.md feeds write-prd.
-disable-model-invocation: true
+description: Expand a raw product idea into a research-backed spec at docs/specs/<slug>/_idea.md — targeted questions, parallel codebase + market research, business-viability scoring, a trade-off debate, and an opportunity scan before drafting. The _idea.md feeds write-prd.
 argument-hint: "<feature idea or problem description>"
 metadata:
   category: discovery
   tags: [product, research, requirements, workflow]
-  version: 0.1.0
+  version: 0.0.6
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
+version: 0.0.6
 ---
 
 # Write Idea
@@ -22,38 +22,76 @@ Use it for product-level ideas: greenfield features, ideas with real market/comp
 ## Ground rules
 
 - **Read `CONTEXT.md` first** and keep its vocabulary; new terms this idea coins get sharpened and added to the glossary as they're resolved.
-- **One question per message**, multiple-choice with a suggested default whenever options are enumerable (`D) Other — describe` as the escape). 3–6 questions total; stop early if answers show the idea is already well-defined.
+- **One question per message**, with two or three options whenever options are enumerable; put the recommended option first and label it `(Recommended)`, with no `Other` option. 3–6 questions total; stop early if answers show the idea is already well-defined. The structured question tool supplies the custom answer itself; without such a tool, show the same single question in chat and accept a custom answer.
 - **WHAT, WHY, WHO only.** Databases, APIs, frameworks, and architecture are forbidden topics here — they belong to `write-techspec`.
 - **Research before writing.** Never draft an idea unbacked by codebase findings and (for user-facing ideas) market data.
+- **Reference adopted sources at their owned path.** When a source already
+  belongs to an active or archived Spec, link its post-adoption path in the
+  owning Spec with a destination relative to `_idea.md`, never the pre-adoption
+  path retained as provenance. A secondary Spec links that owner's copy and
+  adopts nothing.
+  The owner's archive performs an Archive Relink: it promotes that copy to
+  `docs/references/` and rewrites the secondary Spec's links, so the source
+  keeps one owner and the secondary Spec needs no copy (ADR-0260, ADR-0083).
 - **Do not write the file until the user approves the draft** — unlike `write-prd`, this stage is inherently interactive: its whole product is shared judgment.
+
+## Sources that share a context
+
+A Spec may adopt several Inbox Entries, Backlog Entries and Findings whose
+context is similar or complementary; one Spec per source is neither required
+nor preferred. Before minting a Spec, look among the open Backlog Entries and
+unresolved Findings for sources that share the context. Group only while the
+scope fits four implementation Tasks plus its QA gate; past that bound, split
+the scope and give each source one owning Spec.
+
+Before minting a new Finding or Backlog Entry, extend one that fits: revise an
+open Backlog Entry in place, or give an unresolved Finding a dated addendum.
 
 ## Process
 
-### 1. Resolve the slug and check for prior art
+### 1. Read the pending inbox
 
-Derive a kebab-case slug (2–5 words). If `docs/specs/<slug>/_idea.md` exists, read it and operate in update mode (preserve sections the user hasn't asked to change). Check `docs/specs/` and `docs/specs/_archived/` for overlapping specs — overlap is a finding to surface, not absorb.
+After the ground-rule reads above — `CONTEXT.md` and the active ADRs — and
+before any codebase or market exploration, read the repository's pending Inbox
+Entries from its brain-side `inbox/<repository>/` namespace through the
+configured knowledge-workspace workflow. Treat every queued entry as decision
+input: carry relevant evidence and intent into the exploration, and leave
+Triage to a session of the destination repository.
 
-### 2. Understand the idea
+### 2. Resolve the slug and check for prior art
+
+**HARD RULE — spec folders are numbered `docs/specs/NNNN-<kebab-slug>/`** (zero-padded 4 digits, e.g. `0001-implement-command`). Determine `NNNN` by scanning **both** `docs/specs/` and `docs/history/specs/` for the highest existing prefix and adding 1; use `0001` when no specs exist anywhere. Numbers are never reused and travel with the spec when archived. Never create an unnumbered spec folder.
+
+Derive the kebab-case name (2–5 words) and prepend the number. If an **active** spec folder for this idea already exists under the Spec Root (any number), read its `_idea.md` and operate in update mode (preserve sections the user hasn't asked to change) — do not mint a new number. A matching folder under the archive root is a read-only overlap finding: never enter update mode, never rewrite its `_idea.md`, and never reuse its number — assign a new number for new work and surface the archived overlap.
+
+### 3. Understand the idea
 
 Walk the question phases in order, one question at a time: problem/pain point → target user and current workarounds → V1 scope (offer: minimal MVP / complete feature / platform — recommend one of the first two) → ambition (quick win / strategic bet / compounding feature, and "what would make this 10x more valuable?") → dependencies on existing features → success criteria. YAGNI ruthlessly during the scope phase.
 
-### 3. Research in parallel
+### 4. Research in parallel
 
 Spawn two parallel explorations: one over the codebase (existing patterns, integration points, adjacent features) and one over the web (3–7 searches varying angle: competitive landscape, market data/statistics, user-expectation patterns, pricing/cost when relevant). If web tools are unavailable, note the limitation and proceed with codebase findings only. Present a merged research summary — codebase findings, competitors and what they do, potential differentiator, relevant data — before any analysis.
 
-### 4. Score viability
+When the session performed substantive external research, capture a digest with
+its sources for the brain's own namespace before leaving this step. Run the
+advisory qmd duplicate check first through an authorized access path, verify
+that returned paths exist, and review substantive overlap; a score alone never
+decides whether to extend existing knowledge or create a new pending research
+Inbox Entry.
+
+### 5. Score viability
 
 Apply the `business-analyst` skill in feature-scoring mode: 3–6 KPIs with numeric targets, and the six-criteria assessment (Impact, Reach, Frequency, Differentiation, Defensibility, Feasibility — each `Must do / Strong / Maybe / Pass`) plus a leverage type (Quick Win / Strategic Bet / Compounding). Present the analysis to the user before proceeding.
 
-### 5. Debate trade-offs
+### 6. Debate trade-offs
 
-Run the `council` skill in embedded mode on the real dilemmas: V1 scope, priority vs other work, simpler alternatives, risks and hidden dependencies, and the 10x challenge. Extract the recommended approach, key trade-offs, out-of-scope items, and an optional V2+ stretch goal. If the scope decision is hard to reverse, surprising, and a real trade-off, record it as `docs/adr/NNNN-slug.md` (continue the repository numbering).
+Weigh the real dilemmas yourself: V1 scope, priority vs other work, simpler alternatives, risks and hidden dependencies, and the 10x challenge. For each, state the strongest case on both sides and keep the losing side as dissent. Extract the recommended approach, key trade-offs, out-of-scope items, and an optional V2+ stretch goal. If the scope decision is hard to reverse, surprising, and a real trade-off, record it as `docs/adr/NNNN-slug.md` (continue the repository numbering).
 
-### 6. Opportunity scan
+### 7. Opportunity scan
 
 Before committing to the original shape, run the scan in [references/opportunity-scan.md](references/opportunity-scan.md): assess the original's ceiling, then propose up to three scored alternatives — one more ambitious, one simpler, one adjacent — and recommend a direction. Ask the user to pick: original / alternative N / hybrid / other. Fold the chosen direction into the draft.
 
-### 7. Draft, review, save
+### 8. Draft, review, save
 
 Draft from [references/idea-template.md](references/idea-template.md), present it, and iterate (`approved / adjust sections / rewrite section X / discard`). On approval, write `docs/specs/<slug>/_idea.md` with frontmatter `status: proposed`, and point the user at `write-prd` as the next step — it reads `_idea.md` as its exploration input and flips the status to `promoted`. Ideas consciously shelved get `status: parked` and stay as the record that answers "didn't we already consider this?".
 
@@ -62,10 +100,10 @@ Draft from [references/idea-template.md](references/idea-template.md), present i
 - Asking about implementation ("which database?") — the fastest way to poison a product conversation.
 - Skipping research because the idea "is obviously good" — that's precisely the idea that needs the market check.
 - Padding the draft with features nobody validated — every feature traces to an answer or a finding.
-- Smoothing over the council's dissent — preserved disagreement is input for the PRD's risk section.
+- Smoothing over the dissent from step 6 — preserved disagreement is input for the PRD's risk section.
 - Running the full factory on a small, well-understood feature instead of saying "skip to write-prd".
 
 ## References
 
 - [references/idea-template.md](references/idea-template.md) — the `_idea.md` template. Read before drafting.
-- [references/opportunity-scan.md](references/opportunity-scan.md) — the strategist lens for step 6. Read when the scan starts.
+- [references/opportunity-scan.md](references/opportunity-scan.md) — the strategist lens for step 7. Read when the scan starts.

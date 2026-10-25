@@ -13,21 +13,21 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/07-evidence-delivery/archive-spec/SKILL.md",
-      "computedHash": "bfaf045bc083c2a760cba2c98558ee2df154a4080bfbf65f07f6c5fc8cb4aaac"
+      "computedHash": "97ec4472a971423d2567acae16dd5ca091bf176ed7110f29b8ccba11541f0880"
     },
     "brainstorming": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/brainstorming/SKILL.md",
-      "computedHash": "fb9656fa5e995ac96e90b86d56be82e364fa118b06d3e8f241049722b665f13e"
+      "computedHash": "364716d2f901608df5b98d04ed55cb7500ff374adf1e9247212ed2817eef5fb9"
     },
     "business-analyst": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/business-analyst/SKILL.md",
-      "computedHash": "fe9ef2327d898543beb979a769e705db5572d71249fd321d51910808bd37b36e"
+      "computedHash": "a9cd63389b87e40b08336c3837f8da3a61a2a4d06e1727ce6c33a72025a87252"
     },
     "clap-rust": {
       "source": "marcioaltoe/skills",
@@ -49,12 +49,12 @@
       "skillPath": "skills/05-implementation-loop/coding-guidelines/SKILL.md",
       "computedHash": "28a414c715d3c41aae28a25e2f109813ec3f246f76b5567c1e7d6a128cd289ff"
     },
-    "context7": {
+    "context7-cli": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
       "sourceType": "github",
-      "skillPath": "skills/01-discovery/context7/SKILL.md",
-      "computedHash": "23f0178420043f01cd0f00745eb06eaac6f3eee4ef58f87f1ae353c2a408f79c"
+      "skillPath": "skills/01-discovery/context7-cli/SKILL.md",
+      "computedHash": "f22d21491528a0aaaf21a2a7c546428ffd208852473d6afbaf5e2d4845388639"
     },
     "conventional-commits": {
       "source": "marcioaltoe/skills",
@@ -63,12 +63,11 @@
       "skillPath": "skills/07-evidence-delivery/conventional-commits/SKILL.md",
       "computedHash": "816e7074089495888ecfceb1980657d961a708cf8b31e8a6cf35f1c0c76efbc3"
     },
-    "council": {
+    "crafting-effective-readmes": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
       "sourceType": "github",
-      "skillPath": "skills/01-discovery/council/SKILL.md",
-      "computedHash": "aa6a3ce01ce1379d92595902283a76960fa72eacdf1531c5d628b04cf243f34f"
+      "skillPath": "skills/07-evidence-delivery/crafting-effective-readmes/SKILL.md",
+      "computedHash": "c931a8c22160e8925400778fcb2266b5d1df762f3052edba65f72479f79f2d6c"
     },
     "cut-release": {
       "source": "marcioaltoe/skills",
@@ -81,21 +80,27 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/design-patterns/SKILL.md",
-      "computedHash": "7921b815d7f47752faa9457a3c3983417ba3cf547385aedcf00ddadc83090d55"
+      "computedHash": "35ace6a912483a312e8d4bec83f5a17ad7bfc17bde69c69ca260e9c1b7b3a33c"
     },
     "domain-modeling": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/domain-modeling/SKILL.md",
-      "computedHash": "67343881f5def98487d56243155716110afbcbf22ec92421c882d532b941cb17"
+      "computedHash": "b3eb40152b81f0c98fd2095a023c019452dbdce56f7540cc67fece2972db8369"
     },
     "evidence-gate": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/06-review-repair/evidence-gate/SKILL.md",
-      "computedHash": "85eeb74a08d1668de5220263be81a3e988f78d5d82b3fe90cfc9a32c71946c4c"
+      "computedHash": "7eddbc92d97536787c7dc03b3fcc64f1780024a6b2ce63f69eaa6522dd855a8e"
+    },
+    "exa-web-search": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/01-discovery/exa-web-search/SKILL.md",
+      "computedHash": "d8b53369f54c57dea66e64d83d6f3a27bfeee364d88ff3845f6b7312f6b3c2ae"
     },
     "github-pr-workflow": {
       "source": "marcioaltoe/skills",
@@ -109,81 +114,62 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/grill-with-docs/SKILL.md",
-      "computedHash": "e7ef25bbee50cda2eb7b3a8ef541db0a0396dad7d369f7d14fb610671dd1864b"
+      "computedHash": "35e62aa423aaeab6a414bcac273f56dfb17802ef2334b41b6a3b00f28196c8cf"
     },
     "grilling": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/grilling/SKILL.md",
-      "computedHash": "bf1e75d96966edd298902d63348c828921b8b095d7306d0cdd56b4a591a7a82b"
+      "computedHash": "4dd886b0196bf43729d954ae326016f2bd9f5f79d892500b407c33a753362f14"
     },
     "handoff": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
       "sourceType": "github",
       "skillPath": "skills/07-evidence-delivery/handoff/SKILL.md",
-      "computedHash": "5d0f81e38abe6b984e1feaa731927de5291d040982106ac513cf54ec240e00ec"
-    },
-    "implement": {
-      "source": "marcioaltoe/skills",
-      "sourceType": "github",
-      "skillPath": "skills/05-implementation-loop/implement/SKILL.md",
-      "computedHash": "5eedab2e36a68278662484e8e243624fe0bb74040299aa6c8a525feb65b0365c"
+      "computedHash": "20e5f4afdef502637510bc5c64d27645d3c85c88df9cb006824bbb0980166319"
     },
     "implement-spec": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/05-implementation-loop/implement-spec/SKILL.md",
-      "computedHash": "5ec166fd87133ba89a0c5dd322db533647c9c371ed492a676961a02bd5049e1d"
+      "computedHash": "0b86c78d2c2a1c5e1fdd73a8c6fb97a61cd5c9bdda017e36aa47b08eac89c7a1"
     },
     "implement-task": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/05-implementation-loop/implement-task/SKILL.md",
-      "computedHash": "7ba176d5e1013e7bc45635dc869d20a70f7605c60a73db55ba7299cd25eb100e"
+      "computedHash": "510de9617e7f800b8e86c51fe7c4d6c05c4600f06501fcd02e3992b45ca413c8"
+    },
+    "knowledge-workspace": {
+      "source": "marcioaltoe/skills",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
+      "sourceType": "github",
+      "skillPath": "skills/00-setup/knowledge-workspace/SKILL.md",
+      "computedHash": "48eef897fcea751602f6f9eb5c57e76b2f021b08ba9ecaaa2dca104d89613000"
     },
     "no-workarounds": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/05-implementation-loop/no-workarounds/SKILL.md",
-      "computedHash": "9b34a293a4a836612b1f8509c521b0ab163cec2105eafc270ebb347badea8471"
-    },
-    "onioncry": {
-      "source": "marcioaltoe/skills",
-      "sourceType": "github",
-      "skillPath": "skills/06-review-repair/onioncry/SKILL.md",
-      "computedHash": "c78133204862e0e422b07b8e6dc84507d482f84cbe11fdf02c4f8b33544b0478"
+      "computedHash": "c36d9a5afdcbf9cf40b1b8573c697ac2f8119feb9dfee96477a7bb4c8e46a86e"
     },
     "qa-gate": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/06-review-repair/qa-gate/SKILL.md",
-      "computedHash": "f7f933db473e2ea730b3529552db7c06a1ec6e660bdfcf1b83dadfe09c023fc6"
+      "computedHash": "99fae3395df155aa8d3752c42042ae1f43ef5935c34b8fd555ee6a9681f67ef9"
     },
     "refactoring-analysis": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/06-review-repair/refactoring-analysis/SKILL.md",
-      "computedHash": "cb26e39774d399ebf64375f4b1a0edb5cc5e7190603ec688253a831ec641a304"
-    },
-    "review": {
-      "source": "marcioaltoe/skills",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/06-review-repair/review/SKILL.md",
-      "computedHash": "4a2b10bb81e568516c52018e73b8255a02066024257d7c907fa65826d62bc8dd"
-    },
-    "rust": {
-      "source": "marcioaltoe/skills",
-      "ref": "main",
-      "sourceType": "github",
-      "skillPath": "skills/05-implementation-loop/rust/SKILL.md",
-      "computedHash": "cdd0d8521c93f1f5e1c06f513c255b33dade20872e78a142d013e644e71e606a"
+      "computedHash": "ef4079fef46121a0cc57ce5c293df989dc62cd399eb511c1f82ab910ec3444e7"
     },
     "rust-cli": {
       "source": "marcioaltoe/skills",
@@ -192,25 +178,30 @@
       "skillPath": "skills/05-implementation-loop/rust-cli/SKILL.md",
       "computedHash": "9a02b9c154a6cd1c7e4095aeb2b56bf06fb9856b08f80f2f21a90e993d0968f7"
     },
-    "setup-workflow": {
+    "rust-expert": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
       "sourceType": "github",
-      "skillPath": "skills/00-setup/setup-workflow/SKILL.md",
-      "computedHash": "7d9fecd455909b70753c95f255d5bc143e13d5228e0c1dce24bc7608e69769f0"
+      "skillPath": "skills/05-implementation-loop/rust-expert/SKILL.md",
+      "computedHash": "de42fbf2f527152ee1749c93f78944e03bdba4bb106874cf0b17d432789c75f7"
+    },
+    "setup-context-driven": {
+      "source": "marcioaltoe/skills",
+      "sourceType": "github",
+      "skillPath": "skills/00-setup/setup-context-driven/SKILL.md",
+      "computedHash": "5b6432e62bfffc6ba5b5137e2e66015a77299a93b74f733a88cb4e3292aed3c2"
     },
     "solid": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/05-implementation-loop/solid/SKILL.md",
-      "computedHash": "e6eff39466cdc6d80f84efa74e2318a3adf2ce42de0301f8b7fb19df2932c11e"
+      "computedHash": "95625160ceb5de5972aa576e117ade31c443001ed69bccc99f204d7c6d55fcf4"
     },
     "systematic-debugging": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
       "sourceType": "github",
       "skillPath": "skills/06-review-repair/systematic-debugging/SKILL.md",
-      "computedHash": "7527b8f518cf265cc3f63345885bca98b095d2836ece773dadd3e8ca76315583"
+      "computedHash": "3589907ee34dc8b1b7223a33fac98ab841a9e42f9960ab4433a832f0c6f00be0"
     },
     "tech-writer": {
       "source": "marcioaltoe/skills",
@@ -224,26 +215,14 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/05-implementation-loop/testing-boss/SKILL.md",
-      "computedHash": "36865bc741803fd1485d7b17789d583591ca2a6bcc3c249b42a3e0d294adb6c3"
+      "computedHash": "3a0cc1b11eb7f7419b781608683a07b3951a450f00d29adaea2aed812f3227f7"
     },
-    "the-fool": {
+    "typesafe-ai": {
       "source": "marcioaltoe/skills",
-      "ref": "main",
+      "ref": "b3c45a45f1bccd3b33aaecaaa22947d942f2fc02",
       "sourceType": "github",
-      "skillPath": "skills/01-discovery/the-fool/SKILL.md",
-      "computedHash": "6bdba13f4c274424f97601061201c0333a620c0c8fe03f4d68f0f407806e6177"
-    },
-    "to-issues": {
-      "source": "marcioaltoe/skills",
-      "sourceType": "github",
-      "skillPath": "skills/04-issue-decomposition/to-issues/SKILL.md",
-      "computedHash": "4e2a11d35f018490d42a79234432f779d7131b9920373ef24cfbc68229bfef6c"
-    },
-    "to-prd": {
-      "source": "marcioaltoe/skills",
-      "sourceType": "github",
-      "skillPath": "skills/02-planning/to-prd/SKILL.md",
-      "computedHash": "5a733e19d825f22e83de52e68b8840c9fd2fa7501282277a122c1aa28a922059"
+      "skillPath": "skills/05-implementation-loop/typesafe-ai/SKILL.md",
+      "computedHash": "9cd84c5e535dec8dec59917c110f9c00b4a61faadb86b432ec7e41051170af12"
     },
     "vertical-slice-architecture": {
       "source": "marcioaltoe/skills",
@@ -256,28 +235,28 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/write-idea/SKILL.md",
-      "computedHash": "0d37fd7f8cfee57a9090bbc134dbe8117f7bf20f743413770b0d95831b5e0a04"
+      "computedHash": "45cc03f95bfde3062cb272b38ad0b00c57c73e6e58e6330a506c66a965cfa740"
     },
     "write-prd": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/02-planning/write-prd/SKILL.md",
-      "computedHash": "6e30028260ce94c2e5579d69e8a52e1d5d445903605f772c39719588958c317f"
+      "computedHash": "078a0f5c2896b6ff15e76b1728605175ec8850207e1e68bbec954ee574e94613"
     },
     "write-tasks": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/04-issue-decomposition/write-tasks/SKILL.md",
-      "computedHash": "720241ebe74db3f2a371fff5ec6fe27cb33972cdbbd974180018760f8e875855"
+      "computedHash": "598021cbb7bf09e0f818672bea545ada284dfbb959d649027b803807850597f3"
     },
     "write-techspec": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/write-techspec/SKILL.md",
-      "computedHash": "25a97bfe729469b2cd89f81c16b8996c2995d730a17915b1608ccb7aaa92397f"
+      "computedHash": "e78ef4838d6f7fcb3f4b51d4ab15b84962dda8df6021c88bbd036eeb2fca7088"
     }
   }
 }

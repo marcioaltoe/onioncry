@@ -1,10 +1,10 @@
 # PRD template
 
-Write `docs/specs/<feature-slug>/_prd.md` with this exact structure. Guidance appears as `<!-- comments -->`; delete every comment from the final file. Omit a section only when it is genuinely empty — write "None." rather than deleting Non-Goals or Open Questions, so readers know it was considered.
+Write `docs/specs/<NNNN-feature-slug>/_prd.md` with this exact structure. Guidance appears as `<!-- comments -->`; delete every comment from the final file. Omit a section only when it is genuinely empty — write "None." rather than deleting Non-Goals or Open Questions, so readers know it was considered.
 
 ```markdown
 ---
-spec: <feature-slug>
+spec: <NNNN-feature-slug> # numbered folder slug, e.g. 0001-implement-command
 status: active
 created: YYYY-MM-DD
 surfaces: [backend] # every surface touched: frontend | backend | cli | data | infra | docs
@@ -13,6 +13,29 @@ surfaces: [backend] # every surface touched: frontend | backend | cli | data | i
 # <Feature name, in glossary vocabulary>
 
 <!-- One paragraph: the problem from the user's perspective and the outcome this feature buys. -->
+
+## Project Constraints
+
+<!-- Replace every placeholder. Each row must state applicable or not applicable, give the
+     effective constraint or the reason it does not apply, and cite its operative source.
+     Keep authorization in this section, never in frontmatter. -->
+
+- Identifier strategy: <applicable | not applicable> — <effective value and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`.
+- Authentication and HTTP: <applicable | not applicable> — <effective policy and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`.
+- Active ADR obligations: <applicable | not applicable> — <active obligations and reason they apply, or reason none apply>. Source: `docs/agents/<path>.md`.
+- Tooling authority: <applicable | not applicable> — <effective constraint and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`; Spec-contained authorization record: `<spec-root>/<slug>/_authorization.md`; bounded files: <copy every exact repository-relative path from the record's `paths` list>.
+
+<!-- When a paragraph attributes behavior to a decision record, add a Claim Receipt in that paragraph: its source and a verbatim quote. -->
+
+<!-- With no protected tooling mutation, record: `applicable — no protected tooling mutation proposed or authorized`.
+     When protected tooling mutation is proposed, do not finish without
+     `express maintainer authorization: <approval>; bounded files: <exact repository paths>`.
+     citing the Spec-contained authorization record at
+     `<spec-root>/<slug>/_authorization.md` and copying every exact
+     repository-relative path from its `paths` list into this row. A proposed
+     record or a record without a grant date authorizes nothing. -->
+
+<!-- A Spec a Delivery Queue delivers also records its delivery operations in that record and, with no Governed Path to bound, the record carries `paths: []`. -->
 
 ## Goals
 
@@ -43,11 +66,40 @@ surfaces: [backend] # every surface touched: frontend | backend | cli | data | i
 
 ## Success Metrics
 
-<!-- How we know the feature worked after shipping. Measurable where possible. -->
+<!-- How we know the feature worked after shipping. Use numbered Success Metric
+     items, or the single entry `None.` followed by the reason none applies. -->
+
+1. Success Metric: ...
+
+## Unreachable Acceptance
+
+<!-- Optional. Declare one unreachable criterion with these fields:
+     - criterion: <criterion>
+       reason: <why it is unreachable>
+       satisfied-by: <evidence or follow-up that satisfies it>
+     Omit this section when every criterion is reachable. -->
+
+## Glossary
+
+<!-- Use `adds: **<term>**`, `changes: **<term>**`, or `not a term: **<phrase>** — <reason>`. Write `None.` when there are no entries. -->
+
+## Skills
+
+<!-- Optional Skills Declaration. Omit this section when no covered Behavior Surface
+     is excused. Every entry must name an id in the repository's Skill Coverage Map
+     and give a non-blank reason. An excuse also needs a non-QA Task declaring
+     docs/references/skill-coverage.json to record the Coverage Review. -->
+
+- unchanged: <surface id> — <reason no skill text changes>
 
 ## Decisions
 
-<!-- Product decisions made during clarification, one line each.
+<!-- Clarification Record: write one `- YYYY-MM-DD: <question> — <answer>`
+     line for each question a person answered, with a valid calendar date.
+     When no person was present, write the line
+     `Autonomous route: no person present; decisions taken from <source>.`
+     naming the source the author decided from. Both shapes may appear together.
+     See references/clarification-record.md.
      Decisions that passed the ADR gate link to their ADR: `See ADR-0012.` -->
 
 ## Open Questions

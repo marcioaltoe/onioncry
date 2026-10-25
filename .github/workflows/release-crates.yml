@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Install Rust toolchain
         run: |
@@ -22,9 +22,9 @@ jobs:
           rustup default 1.93
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Check tag, Cargo, and npm versions
         run: node npm/scripts/check-versions.mjs "${GITHUB_REF_NAME#v}"
@@ -68,7 +68,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Install Rust toolchain
         shell: bash
@@ -78,9 +78,9 @@ jobs:
           rustup target add "${{ matrix.target }}"
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Build binary
         shell: bash
@@ -98,7 +98,7 @@ jobs:
           npm pack "$package_dir" --pack-destination dist
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: npm-${{ matrix.package }}
           path: dist/*.tgz
@@ -110,15 +110,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Download Linux x64 package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: npm-linux-x64
           path: dist
@@ -143,7 +143,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Install Rust toolchain
         run: |
@@ -151,13 +151,13 @@ jobs:
           rustup default 1.93
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       - name: Download npm package artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: npm-*
           path: dist
@@ -186,9 +186,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Run npx against the published version
         run: |

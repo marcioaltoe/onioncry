@@ -1,23 +1,26 @@
 ---
 name: write-techspec
-description: Write the technical spec for an approved PRD at docs/specs/<slug>/_techspec.md — explore the architecture, settle technical decisions one question at a time, record them as ADRs, and produce a build order that write-tasks can decompose.
-disable-model-invocation: true
-argument-hint: "<spec slug or path to docs/specs/<slug>/_prd.md>"
+description: Write the technical spec at docs/specs/<slug>/_techspec.md — explore the architecture, settle technical decisions one question at a time, record them as ADRs, and produce a build order that write-tasks can decompose. Entry point for feature work with an approved PRD, and also for refactors and bug fixes, where it mints the spec folder with a minimal _prd.md instead of requiring a product interview.
+argument-hint: "<spec slug, path to docs/specs/<slug>/_prd.md, or a refactor/bugfix description>"
 metadata:
   category: engineering-design
   tags: [architecture, documentation, workflow]
-  version: 0.1.0
+  version: 0.0.13
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
+version: 0.0.13
 ---
 
 # Write TechSpec
 
-Produce `docs/specs/<slug>/_techspec.md` — the technical answer to an approved `_prd.md`. The PRD said _what_ and _why_; this document decides _how_, _where_, and _with which_ — and its Build Order is what `write-tasks` turns into the task graph, so sequencing quality here becomes execution quality later.
+Produce `docs/specs/<slug>/_techspec.md` — the technical answer to the spec's requirements. The PRD said _what_ and _why_; this document decides _how_, _where_, and _with which_ — and its Build Order is what `write-tasks` turns into the task graph, so sequencing quality here becomes execution quality later.
 
-## Preconditions
+## Preconditions — two entry modes
 
-`$ARGUMENTS` names the spec (slug or path). `docs/specs/<slug>/_prd.md` must exist — if it doesn't, stop and point the user at `write-prd`. If the PRD contains low-level technical decisions that belong here, surface that as a finding and propose relocating them rather than silently duplicating.
+`$ARGUMENTS` names the spec (slug or path), or describes a refactor/bug fix. Pick the mode by whether product behavior changes:
+
+- **Feature work** (product behavior changes) — `docs/specs/<slug>/_prd.md` must exist; if it doesn't, stop and point the user at `write-prd`. Product decisions need the product conversation first. If the PRD contains low-level technical decisions that belong here, surface that as a finding and propose relocating them rather than silently duplicating.
+- **Refactor or bug fix** (no product behavior change) — this skill is the pipeline entry point; no PRD interview happens. When no spec folder exists yet, mint one following `write-prd`'s numbering rule (`<spec-root>/NNNN-<kebab-slug>/`, scanning both the configured Spec Root and its resolved archive directory — `docs/history/specs/` for the built-in `docs/specs` root, or `<spec-root>/_archived/` otherwise — for the highest prefix), and write a **minimal `_prd.md`** carrying only the contract downstream skills parse: the frontmatter (`spec`, `status: active`, `surfaces`), a problem statement, Project Constraints, goals, core features, non-goals, and a Clarification Record under `## Decisions` — engineering-framed, a few lines each. The record follows write-prd's [clarification guide](../write-prd/references/clarification-record.md): one `- YYYY-MM-DD: <question> — <answer>` line per question a person answered, or `Autonomous route: no person present; decisions taken from <source>.` naming the source of the author's decisions when no person was present. It exists so `write-tasks`, `qa-gate`, and `archive-spec` keep a single artifact contract; it is not a product document. If the "refactor" turns out to change product behavior, stop and route to `write-prd`.
 
 ## Ground rules
 
@@ -25,12 +28,56 @@ Produce `docs/specs/<slug>/_techspec.md` — the technical answer to an approved
 - **Decide, then write.** Settle decisions during clarification, record the significant ones as ADRs, then write the finished document. No outline-approval rounds.
 - **YAGNI.** Do not propose new packages, layers, or directories when the feature fits as an addition to an existing module. Every new structural element must earn its place against a stated alternative.
 - **Reference, don't duplicate.** Point at PRD sections by name ("covers User Stories 3–5"); repeating business context here creates two copies that drift.
+- **Use the owned source path.** Link every adopted source at its
+  post-adoption path in the owning Spec with a destination relative to `_techspec.md`,
+  never at the pre-adoption path kept in the reference index. A secondary Spec
+  links the primary owner's copy and adopts nothing.
+  The owner's archive performs an Archive Relink: it promotes that copy to
+  `docs/references/` and rewrites the secondary Spec's links, so the source
+  keeps one owner and the secondary Spec needs no copy (ADR-0260, ADR-0083).
+
+## Sources that share a context
+
+A Spec may adopt several Inbox Entries, Backlog Entries and Findings whose
+context is similar or complementary; one Spec per source is neither required
+nor preferred. Before minting a Spec, look among the open Backlog Entries and
+unresolved Findings for sources that share the context. Group only while the
+scope fits four implementation Tasks plus its QA gate; past that bound, split
+the scope and give each source one owning Spec.
+
+Before minting a new Finding or Backlog Entry, extend one that fits: revise an
+open Backlog Entry in place, or give an unresolved Finding a dated addendum.
+
+When `roundfix spec judge` prints a suggested pair, answer each suggested pair
+by adopting the open source within the bound or by stating in the report why it
+stays apart. A suggestion never gates, and no suggestion does not mean that
+nothing fits; still inspect the open sources that share the context. A refactor
+or bug fix answering a Finding or Backlog Entry looks for the others that share
+its context before it mints its minimal PRD.
 
 ## Process
 
 ### 1. Explore the architecture
 
 Map the code the feature will live in: the modules it extends, the seams it can attach to, existing patterns for the same kind of work (an existing adapter, an existing job runner), and the test infrastructure available. Prefer existing seams to new ones — the ideal number of new seams is zero. Delegate the exploration to a subagent when one is available; the spec needs conclusions, not file dumps.
+
+Resolve the effective Project Constraints from the repository's semantic
+guides during exploration:
+
+- `docs/agents/domain.md` owns identifier guidance and routes active ADR
+  discovery.
+- `docs/agents/backend.md` owns authentication and HTTP policy.
+- A repository without that guide cites the guide that owns the policy for its surfaces.
+- `docs/agents/agent-instructions.md` owns universal Normative Clauses,
+  including tooling authority.
+- `docs/agents/spec-routing.md` owns the Spec workflow contract.
+
+Read every path that exists and follow its links to the effective decision
+values. Never infer a suggested default or treat a missing guide as
+authorization. The finished snapshot must classify identifier strategy,
+authentication and HTTP, active ADR obligations, and tooling authority as
+applicable or not applicable with a reason and cite the operative
+`docs/agents/` source path for each row.
 
 ### 2. Clarify technical decisions
 
@@ -47,11 +94,104 @@ Write `_techspec.md` from the template in [references/techspec-template.md](refe
 - **Every PRD goal and user story maps to a named technical component.** An unmapped story is a design hole; find it now, not during task execution.
 - **Build Order** — numbered steps where every step after the first states which previous steps it depends on. `write-tasks` derives the task graph edges from this.
 
+Write API Contracts as numbered API Contract items, or as the single entry
+`None.` followed by the reason none applies. Each numbered contract must be
+addressable by its name and number in downstream Task References.
+
+## Glossary terms
+
+When the TechSpec names a concept the glossary does not define, activate domain-modeling, sharpen the term, and declare it in the Glossary section of the PRD or of the TechSpec.
+
+## Concrete contracts
+
+Use the [concrete-contracts guide](references/concrete-contracts.md) when a
+claim attributes behavior to a decision record or when a TechSpec changes a
+command surface. It defines Claim Receipts, Surface Transcript blocks, the
+matching conventions used by the QA gate, code-signature interfaces, and
+numbered invariants.
+
+`Project Constraints` is body content, never frontmatter. When the design
+proposes creating, editing, renaming, moving, or deleting protected tooling
+configuration, scripts, ignore files, plugin declarations, or version pins,
+stop until the maintainer gives express maintainer authorization. Record that
+approval and the exact bounded files in the Tooling authority row. A generic
+implementation request, setup completion, silence, or authorization without
+bounded files does not authorize the mutation. The operative record belongs at
+`<spec-root>/<slug>/_authorization.md`; a `proposed` record or a record without
+a grant date authorizes nothing, so do not advance protected tooling work to
+decomposition until an operative grant exists. A new or widened grant must
+land in the target ancestry before the consuming squash delivery; keep the
+grant or amendment outside the change it authorizes.
+
 Keep interface sketches under 20 lines each; they document shape, not implementation. Target 1,500–2,500 words — a spec nobody reads protects nobody.
+
+Every Spec a Delivery Queue delivers carries an approved `_authorization.md`, with or without protected tooling. The record's `operations` list names `implement`, `commit`, `push`, `pull_request` and `merge`; a Spec that changes no Governed Path records `paths: []`.
+
+## Proof of what the Spec claims
+
+A TechSpec records three proofs in named places, and `roundfix spec check`
+reports a missing place as a gap on every active Spec. The check reads only
+structure; whether a proof is right stays with the reader.
+
+- Absence evidence. For each component the TechSpec declares new, record the
+  search that proved it absent under `## Absence Evidence`, as a numbered item:
+  the component, `command:` with the search in backticks, and `result:` with
+  what it found. Search the files the TechSpec cites for the behavior, not only
+  for the name. When nothing is new, write `None.` followed by the reason.
+  `SC-ABSENCE-UNPROVEN` reports a missing declaration or an item without its
+  command or result.
+- Rejected alternatives. Under `## ADR Alternatives`, write one line
+  `- ADR-NNNN: <relation>` for each ADR the Active ADR obligations rows list:
+  how the design relates to the alternatives that ADR rejected. When the design
+  takes a rejected alternative, say so and supersede or amend the ADR.
+  `SC-ADR-ALTERNATIVES-UNRELATED` reports a listed ADR without its line.
+- Coverage Cross-Read. Before `write-tasks`, read each PRD user story, Core
+  Feature and Success Metric against the component the Coverage Map names. Add
+  the line `Deviations from the PRD:` to the Coverage Map, followed by `None.`
+  or by one bullet per PRD unit the TechSpec delivers in another shape, naming
+  the unit and the reason. `SC-COVERAGE-UNREAD` reports a missing line or a
+  deviation that names no PRD unit.
 
 ### 5. Report
 
+Before reporting, re-read the finished artifact and any minimal PRD created by
+this skill. You MUST NOT report completion or recommend `write-tasks` unless
+each new artifact has `Project Constraints`; all four rows state applicable or
+not applicable with a reason; every row cites an operative `docs/agents/`
+source; and any protected tooling mutation records express maintainer
+authorization plus bounded files. Keep authorization out of frontmatter.
+
+Then run the checker against the stage that produced the artifact:
+
+```bash
+roundfix spec check <slug> --stage techspec --run-verification
+```
+
+An error-level finding or a checker execution failure blocks the report. Fix
+the PRD or TechSpec named by the finding and re-run the command; do not report
+completion or recommend `write-tasks` while either stands.
+
+A clean TechSpec-stage result is not full Spec coverage. This stage does not
+decide Task Graph ADR accounting, task coverage, context references,
+Verification independence, requirement contradictions, or rehearsal
+declarations; commit-dependent changed-path scope; rules that are not yet
+mechanical; or whether the product goals work through their user-reachable
+surfaces. The Task authoring stage, the full unscoped sweep, and QA retain
+those classes. Treat the checker's named skipped detectors as omitted, not as
+clean findings.
+
 Reply with the file path, the ADRs created, any decisions still open, and the next step: `write-tasks`.
+
+## Advisory judgment
+
+Once `roundfix spec check <slug> --stage techspec --run-verification` is clean
+and before reporting, run `roundfix spec judge <slug> --stage techspec`. For
+every raised judgment, answer each raised judgment by correcting the artifact
+and re-running the checker, or by keeping the text and stating in the report
+why it stands. The judge is advisory and never a gate. a skipped result is
+neither a failure nor a clean result, so report the skip reason and continue.
+Never print, store or ask for any Jev key: `ROUNDFIX_OPENROUTER_JUDGE_API_KEY`,
+`ROUNDFIX_OPENROUTER_API_KEY` or `ROUNDFIX_TYPESAFE_API_KEY`.
 
 ## Anti-patterns
 

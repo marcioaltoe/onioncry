@@ -1,75 +1,495 @@
 ---
 name: write-tasks
-description: Decompose a spec's PRD/TechSpec into a dependency-ordered task graph — vertical-slice task files plus a machine-parseable _tasks.md DAG manifest under docs/specs/<slug>/, gated by user approval of the breakdown before any file is written.
-disable-model-invocation: true
+description: Decompose a spec's PRD/TechSpec into a dependency-ordered task graph — vertical-slice task files plus a machine-parseable _tasks.md DAG manifest under docs/specs/<slug>/, including the authored QA gate decision, decided autonomously from the Spec and escalated only when authority, architecture, or blast radius is at stake.
 argument-hint: "<spec slug or path under docs/specs/>"
 metadata:
   category: issue-decomposition
   tags: [issues, workflow, prd, agents]
-  version: 0.1.0
+  version: 0.0.19
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
+version: 0.0.19
 ---
 
 # Write Tasks
 
 Turn `docs/specs/<slug>/_prd.md` (and `_techspec.md` when present) into the executable task graph: one `task_NN.md` per task plus `_tasks.md`, the manifest that `implement-task`, `implement-spec`, and any future daemon schedule from. The artifacts are the contract — a fresh agent session must be able to pick up one task file and build it with no other context than the spec folder.
 
+## Light tier planning
+
+A Task with `complexity: low` that is not QA and declares no Governed Path runs
+on the light tier. The author may run `roundfix spec judge <slug> --stage
+tasks` for an advisory tier suggestion before the planning Pull Request merges;
+the suggestion does not control dispatch.
+
 ## Preconditions
 
-`$ARGUMENTS` names the spec. `_prd.md` must exist. If `_techspec.md` is missing on a feature with real architectural surface, call that out and recommend `write-techspec` first; proceed only if the user accepts the trade-off, compensating with deeper codebase exploration before decomposing.
+`$ARGUMENTS` names the spec. `_prd.md` must exist. If `_techspec.md` is missing on a feature with real architectural surface, run `write-techspec` first and then decompose — authoring the missing artifact is the resolution, never a reason to stop for permission. Under autonomous work this needs no confirmation: directing autonomous work authorizes the whole authoring chain for every Spec already in the approved queue, per `docs/agents/autonomous-work.md`. Ask for acceptance only when explicitly told to decompose *without* a tech spec, and then compensate with deeper codebase exploration before decomposing.
+
+### Project Constraint preflight
+
+Run this preflight before deriving or approving a breakdown:
+
+1. Classify the Spec. A Spec under the resolved archive directory
+   (`docs/history/specs/` for the built-in `docs/specs` root, or
+   `<spec-root>/_archived/` for an
+   external or non-default root), or one proven to
+   have completed before this contract applied, is a completed or archived
+   legacy Spec. Leave every legacy artifact byte-identical: do not backfill,
+   reformat, regenerate, or otherwise rewrite it.
+2. For every active, non-archived, and not already completed Spec, require the
+   PRD and every present TechSpec to contain complete `Project Constraints`
+   sections. Each section must record `Identifier strategy`,
+   `Authentication and HTTP`, `Active ADR obligations`, and `Tooling authority`
+   as applicable or not applicable with a reason, and each row must cite its
+   operative `docs/agents/` source path.
+3. If either active artifact is absent or incomplete, refuse to create or
+   update `_tasks.md` or any Task file. Name every missing row, reason, or
+   source path and send the Spec back through the owning authorial skill.
+4. Inspect the proposed slices for any creation, edit, rename, move, or
+   deletion of repository-tooling configuration, scripts, ignore files, plugin
+   declarations, or version pins. Such work is authorized only when the PRD
+   and present TechSpec record express maintainer authorization and the exact
+   bounded repository-relative files it covers. A generic implementation
+   request, setup approval, or Task assignment is not authorization. Without
+   both the authorization and bounded files, refuse decomposition.
+5. Resolve the operative record at `<spec-root>/<slug>/_authorization.md` for
+   every tooling slice. An absent record, a `proposed` record, or a record
+   without a grant date authorizes nothing; refuse decomposition until an
+   operative grant exists. A new or widened grant must land in the target
+   ancestry before the consuming squash delivery, so the grant or amendment
+   cannot be folded into the change it authorizes.
+6. Copy the bounded file list into each authorized tooling Task's scope and
+   acceptance criteria. The Task may change only those paths plus its own Task
+   file; split any work that needs a different boundary.
+7. The record's `operations` list must grant every delivery operation the Spec
+   will use. `roundfix deliver start` refuses a record lacking `implement`,
+   `commit`, `push`, `pull_request` or `merge`; a Spec with no Governed Path
+   records `paths: []`.
+
+Dependencies remain owned only by `_tasks.md`; Task status remains owned only
+by each Task file. The preflight never moves either responsibility.
+
+Code for another operating system is verified by building its non-test code for that system, with an example such as `GOOS=windows go build -buildvcs=false ./<package>`, and never with `go vet`, which also compiles tests written for the host.
 
 ## Ownership rules (what lives where, and why)
 
 - **Dependencies live only in the `_tasks.md` graph.** Never in task files. Two copies of an edge is how graphs drift.
 - **Status lives only in each task file's frontmatter.** `_tasks.md` owns topology, not progress — schedulers re-read task files for state.
-- **Content references, never duplicates.** Task files point at PRD/TechSpec sections by name; a task that restates the spec goes stale the first time the spec is amended.
+- **Task Type is required in every task file.** Use exactly one of `backend`,
+  `frontend`, `data`, `infra`, `docs`, `test`, `chore`, or `qa`. Reserve `qa`
+  for the unique authored terminal gate named by the manifest's `qa:` field.
+  The Implement Command consumes this value for routing and rejects missing or
+  unknown values; never leave a placeholder or infer the type later.
+- **Content references, never duplicates.** Task files point at PRD/TechSpec
+  sections by name; a task that restates the spec goes stale the first time the
+  spec is amended. Link an adopted source at its post-adoption path in the
+  owning Spec with a destination relative to that Task file, never at its
+  pre-adoption provenance path. A secondary Spec links the primary owner's
+  copy and adopts nothing.
+  The owner's archive performs an Archive Relink: it promotes that copy to
+  `docs/references/` and rewrites the secondary Spec's links, so the source
+  keeps one owner and the secondary Spec needs no copy (ADR-0260, ADR-0083).
+- **Context entries are labeled paths.** Add `## Context` only when the Task
+  needs specific instruction or interface paths beyond the standard Spec
+  bundle. Use bullets shaped as `- instruction: <path>`,
+  `- interface: <path>`, `- creates: <path>`, or `- deletes: <path>`. Paths must be clean,
+  repository-relative, and unique;
+  a Task may declare at most 50 unique entries. The Daemon reserves those paths
+  before filling the 200-path Spec Context Bundle with prior changed files.
+- **Declared edits and governed paths are explicit.** Every path a Task edits
+  is declared under `interface:` or `creates:`; every path it removes is
+  declared under `deletes:`, never `instruction:`. A deletion is skipped by
+  unresolved-reference checks and counts in scope, Governed Path and Wave
+  collision audits. The Daemon refuses settlement before Verification when
+  a declared deletion still exists, with `deletes: <path> still exists`. An
+  `instruction:` path is read-only and never makes two Tasks collide. Each
+  Task that changes a command declares the one command file it changes:
+  `.agents/skills/roundfix/references/<command>.md` with its mirror, and
+  `docs/user-guide/commands/<command>.md`, never the skill's `SKILL.md` or
+  `commands.md` unless it changes the entry file itself. Two Tasks that
+  declare the same file cannot share a Wave, so Tasks that change different
+  commands can run together and Tasks that change the same command need an
+  edge between them.
+  declared or Verification-read Governed Path must appear in the Spec's
+  `_authorization.md` `paths:` and in both `bounded files:` rows, or authoring
+  is refused with `SC-TOOLING-UNDECLARED`. A Task naming a CLI surface names
+  its skill or guide itself or through a Task it depends on; otherwise it is
+  reported with `SC-CLI-UNDOCUMENTED`.
+
+The Daemon records a path a Task changed without declaring it under
+`## Recorded paths` at commit. The QA scope audit counts that recorded path as
+declared, and recording discloses a change and reserves nothing. Declaring
+every foreseeable path stays the rule.
+
+## Skills Tasks for changed Behavior Surfaces
+
+Read the repository's Skill Coverage Map at
+`docs/references/skill-coverage.json` when it exists. For every covered
+Behavior Surface whose source a non-QA Task declares under `interface:`,
+`creates:` or `deletes:`, include a non-QA skills Task that declares one of
+its covering skill files under `interface:` or `creates:`.
+`SC-SKILLS-UNTASKED` reports a surface with no such Task.
+
+When the change needs no skill text, record
+`- unchanged: <surface id> — <reason>` in the PRD's optional `## Skills`
+section and include a non-QA Task declaring the map under `interface:` or
+`creates:` to record the Coverage Review. The entry alone does not excuse
+the surface. `SC-SKILLS-MALFORMED` reports an entry of another shape, an
+unknown surface or a blank reason. Both rules begin at the commit that
+added the map; repositories without one skip them.
+
+A non-QA Task declaring a Markdown page under `docs/user-guide/` under
+`interface:`, `creates:` or `deletes:` must also declare
+`docs/references/behavior-surfaces.json` under `interface:` or `creates:`
+and name the `-record-skill-coverage` step in a requirement. Another Task
+cannot cover it: the guide Task's own settlement checks its fingerprint.
+The Spec's `_authorization.md` Limits must never forbid that record.
+`SC-SURFACE-RECORD-UNTASKED` reports either gap from the Tasks stage, with no
+horizon, in repositories that have the record.
 
 ## Decomposition rules
 
+Code for another operating system is verified by building its non-test code for that system, with an example such as `GOOS=windows go build -buildvcs=false ./<package>`, and never with `go vet`, which also compiles tests written for the host.
+
 - **Vertical slices.** Each task delivers a narrow but complete path through every layer it touches, demoable or verifiable on its own — a tracer bullet, not a layer ("all the schemas" is a wrong task; "expired imports retry and surface their status" is a right one).
 - **Prefactoring first.** When a slice needs the ground prepared, make that its own leading task: make the change easy, then make the easy change.
+- **Characterize external surfaces during authoring.** When a Spec crosses an
+  external surface such as an adapter, contract, or database, author a
+  characterization Task that records what the real boundary does, not what a
+  fake does, so an unsupported premise fails while the Spec is still being
+  authored rather than at the QA gate.
+
+  **List it in `needs`, not merely earlier in the file.** Every Task whose
+  premise depends on the characterization names that Task in its `needs` entry
+  in `_tasks.md`. Execution waves are built from `needs` alone, so a Task that
+  merely appears later in the manifest can run in the same wave as the
+  characterization it depends on, and read a boundary nobody has characterized
+  yet. File order is not a dependency.
+
+  **A characterization Task touches a real boundary, so bound it explicitly.**
+  Its file states the target it will reach, by name. It reads rather than
+  writes, or runs against an isolated instance the Task itself creates and
+  removes; it never characterizes against shared or production state by
+  default. It uses credentials scoped to that target and no wider, honours
+  cancellation, and cleans up what it created even when it fails. A
+  characterization that must write requires that write to be authorized in the
+  Task the way any other irreversible action is — recording what a boundary
+  does is not authority to change it.
+
+  **Its Verification asserts the record, never the boundary.** The Daemon runs a
+  Task's declared `## Verification` commands verbatim through the shell, once
+  against the unchanged tree before the Agent turn exists and again at
+  settlement. Nothing in that path reads the bounds above: they constrain the
+  Agent, and the Daemon is not the Agent. A Verification that reaches the real
+  surface therefore reaches it unbounded, twice, including before any work has
+  been done. Verify the characterization the Task recorded — its shape, its
+  presence, what downstream Tasks will read — and leave the boundary call in the
+  Agent turn, where the Task's declared target, isolation, credentials, and
+  write authorization apply. This is the hermeticity rule these commands already
+  carry, stated where the temptation to break it is strongest: a live external
+  surface is ambient state, and a command that depends on one is not hermetic.
 - **Sized for one fresh session.** A task an agent can complete in a single sitting with a fresh context. More than ~7 subtasks or files means split it.
 - **Tests embedded, never separated.** Every task's acceptance criteria include its own tests; a trailing "write the tests" task means the earlier tasks were never done.
 - **Independently implementable.** Once its `needs` are completed, a task must require no other unfinished work — that's what allows parallel execution across worktrees later.
+- **Verification must be hermetic, portable, effect-proving, and Daemon-owned.** Every task's `## Verification` commands must be satisfiable in a fresh worktree using only repository state, declared config, and task-owned setup. Do not depend on untracked local files, prior Runs, interactive prompts, pushed branches, or ambient machine state unless the task explicitly creates that state. Use portable shell forms: prefer `grep` over `rg` in task gates, avoid `wc`-pipeline assertions that vary across platforms, and use repository build flags such as `go build -buildvcs=false ./...` when a build is required. A Task must prove its own effect with executable checks; the Run-level gate proves nothing else regressed. Do not add a whole-package suite command to each Task for regression coverage. Every Verification command must be able to fail when no work was done: a command that names a missing test or selects no cases is vacuous if it still exits zero. A Verification command passes only by exiting zero. A Verification command never contains a backtick: the inline-code span ends at the first one and cuts the command, so match with a regular-expression class such as `.` instead. For an assertion whose success is an empty result or an absent string, use a form that turns that condition into exit zero: `matches="$(find path -name '*.tmp' -print)" || exit 1; test -z "$matches"`, `test -d path && ! grep -rq 'forbidden' path`, or `find path -name '*.tmp' -print > /tmp/matches.txt 2>&1 || { cat /tmp/matches.txt; exit 1; }; test ! -s /tmp/matches.txt || { cat /tmp/matches.txt; exit 1; }` when failure must print the matches. Refuse the work-independent shape composed only of repository-wide gates plus working-tree cleanliness checks; those checks pass most easily when no Task work occurred. The Daemon runs these commands after the Agent turn and may send one failure-only Verification Feedback prompt; do not tell the Agent to run the authoritative gate itself.
+
+A suite that consumes a Shared Contract the Task changes is the exception; see
+Consumers of a shared contract.
+- **A gated graph leaves the repository Verification green.** Every Task of a graph that includes the authored QA gate leaves the repository Verification green because the Daemon runs that command when each Task settles. `verification.repository_at_settlement` is the operator's switch for this settlement check; it is not an authoring choice.
+- **Task declarations are explicit.** A Task may declare `verification: independent` when its Verification commands are independent and every command must run after a failure; do not infer this from shell text. A red repository gate may admit only Tasks named in the frozen `_authorization.md` `precondition_repairs` list, and the list cannot be widened by the Task or Agent. A `creates: docs/adr/NNNN-...` declaration claims that ADR ordinal; a duplicate tree or active-Spec claim is refused with `SC-ORDINAL-CLAIMED`.
+- **Temporal prerequisites do not grant authority.** Represent a future release, external observation, generated ordinal, or other temporal prerequisite as a named prerequisite with its evidence owner. It never invents release authority or turns an expected future fact into completed Task work.
+- **Acceptance and test seams must expose the contract.** Write property-shaped acceptance that states what remains true across meaningful inputs and failure boundaries. Name the narrowest test seam that can fail for the regression, including public use-case or persistence behavior when required, and update the affected existing contract instead of adding a parallel test that cannot fail for the same defect. When a newly required test class is declared, verify that the repository gate actually runs it.
+- **Keep Spec commits narrow.** A Task's commit contains only the accepted slice and its tests or documentation; do not bundle unrelated cleanup or prerequisite work. Keep prerequisite and consequent repairs separately ordered by the graph and evidence.
+- **Requirements must be mutually satisfiable.** Refuse a Task when its declared `MUST` and `MUST NOT` clauses require and forbid the same named state. Do not send work that cannot satisfy its own written contract to an Agent Session.
+- **Gate rehearsals declare their evidence.** A Task whose title states that it rehearses or proves a gate must include `## Rehearsal Cases` with one `- Case: <case>; Observation: <observation>` entry for every case it must exercise. Refuse the Task when the section is absent or any entry lacks its case or observation.
+- **One acceptance row rests on evidence the Spec did not author.** At least one
+  named acceptance row in the graph must rest on evidence originating outside
+  the Spec's own artifacts — a repository the Spec did not build, a measurement
+  it did not design, or published literature — and must record where that
+  evidence came from. A rehearsal shows that the code matches the requirement;
+  only an outside source can show that the requirement was right. When that
+  source cannot be obtained during task authoring, decomposition proceeds
+  without human interaction and records the row as blocked with its reason.
+  The blocked row is carried into the QA gate, where it triggers a
+  `rows_blocked_environment` entry on the report and blocks PR preparation.
+- Name a source the QA gate can check without the network: a document the
+  planning change commits under `docs/references/`, or published literature
+  whose cited passage the row quotes. Never cite an artifact that exists only
+  on the operator's machine, another repository's manifest, or a lookup the
+  Spec's authorization forbids; a criterion that needs the network or an open
+  Pull Request goes under Unreachable Acceptance when the row is authored.
+
+- **A cross-Spec prerequisite is declared.** When a Task's Verification or
+  premise depends on another Spec that has not merged, list that Spec in the
+  manifest's `requires` frontmatter and state the dependency in the TechSpec
+  Build Order; the Delivery Queue does not start the Spec until each
+  prerequisite has merged.
+- **Commit and push stay out of task criteria.** The Daemon owns Task commits, Run integration, and any configured push. Never put commit, push, PR creation, or branch-publishing requirements in task Requirements, Subtasks, Acceptance Criteria, or Verification commands.
+
+### Author the QA gate decision
+
+Follow one order per Spec: implement the graph including its authored gate, run the configured pre-PR review, archive on the branch, pass the repository gate, open the Pull Request, verify current-head checks, and merge.
+
+ADR-0091 keeps the authored QA gate before any Pull Request exists, while
+ADR-0080 lets environment-blocked rows pass with equivalent evidence. Spec
+0078 proved that path: eleven of eighteen rows were blocked, nine of those
+eleven on no open Pull Request and each of those nine backed by recorded
+payload, command-runner, and event-stream evidence.
+
+Every active Spec authored under the QA Task contract must choose exactly one
+of these shapes during decomposition:
+
+- **Include the gate.** Add `qa: task_NN` to `_tasks.md` frontmatter, naming
+  one `task_NN.md` whose `type` is `qa`. Make that node terminal and make its
+  `needs` list cover every non-QA leaf so the gate cannot run before any branch
+  of the graph settles.
+- **Decline the gate.** Add `qa: declined` and a non-empty `qa_reason` to
+  `_tasks.md` frontmatter. Do not emit a `qa` Task when the gate is declined.
+
+A post-contract graph with neither declaration, both shapes, an unnamed `qa`
+Task, or a gate that is not terminal is a defect. Refuse to produce it. An
+absent declaration remains valid only for a legacy graph proven to predate the
+contract; leave that graph byte-identical.
+
+Whichever shape the graph takes, its closing node also carries the glossary
+check — the authored `qa` Task when the gate is included, otherwise the last
+Task in topological order. Give the check that home so a term the Spec coined,
+changed, or dropped is noticed while the work is still open rather than after it
+closes. The domain guide (`docs/agents/domain.md`) owns what the check looks for
+and when the domain context is updated in response; the graph owns only where it
+happens, and nothing in it waits for a human.
+
+### Glossary requirement
+
+For each term the declaration adds or changes, the docs Task, or a dedicated glossary Task when the Spec has none, declares the glossary file, carries a requirement to write the term through domain-modeling, and its Verification checks the bolded term followed by a colon in the glossary on whitespace-normalized text.
+
+### Corrective-Task ceiling
+
+The corrective-work ceiling remains two Tasks. When QA findings would require
+more than two corrective Tasks, do not author a third patch or stop for a policy
+decision. A corrective Task added after the gate settled `completed` becomes a
+dependency of the gate, and the author must reopen the settled gate first with
+`roundfix reopen --spec <slug>`, never by editing the QA Task file. Choose one
+sanctioned exit:
+
+- Amend the TechSpec and recut the Task Graph from it.
+- Promote the excess corrective work to its own Spec and leave the gate failing
+  the discovered story explicitly.
+
+Reaching the ceiling is a decision inside the loop's authority. The loop chooses
+an exit and continues without stopping for a human.
+
+### Task Type selection
+
+Choose the type from the Task's dominant delivered outcome, not from who will
+implement it, the tool used, or configuration choices:
+
+- `backend` — CLI, daemon, service, API, domain, or core application behavior;
+- `frontend` — browser UI, TUI, visual, interaction, accessibility, or UX behavior;
+- `data` — persistence schema, query, migration, import, or data-pipeline behavior;
+- `infra` — build, CI/CD, packaging, deployment, environment, or operational infrastructure;
+- `docs` — documentation-only behavior or durable knowledge artifacts;
+- `test` — test harness, fixture, evaluation, or coverage work without a product behavior change;
+- `chore` — bounded maintenance that changes none of the preceding product surfaces;
+- `qa` — the unique authored terminal gate that executes `qa-gate` after every
+  non-QA leaf settles; never use it for implementation tests or an intermediate
+  checkpoint.
+
+When a vertical slice crosses types, use the type of its primary user-visible or
+operational outcome. If two outcomes are independently valuable or the dominant
+outcome remains ambiguous, split the Task so each slice has one dominant outcome;
+do not encode multiple values and do not defer the classification.
+
+## Verification paths
+
+A Task declares every repository path its Verification names unless the path
+exists in the checked tree or a Task it needs creates it. Declare paths in
+`## Context` with `creates:`, `interface:`, `deletes:` or `instruction:`;
+Daemon-recorded paths also count. A directory prefix of a declared path or of
+one created by a Task in the dependency closure counts as provided.
+
+`SC-VERIFY-PATH-UNDECLARED` reports an error for a pending non-QA Task at the
+Tasks stage, with no horizon. It reads literal paths under existing top-level
+repository directories, excluding grep/rg patterns, printf/echo operands,
+negated test operands, variables, globs, ellipses and paths under the Spec
+Root. The check executes no command. Correct the command or declare how the
+  plan provides a missing path before starting a Run.
+
+## Test selectors and their containing path
+
+A Verification command that runs a new test by its selector names the
+selector alone. pytest 9 and later collapse collection arguments that
+overlap: when one invocation passes a node id such as
+`tests/test_a.py::test_new` and also its file, a directory above it or `.`,
+pytest runs the containing path whole and drops the node id without an error.
+Before the test exists the command passes on the tests the file already holds,
+and the pre-work probe refuses it as vacuous without naming why; with the node
+id alone pytest exits 4 and the command fails as it should. Run the containing
+path in a separate command when the Task also needs it.
+
+`SC-VERIFY-SUBSUMED-SELECTOR` reports an error for a pending non-QA Task at
+the Tasks stage, with no horizon. It reads each pytest invocation —
+`pytest`, `py.test` or `python -m pytest`, behind `uv run`, `poetry run`,
+`pdm run`, `pipenv run` or `hatch run`, and inside a `$(...)` substitution —
+and reports a node id that another collection argument of the same invocation
+contains: its file, a directory above it, `.`, or a node id that prefixes it.
+`--keep-duplicates` exempts the invocation. The check executes no command.
+
+## Owned skill versions
+
+A non-QA Task declaring a file of an owned skill under
+`.agents/skills/<name>/` also declares its mirror under `skills/<name>/`,
+both `.agents/skills/<name>/SKILL.md` and `skills/<name>/SKILL.md`, and
+`skills/testdata/owned-skill-versions.json`. Owned skills are the `skills`
+keys of that version record. Use `deletes:` for both sides of a file deletion;
+use `interface:` or `creates:` for other mirror declarations, the `SKILL.md`
+pair and the record. Name the `-record-skill-versions` step in a requirement.
+Another Task cannot cover this work: `SC-SKILL-VERSION-UNTASKED` reports a gap
+for each owned skill whose editing Task lacks its own declarations or step.
+An `instruction:` path is read-only and does not declare an edit.
+
+## Surface Transcripts in Tasks
+
+The implementing Task names each Surface Transcript it covers in its
+References and asserts the whole transcript in one named test: every line of
+its standard output and standard error, in order, and its exit code, copied
+from the TechSpec with only the transcript's declared controlled variations,
+and that Task's Verification runs the test by name. A line the reader might
+skip still counts: a final digest or summary line, a `Usage` block,
+indentation, and the `exit status <n>` line that `go run` writes to standard
+error when the program exits non-zero. The QA Task names every transcript in a
+Requirement so the gate can reproduce it through the built product. A
+transcript is a coverage unit: keep its name traceable from the TechSpec to
+the implementing test and then to the gate.
+
+## Consumers of a shared contract
+
+A Shared Contract is a route, a public signature, a persisted format or a
+report that code outside the Task's slice consumes. Every non-QA Task carries
+a Consumer Declaration in a `## Consumers` section, which `roundfix spec check`
+reads in every Task that has not completed:
+
+- `- <contract> — consumers: <suite>, <suite>` names the suites that consume
+  each Shared Contract the Task changes, each in backticks exactly as its
+  Verification command writes it, such as a package path. Each suite occurs in
+  one of the Task's Verification commands, in the same command as a check only
+  the Task's work satisfies, so the command still fails before the work.
+- `- checkpoint: task_NN` names an Integration Checkpoint instead: a non-QA
+  Task that needs this Task, that the QA gate needs, and whose Verification
+  runs the suites. Use it when a later Task adapts the consumers.
+- `None.` followed by the reason states that the Task changes no Shared
+  Contract.
+
+`SC-CONSUMERS-UNPROVEN` reports a missing section, a malformed entry, a suite
+no Verification runs, or a checkpoint outside that position.
+
+## Byte invariants name the delivery base
+
+A QA requirement that holds a file byte-identical compares it with the
+Delivery Base, the merge base of the audited head with the default branch,
+never with a named commit. A plan waits in the queue behind other Specs, and
+each one that merges first may change the file, so the commit where the plan
+measured stops being the right comparison. Keep that commit out of the
+requirement; when it matters, record it in the TechSpec. `roundfix spec check`
+reports `SC-QA-BYTES-PINNED` for a requirement of a pending QA Task that names
+a byte invariant and a commit-shaped hexadecimal token together.
 
 ## Process
 
 ### 1. Derive the breakdown
 
-Start from the TechSpec's Build Order (its dependency statements become graph edges). Map every PRD user story and core feature onto at least one task; an uncovered story is a hole to fix now.
+Read the TechSpec's Coverage Cross-Read first; a Coverage Map without its
+`Deviations from the PRD:` line goes back to `write-techspec`.
 
-### 2. Approval gate — the one mandatory human check
+Start from the TechSpec's Build Order (its dependency statements become graph edges). Map every PRD user story and core feature onto at least one task; an uncovered story is a hole to fix now. Map every declared Success Metric and API Contract onto at least one task, and ensure each appears by name in some Task's References. An uncovered promise is a hole to fix now. Decide the QA gate once from the authored Spec and add either its terminal node or the reasoned decline to the breakdown.
 
-Present the breakdown as a table (`id | title | type | complexity | needs`) plus a one-line rationale for the slicing, and iterate until the user explicitly approves. Granularity and dependency correctness are where human judgment pays most — **write no files before approval.**
+### 2. Escalation check — decide autonomously, escalate by exception
+
+Derive the breakdown and write it. The Spec is the authorization: a PRD and TechSpec that passed their own gates already carry the product and architecture decisions, so granularity, dependency order, and Task Type classification are derivations from those artifacts — not decisions to confirm. Report the finished breakdown so a change to any slice can be requested afterwards; do not block on approval.
+
+**Stop and ask only when the next decision would change authority, architecture, or blast radius:**
+
+- **Missing authority.** A slice would create, edit, rename, move, or delete protected tooling that the PRD and present TechSpec do not authorize with exact bounded files. Name the paths and why they are needed; never widen the boundary yourself.
+- **Unverifiable without a human.** A Task's acceptance genuinely needs a person or a credential the repository cannot hold — a live external account, a physical device, a subjective judgement. Verification must stay hermetic, so a Task that cannot be is a Spec problem, not a graph problem.
+- **The Spec is wrong, not just thin.** The decomposition only works by contradicting or extending the TechSpec's Build Order, architecture, or contracts. Route back to `write-techspec` rather than silently redesigning.
+- **Irreversible blast radius inside one slice.** A Task would run a data migration, a destructive deletion, a release or publication, or a credential rotation. Confirm the boundary before that Task exists.
+- **Irreducible complexity.** A slice cannot be sized to one fresh session and cannot be split without breaking the vertical-slice rule. That signals an under-specified Spec; say which slice and why.
+
+Escalate with the specific blocking fact and a proposed resolution, never with an open "is this ok?". Anything outside those five is a derivation: granularity preference, naming, ordering the Build Order already implies, and dominant-outcome classification are decided here. Every `type` cell must carry exactly one allowed Task Type before writing — a blank, placeholder, or combined value is a defect to resolve, not a question to ask.
 
 ### 3. Write the files
 
-From the templates in [references/task-template.md](references/task-template.md), write `_tasks.md` and every `task_NN.md` (numbered from `01` in topological order). Acceptance criteria must be independently verifiable — a criterion nobody can check is a wish, not a criterion. Include a `## Verification` section with the exact commands that prove the task done; `implement-task` runs them verbatim.
+From the templates in [references/task-template.md](references/task-template.md), write `_tasks.md` and every `task_NN.md` (numbered from `01` in topological order). Copy the derived Task Type into each task's `type` frontmatter and the `_tasks.md` projection table. For an included gate, name the `qa` Task with `qa:` in manifest frontmatter, place it last in topological order, and give it every non-QA leaf in `needs`; for a decline, write `qa: declined` with `qa_reason` and emit no `qa` Task. Acceptance criteria must be independently verifiable — a criterion nobody can check is a wish, not a criterion. Include a `## Verification` section with exact, hermetic, portable commands that prove the task's effect in a fresh worktree; the Daemon runs them verbatim after Agent work. Add `## Context` only for task-specific instruction or interface paths that the standard Spec Context Bundle would not make obvious.
 
 Durability applies here too: describe behavior and interfaces, not repo file paths (relative references within the spec folder are fine — the folder moves as a unit).
 
 ### 4. Validate the graph
 
-Before reporting, verify mechanically — parse, don't eyeball:
+Before reporting, verify mechanically — parse, don't eyeball.
+
+Start by running the repository's own checker on the Spec you just decomposed:
+
+```bash
+roundfix spec check <slug> --run-verification
+```
+
+This form reads the PRD, the TechSpec, the ADRs they cite, and the graph
+together — which is the first moment all four exist — and executes authored
+Verification commands in a disposable checkout at `HEAD`. A clean verdict from
+`roundfix spec check <slug>` without `--run-verification` does not cover
+Vacuous Verification: it does not execute those commands against the unchanged
+tree, so a command that already exits zero can remain undiscovered. Do not
+prefer the non-probing form for its speed; that speed is a consequence of
+omitting command execution.
+
+Treat every reported error as blocking: fix the artifact and re-run until it is
+clean, and do not report the breakdown while a finding stands. A `[gap]` is
+blocking too; account for the named ADR or record why it does not apply. Skipped
+checks are informational.
+
+This is not a substitute for the list below, which covers what the checker does
+not: it catches unlisted and unaccounted ADRs, incomplete Project Constraints,
+unmapped coverage, contradictory requirements, undeclared rehearsals,
+work-independent Verification, and an undocumented Vocabulary Contract.
+`SC-CITATION-UNSUPPORTED` reports a claim the ADR's text does not support.
+
+Then confirm by reading:
 
 - Every `graph.nodes[].file` exists and every task file has parseable frontmatter with `status: pending`.
+- Every task file has exactly one `type` value from `backend`, `frontend`,
+  `data`, `infra`, `docs`, `test`, `chore`, or `qa`; the `_tasks.md` projection
+  row for that task contains the identical value.
 - Every `needs` entry names an existing node id; no cycles (a topological order can be printed).
+- Every post-contract graph declares exactly one QA decision. An included gate
+  is the unique `qa` Task, has no dependents, and depends directly or
+  transitively on every non-QA leaf; a declined gate has a non-empty
+  `qa_reason` and no `qa` Task.
 - Every PRD user story appears in some task's References.
 
 Print the wave plan (wave 1 = no needs; wave N = needs met by earlier waves) as the execution preview.
 
-### 5. Report and optional mirror
+### 5. Report
 
-Reply with the file list and the wave plan. If `docs/agents/issue-tracker.md` maps work to GitHub/Linear, offer the user to mirror the tasks as tracker issues (via `/to-issues`) — the local files remain canonical either way.
+Reply with the breakdown table (`id | title | type | complexity | needs`), the authored QA decision and its reason when declined, a one-line rationale for the slicing, the file list, and the wave plan — and say that a change to any slice can be requested now. Name any escalation trigger you hit and how it was resolved.
 
 ## Anti-patterns
 
 - Horizontal slicing (a schema task, an API task, a UI task) — every task should cut through the stack.
 - Mega-tasks that "do the feature" — if it can't be verified alone, it isn't a task yet.
 - Vague criteria ("works correctly", "handles errors") — name the observable behavior.
-- Editing the graph and the task files out of sync — regenerate both from the approved breakdown.
-- Writing files before the user approves the breakdown.
+- Non-hermetic Verification that relies on local-only files, prior Run state, manual prompts, or remote branch state.
+- Non-portable Verification such as `wc` pipeline shape checks, `rg` dependency checks where `grep` works, or Go build commands missing the repository's `-buildvcs=false` flag.
+- Verification that only exercises broad suites without proving the Task's specific effect.
+- Commit, push, PR, or branch-publishing acceptance criteria — those are Daemon and delivery responsibilities, not task success criteria.
+- Editing the graph and the task files out of sync — regenerate both from the same breakdown.
+- Blocking on approval for a breakdown the Spec already authorizes — invocation is the authorization, and granularity is a derivation, not a decision.
+- Proceeding past a real escalation trigger because the loop is running — a missing tooling authorization or a Task that cannot be verified hermetically is a stop, not a judgement call.
+- Missing, placeholder, combined, or invented Task Types — classification is a
+  required routing contract, not descriptive free text.
+- Leaving a post-contract graph without either an authored terminal `qa` Task
+  or `qa: declined` plus `qa_reason` — omission is a defect, not a per-run QA
+  choice.
 
 ## References
 
