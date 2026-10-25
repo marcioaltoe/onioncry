@@ -1,12 +1,13 @@
 ---
 name: brainstorming
-description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design through one question at a time, then routes the outcome to write-idea, write-prd, or a direct task."
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design through one question at a time, then routes the outcome to write-idea, write-prd, write-techspec (refactors/bug fixes), or a direct task."
 metadata:
   category: discovery
   tags: [product, requirements, research, workflow]
-  version: 0.2.0
+  version: 0.0.3
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
+version: 0.0.3
 ---
 
 # Brainstorming
@@ -24,8 +25,8 @@ A todo list, a single-function utility, a config change — all of them go throu
 ## The questioning discipline
 
 - **One question per message.** A topic that needs depth becomes a sequence of questions, never a questionnaire.
-- **Multiple choice preferred** when the options are enumerable — `A/B/C` plus `D) Other — describe` — always with a suggested default and a one-line reason. Open-ended is fine when options genuinely can't be predetermined.
-- **Explore before asking.** Check project state first — files, docs, `CONTEXT.md`, `docs/specs/` (including `_archived/`), recent commits. A question the codebase can answer is wasted user time.
+- **Multiple choice preferred** when the options are enumerable — use two or three options, put the recommended one first and label it `(Recommended)`, with no `Other` option. Open-ended is fine when options genuinely can't be predetermined. The structured question tool supplies the custom answer itself; without such a tool, show the same single question in chat and accept a custom answer.
+- **Explore before asking.** Check project state first — files, docs, `CONTEXT.md`, active Specs under `docs/specs/`, retired Specs under `docs/history/specs/`, recent commits. A question the codebase can answer is wasted user time.
 - **WHAT, WHY, WHO — not HOW.** Databases, APIs, frameworks, and architecture belong to the tech-spec stage; raising them here derails the product conversation.
 - **YAGNI ruthlessly.** Challenge every feature against the smallest version that delivers the value.
 
@@ -54,7 +55,10 @@ The conversation itself is the artifact — route it, don't duplicate it:
 
 - **Product-level idea** (market questions, open solution shape) → `write-idea` (produces `docs/specs/<slug>/_idea.md`).
 - **Feature ready to specify** → `write-prd` (synthesizes this conversation; it will not re-interview).
-- **Small, well-understood change** → a single task or direct implementation; say so explicitly.
+- **Refactor or bug fix** (no product behavior change) → `write-techspec` directly — it mints the spec folder with a minimal `_prd.md`, no product interview.
+- **Trivial, well-understood change** (one-line fix, typo, config tweak) → direct implementation, no spec folder; say so explicitly.
+
+When a repo carries `docs/agents/spec-routing.md`, follow its routing table — it is the canonical version of this list for that project.
 
 Do not write a separate design document — the spec pipeline's artifacts (`_idea.md`, `_prd.md`) are where the outcome lives.
 

@@ -1,19 +1,9 @@
-# Issue tracker: Local Markdown
+<!-- setup-context-driven:begin id=guide.issue-tracker version=0.0.1 -->
 
-Issues and PRDs for this repo live as markdown files in `.scratch/`.
+# Issue tracker
 
-## Conventions
+- **mandatory**: Use the local Spec folder, Task Graph, and Task files as the implementation issue tracker. Do not introduce external triage labels or external issue status as Task state.
 
-- One feature per directory: `.scratch/<feature-slug>/`
-- The PRD is `.scratch/<feature-slug>/PRD.md`
-- Implementation issues are `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`
-- Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
-- Comments and conversation history append to the bottom of the file under a `## Comments` heading
+- **mandatory**: Keep each Spec under `docs/specs/<feature-slug>/`. Dependencies live only in `_tasks.md`; status lives only in each Task file, and the local Task files are the published planning issues.
 
-## When a skill says "publish to the issue tracker"
-
-Create a new file under `.scratch/<feature-slug>/` (creating the directory if needed).
-
-## When a skill says "fetch the relevant ticket"
-
-Read the file at the referenced path. The user will normally pass the path or the issue number directly.
+<!-- setup-context-driven:end id=guide.issue-tracker -->

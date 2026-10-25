@@ -2,6 +2,8 @@ mod support;
 
 use support::*;
 
+// The bundled schema includes the OASIS corrections to both language patterns:
+// https://github.com/oasis-tcs/sarif-spec/blob/main/sarif-2.1/schema/sarif-schema-2.1.0.json
 const SARIF_SCHEMA: &str = include_str!("fixtures/sarif-schema-2.1.0.json");
 const SARIF_SCHEMA_URI: &str =
     "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json";

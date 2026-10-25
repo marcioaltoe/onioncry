@@ -1,37 +1,15 @@
-# Domain Docs
+<!-- setup-context-driven:begin id=guide.domain version=0.0.1 -->
 
-This repo uses a single-context domain documentation layout.
+# Domain docs
 
-How the engineering skills should consume this repo's domain documentation when exploring the codebase.
+This repository uses a single `CONTEXT.md`.
 
-## Before exploring, read these
+- **mandatory**: The repository's selected domain context and its accepted ADRs are the base of the CONTEXT-driven workflow. Read both before naming domain concepts or changing behavior, and flag conflicts instead of silently overriding repository decisions.
 
-- **`CONTEXT.md`** at the repo root
-- **`docs/adr/`** for ADRs that touch the area you're about to work in
+- **mandatory**: Use the repository's canonical domain terms in code names, tests, user-facing copy, Specs, and delivery notes. Call out a missing term instead of inventing a competing synonym.
 
-If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The producer skill (`/grill-with-docs`) creates them lazily when terms or decisions actually get resolved.
+- **mandatory**: A Spec adds each domain term it introduces to the domain context, and revises each term it changes, through `domain-modeling` in one of its own Tasks, whose Verification names the term. It lists those terms in a `## Glossary` section of its PRD or TechSpec, with any bolded phrase it declares not a domain term. `roundfix spec check` reports a bolded term the domain context lacks and the section does not cover, and the QA gate and `roundfix archive` refuse a Spec whose declared term is still missing. When `domain-modeling` names its glossary file differently, it writes to the selected domain context. Work outside a Spec checks at its close whether it introduced, changed, or retired a term and updates the domain context when it did. Neither the check nor the update waits for human interaction; reach for `grilling` only when a term is ambiguous enough to need sharpening before it is written down.
 
-## File structure
+- **mandatory**: Follow the repository's declared single-context or multi-context layout. Setup can require that decision but cannot infer bounded contexts from directory names.
 
-Single-context repo:
-
-```text
-/
-├── CONTEXT.md
-├── docs/adr/
-│   ├── 0001-event-sourced-orders.md
-│   └── 0002-postgres-for-write-model.md
-└── src/
-```
-
-## Use the glossary's vocabulary
-
-When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
-
-If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use, or there's a real gap to note for `/grill-with-docs`.
-
-## Flag ADR conflicts
-
-If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
-
-> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because..._
+<!-- setup-context-driven:end id=guide.domain -->

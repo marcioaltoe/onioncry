@@ -1,0 +1,229 @@
+{
+  "schemaVersion": "setup-context-driven/manifest/0.0.1",
+  "version": "0.0.1",
+  "generator": {
+    "skill": "setup-context-driven",
+    "version": "0.0.1",
+    "baseline": "baseline.rust-cli-0.0.1"
+  },
+  "profile": "rust-cli",
+  "profileDigest": "sha256:fc75ffb927a1294d65e7f7267771e9edfccf2fdda5da086c43ff27f3b04d52d4",
+  "catalogDigest": "sha256:a5c687aa60ad35f3d967cb4bdc3094f404c8ff103f39447c4c5e83c8d4fa22ba",
+  "modules": [
+    "core",
+    "context-workflow",
+    "rust",
+    "cli-surface",
+    "spec-workflow",
+    "secondbrain",
+    "repository-extension"
+  ],
+  "decisions": {
+    "autonomous.enabled": {
+      "value": false
+    },
+    "branch.prefix": {
+      "value": "\u003ctype\u003e/"
+    },
+    "domain.layout": {
+      "value": "single-context"
+    },
+    "language.generated": {
+      "value": "English"
+    },
+    "repository.extension.enabled": {
+      "value": true
+    },
+    "secondbrain.enabled": {
+      "value": true
+    },
+    "spec.scaffold": {
+      "value": true
+    },
+    "triage.external": {
+      "value": false
+    },
+    "verification.gate": {
+      "value": "make verify"
+    },
+    "verification.incremental": {
+      "value": "make rust-verify"
+    }
+  },
+  "managedArtifacts": [
+    {
+      "id": "guide.skill-dispatch",
+      "path": "docs/agents/skill-dispatch.md",
+      "kind": "guide",
+      "module": "core",
+      "template": "template.guide.skill-dispatch",
+      "version": "0.0.1",
+      "digest": "823562bfb57ce612eae4f1b10e0587715e58f29f8e7622c43bd57e373de7a1f1"
+    },
+    {
+      "id": "root.core",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "core",
+      "template": "template.root.core",
+      "version": "0.0.1",
+      "digest": "a5e5ab646deeb5488faf6299aae9d7afcb36369891ce59e0833c323e33aeb544"
+    },
+    {
+      "id": "guide.docs-layout",
+      "path": "docs/agents/docs-layout.md",
+      "kind": "guide",
+      "module": "context-workflow",
+      "template": "template.guide.docs-layout",
+      "version": "0.0.1",
+      "digest": "356823bbd0c1fcf7eb05c4e235fcb8639b720afbc8ab6d596b25f583853daef6"
+    },
+    {
+      "id": "root.context-workflow",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "context-workflow",
+      "template": "template.root.context-workflow",
+      "version": "0.0.1",
+      "digest": "1de9a12f45489adb5326705a5cd2a2d351f6ae5ec0a30199d4a52c684cd9711e"
+    },
+    {
+      "id": "guide.rust",
+      "path": "docs/agents/rust.md",
+      "kind": "guide",
+      "module": "rust",
+      "template": "template.guide.rust",
+      "version": "0.0.1",
+      "digest": "0d8042350765846e5c3759aef01ee60d6bb8f3325dbdfea5133009fa791f0ec1"
+    },
+    {
+      "id": "root.spec-workflow",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "spec-workflow",
+      "template": "template.root.spec-workflow",
+      "version": "0.0.1",
+      "digest": "7d263707ada26bf233c9aa823423b6c74dc006b86c503899fcd95a46f6a15e7f"
+    },
+    {
+      "id": "guide.cli-surface",
+      "path": "docs/agents/cli.md",
+      "kind": "guide",
+      "module": "cli-surface",
+      "template": "template.guide.cli-surface",
+      "version": "0.0.1",
+      "digest": "34467966b14696fddd9a83c802acbcca2785b210505692a95989964f453648c1"
+    },
+    {
+      "id": "root.rust",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "rust",
+      "template": "template.root.rust",
+      "version": "0.0.1",
+      "digest": "994caf3ffd1089bfe7dc42c012ef23d13c5f48e479f964e9920e22f39f715e85"
+    },
+    {
+      "id": "guide.agent-instructions",
+      "path": "docs/agents/agent-instructions.md",
+      "kind": "guide",
+      "module": "core",
+      "template": "template.guide.agent-instructions",
+      "version": "0.0.1",
+      "digest": "f36c3fb0d6a348deb83cb3a2cfc0a3c4b1a92aa2d25eb2355419d5ce696ef6ef"
+    },
+    {
+      "id": "root.cli-surface",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "cli-surface",
+      "template": "template.root.cli-surface",
+      "version": "0.0.1",
+      "digest": "00d780aa07a370ecd77b09d4b0eb0326f80980372652be67d30c699aee931bdb"
+    },
+    {
+      "id": "guide.spec-routing",
+      "path": "docs/agents/spec-routing.md",
+      "kind": "guide",
+      "module": "spec-workflow",
+      "template": "template.guide.spec-routing",
+      "version": "0.0.1",
+      "digest": "64d60a438853e6b2eacc1f1777a1e8822f76c41f1079a3fb050a35d2fd438e41"
+    },
+    {
+      "id": "guide.issue-tracker",
+      "path": "docs/agents/issue-tracker.md",
+      "kind": "guide",
+      "module": "spec-workflow",
+      "template": "template.guide.issue-tracker",
+      "version": "0.0.1",
+      "digest": "818e4d1e44d73a208eba5a7d3aa2115c7420a062b898897a801d3cadd9bc9fd6"
+    },
+    {
+      "id": "guide.spec-docs-layout",
+      "path": "docs/agents/docs-layout.md",
+      "kind": "guide",
+      "module": "spec-workflow",
+      "template": "template.guide.spec-docs-layout",
+      "version": "0.0.1",
+      "digest": "23d86fce6601fbf808965b2d328d4ea71680c8eb6448442cbb8d5c25b4c909be"
+    },
+    {
+      "id": "guide.domain",
+      "path": "docs/agents/domain.md",
+      "kind": "guide",
+      "module": "context-workflow",
+      "template": "template.guide.domain.single-context",
+      "version": "0.0.1",
+      "digest": "cc969b44097582875117ee2b920c2a19accdfd6cdc6b18cb01a4442d5cab87dc"
+    },
+    {
+      "id": "root.secondbrain",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "secondbrain",
+      "template": "template.root.secondbrain",
+      "version": "0.0.1",
+      "digest": "0047824759e04bf6df6eef189746f0c4274b533423559d6160f3b79ce21c298f"
+    },
+    {
+      "id": "guide.secondbrain",
+      "path": "docs/agents/secondbrain.md",
+      "kind": "guide",
+      "module": "secondbrain",
+      "template": "template.guide.secondbrain",
+      "version": "0.0.1",
+      "digest": "d1df25c7f77e78d3f816b5f2c542eca9236c25a681ff2aefe9b862237a60c1e0"
+    },
+    {
+      "id": "root.repository-extension",
+      "path": "AGENTS.md",
+      "kind": "root-block",
+      "module": "repository-extension",
+      "template": "template.root.repository-extension",
+      "version": "0.0.1",
+      "digest": "62ff0225ef4c1b6f53f2be4a54522d69d387c8ba20a8419a71968aa30b0c2780"
+    }
+  ],
+  "localSkills": [],
+  "verification": [
+    {
+      "id": "verification.gate",
+      "role": "repository-gate",
+      "command": "make verify",
+      "classification": "repository-command",
+      "repositoryExecutable": true,
+      "declarationPath": "Makefile",
+      "declarationDigest": "sha256:428c3e248a30069aa28f561ae9fc34015cfedc7f782d706a580dd17c7b60b96f"
+    },
+    {
+      "id": "verification.incremental",
+      "role": "incremental",
+      "command": "make rust-verify",
+      "classification": "repository-command",
+      "repositoryExecutable": true,
+      "declarationPath": "Makefile",
+      "declarationDigest": "sha256:428c3e248a30069aa28f561ae9fc34015cfedc7f782d706a580dd17c7b60b96f"
+    }
+  ]
+}

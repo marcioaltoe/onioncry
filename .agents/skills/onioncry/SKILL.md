@@ -6,7 +6,7 @@ metadata:
   tags: [architecture, cli, rust, javascript, typescript, qa, code-review]
   version: 0.1.0
   author: Marcio Altoé
-  source: https://github.com/marcioaltoe/skills
+  source: https://github.com/marcioaltoe/onioncry
 ---
 
 # OnionCry

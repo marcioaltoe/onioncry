@@ -138,11 +138,10 @@ clean: ## Remove Rust build artifacts when scaffolded
 
 
 ##@ Agent Skills
-skills-update: ## Install missing skills and update existing ones to latest (reads skills-lock.json)
-	@bunx skills experimental_install
-	@bunx skills update -p -y
-	@$(MAKE) fmt
-	
+skills-update: ## Refresh the Roundfix Baseline and its managed skills; preserve the local OnionCry skill
+	$(if $(RTK),$(RTK) proxy) roundfix baseline update --yes
+	@$(MAKE) skills-link
+
 skills-link: ## Recreate .claude/skills symlinks from .agents/skills
 	@mkdir -p .claude/skills
 	@rm -f .claude/skills/*

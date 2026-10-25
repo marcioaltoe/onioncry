@@ -15,7 +15,7 @@ multi-manifest release (crates.io plus npm launcher packages).
 - Before planning, implementing, reviewing, or documenting repository work,
   read `CONTEXT.md` and relevant `docs/adr/` entries. Use the glossary
   vocabulary and flag conflicts with ADRs instead of silently overriding them.
-- **MUST** use `rg` / `rg --files` for local code search. Use `context7` for
+- **MUST** use `rg` / `rg --files` for local code search. Use `context7-cli` for
   external library/API docs and `exa-web-search` for broader web/source
   research. **NEVER** use web research tools to search local code.
 - **MUST** run `make verify` before claiming completion. Any format issue,
@@ -30,7 +30,8 @@ multi-manifest release (crates.io plus npm launcher packages).
 - **ABSOLUTELY FORBIDDEN**: `git reset`, `git checkout --`, `git restore`,
   `git clean`, or any command that discards working-directory changes
   **WITHOUT EXPLICIT USER PERMISSION**. These can permanently lose code.
-- Agent-created branches **MUST** use the `ma/` prefix.
+- Agent-created branches **MUST** use `<type>/<description>`. Existing branches
+  are not renamed automatically.
 - **HARD RULE**: before opening any PR, confirm
   `.agents/skills/onioncry/SKILL.md` still matches the shipped CLI behavior
   (commands, flags, output formats, exit codes, baseline semantics). If the
@@ -49,12 +50,12 @@ Read these only when relevant to the task:
   Cargo.toml and every npm manifest, dry-runs, tag)
 - `docs/specs/<feature-slug>/` — spec artifacts (`_idea.md`, `_prd.md`,
   `_techspec.md`, `_tasks.md`, `task_NN.md`, `qa/`); shipped specs move to
-  `docs/specs/_archived/`. Run `setup-workflow` once if the layout is
+  `docs/history/specs/`. Run `setup-context-driven` once if the layout is
   missing. Legacy PRDs/issues still live under `.scratch/<feature>/` until
   migrated.
 - `docs/agents/issue-tracker.md` — tracker conventions (local files are
   canonical)
-- `docs/agents/triage-labels.md` — label mapping for issue triage skills
+- `docs/agents/specific-repository.md` — label mapping for issue triage skills
 - `docs/agents/domain.md` — how agents consume `CONTEXT.md` and ADRs
 
 **ALWAYS** use canonical terms from `CONTEXT.md` in command names, help text,
@@ -66,8 +67,7 @@ missing, call out the gap instead of inventing new language.
 Before editing, identify the task domain and **activate every matching skill**:
 
 - **Feature discovery or product idea**: Use `brainstorming`; product-level
-  ideas go through `write-idea` (scored by `business-analyst`, debated by
-  `council`, challenged by `the-fool`)
+  ideas go through `write-idea` with `business-analyst` for viability scoring
 - **PRD, tech spec, or task breakdown**: Use `write-prd`, `write-techspec`,
   `write-tasks` (with `grill-with-docs`/`grilling` + `domain-modeling` for
   glossary and ADR capture)
@@ -78,7 +78,7 @@ Before editing, identify the task domain and **activate every matching skill**:
 - **MANDATORY** for CLI behavior, flags, stdout/stderr, exit codes, JSON
   output, dry-run behavior, non-interactive mode, or introspection:
   `agentic-cli-design`
-- **ALWAYS USE** `rust` and `rust-cli` before Rust command behavior, error
+- **ALWAYS USE** `rust-expert` and `rust-cli` before Rust command behavior, error
   handling, output contracts, integration tests, or Cargo workflows
 - **ALWAYS USE** `clap-rust` before touching clap parser code: derive
   patterns, subcommands, flag groups, value parsers, completions
@@ -252,8 +252,8 @@ make skills-link
 
 The `onioncry` skill is different: `.agents/skills/onioncry/SKILL.md` is
 maintained **in this repo** and is the canonical copy (see the hard rule in
-High priority). Do not let `bunx skills update` or a reinstall overwrite it
-with the marcioaltoe/skills mirror; if that happens, restore the local
+High priority). Keep it out of `skills-lock.json`. Do not let a reinstall
+overwrite it with the marcioaltoe/skills mirror; if that happens, restore the local
 version from git history. Sync improvements outward to marcioaltoe/skills,
 never inward.
 
@@ -266,8 +266,70 @@ See `docs/agents/issue-tracker.md`.
 ### Triage labels
 
 Triage uses the default five-role label vocabulary. See
-`docs/agents/triage-labels.md`.
+`docs/agents/specific-repository.md`.
 
 ### Domain docs
 
 Domain docs use a single-context layout. See `docs/agents/domain.md`.
+<!-- setup-context-driven:begin id=root.core version=0.0.1 -->
+
+### Instruction hierarchy
+
+Apply active guidance in this order. A narrower guide may add constraints for its concern but cannot weaken a universal Normative Clause or confirmed project decision.
+
+1. **Universal instructions**
+2. **Context and documentation**
+3. **Spec workflow**
+4. **Stack guidance**
+5. **Surface guidance**
+6. **Optional knowledge sources**
+7. **Repository-Specific Normative Rules**
+
+### Universal instructions
+
+- Follow the mandatory setup-owned baseline in `docs/agents/agent-instructions.md`.
+- Activate skills through `docs/agents/skill-dispatch.md` before governed work.
+
+<!-- setup-context-driven:end id=root.core -->
+<!-- setup-context-driven:begin id=root.context-workflow version=0.0.1 -->
+
+### CONTEXT-driven workflow
+
+- Domain rules are mandatory: `docs/agents/domain.md`. Read `docs/agents/docs-layout.md`, whose rules then apply, before creating, changing, moving, or retiring `CONTEXT.md` or a document under `docs/`, and before a test or build step reads one.
+
+<!-- setup-context-driven:end id=root.context-workflow -->
+<!-- setup-context-driven:begin id=root.spec-workflow version=0.0.1 -->
+
+### Local Spec workflow
+
+- Route and execute local Specs through `docs/agents/spec-routing.md` and `docs/agents/issue-tracker.md`.
+
+<!-- setup-context-driven:end id=root.spec-workflow -->
+<!-- setup-context-driven:begin id=root.rust version=0.0.1 -->
+
+### Rust
+
+- Rust implementation rules are mandatory: `docs/agents/rust.md`.
+
+<!-- setup-context-driven:end id=root.rust -->
+<!-- setup-context-driven:begin id=root.cli-surface version=0.0.1 -->
+
+### CLI surface
+
+- CLI public-contract rules are mandatory: `docs/agents/cli.md`.
+
+<!-- setup-context-driven:end id=root.cli-surface -->
+<!-- setup-context-driven:begin id=root.secondbrain version=0.0.1 -->
+
+### Secondbrain
+
+- Read `docs/agents/secondbrain.md` before consulting or writing the Secondbrain or authoring an Idea, PRD, or TechSpec; a Run session, which cannot reach it, skips it.
+
+<!-- setup-context-driven:end id=root.secondbrain -->
+<!-- setup-context-driven:begin id=root.repository-extension version=0.0.1 -->
+
+### Repository-owned rules
+
+- Read `docs/agents/specific-repository.md` for project-specific hard rules.
+
+<!-- setup-context-driven:end id=root.repository-extension -->

@@ -1,0 +1,46 @@
+profiles:
+    general:
+        preferred:
+            runtime: codex
+            model: gpt-6.1-sol
+            reasoning_effort: high
+        fallbacks:
+            - runtime: claude
+              model: opus
+              reasoning_effort: high
+    backend:
+        preferred:
+            runtime: codex
+            model: gpt-6.1-sol
+            reasoning_effort: high
+        fallbacks:
+            - runtime: claude
+              model: opus
+              reasoning_effort: high
+    frontend:
+        preferred:
+            runtime: claude
+            model: opus
+            reasoning_effort: high
+        fallbacks:
+            - runtime: codex
+              model: gpt-6.1-sol
+              reasoning_effort: xhigh
+    qa:
+        preferred:
+            runtime: codex
+            model: gpt-6.1-sol
+            reasoning_effort: high
+        fallbacks:
+            - runtime: claude
+              model: opus
+              reasoning_effort: high
+    review:
+        preferred:
+            runtime: codex
+            model: gpt-5.6-luna
+            reasoning_effort: max
+        fallbacks:
+            - runtime: codex
+              model: gpt-6.1-sol
+              reasoning_effort: high

@@ -15,6 +15,27 @@ created: YYYY-MM-DD
 
 <!-- 3-6 sentences. Must name the primary technical trade-off this design accepts and why. -->
 
+## Project Constraints
+
+<!-- Replace every placeholder. Each row must state applicable or not applicable, give the
+     effective constraint or the reason it does not apply, and cite its operative source.
+     Keep authorization in this section, never in frontmatter. -->
+
+- Identifier strategy: <applicable | not applicable> — <effective value and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`.
+- Authentication and HTTP: <applicable | not applicable> — <effective policy and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`.
+- Active ADR obligations: <applicable | not applicable> — <active obligations and reason they apply, or reason none apply>. Source: `docs/agents/<path>.md`.
+- Tooling authority: <applicable | not applicable> — <effective constraint and reason it applies, or reason it does not apply>. Source: `docs/agents/<path>.md`; Spec-contained authorization record: `<spec-root>/<slug>/_authorization.md`; bounded files: <copy every exact repository-relative path from the record's `paths` list>.
+
+<!-- With no protected tooling mutation, record: `applicable — no protected tooling mutation proposed or authorized`.
+     When protected tooling mutation is proposed, do not finish without
+     `express maintainer authorization: <approval>; bounded files: <exact repository paths>`.
+     citing the Spec-contained authorization record at
+     `<spec-root>/<slug>/_authorization.md` and copying every exact
+     repository-relative path from its `paths` list into this row. A proposed
+     record or a record without a grant date authorizes nothing. -->
+
+<!-- A Spec a Delivery Queue delivers also records its delivery operations in that record and, with no Governed Path to bound, the record carries `paths: []`. -->
+
 ## System Architecture
 
 <!-- Which existing modules the feature extends, which components are new, and how they connect.
@@ -32,12 +53,39 @@ created: YYYY-MM-DD
 
 ### API Contracts
 
-<!-- New/changed endpoints or commands: input, output, failure modes. Omit for features with none. -->
+<!-- New/changed endpoints or commands: input, output, failure modes. Use
+     numbered API Contract items, or the single entry `None.` followed by the
+     reason none applies. -->
+
+1. API Contract: ...
+
+### Surface Transcripts
+
+<!-- Follow the concrete-contracts guide in [references/concrete-contracts.md](concrete-contracts.md). Number each changed command surface and include its transcript block, or write `None.` with the reason. Do not nest a fenced block in this template guidance. -->
 
 ## Coverage Map
 
-<!-- One line per PRD goal and user story → the component(s) that satisfy it.
-     Format: `Story 3 → ImportScheduler, ImportStatusView`. An unmapped story is a design hole. -->
+<!-- One line per PRD goal, user story, Core Feature and Success Metric → the component(s) that satisfy it.
+     Format: `Story 3 → ImportScheduler, ImportStatusView`. An unmapped item is a design hole.
+     Deviation cross-read: `Deviations from the PRD: None.` or one bullet per PRD unit
+     the TechSpec delivers in another shape, naming the unit and the reason. -->
+
+Deviations from the PRD: None.
+
+## Absence Evidence
+
+<!-- One numbered item per component the TechSpec declares new. Include the component,
+     the search command that proved it absent, and the result. Use `None.` followed
+     by the reason when no component is new. -->
+
+1. <component> — command: `<search command>`; result: <what the search found>
+
+## ADR Alternatives
+
+<!-- One line for each ADR listed under Active ADR obligations. State how the design
+     relates to the alternatives that ADR rejected. -->
+
+- ADR-NNNN: <relation to the rejected alternatives>
 
 ## Integration Points
 
@@ -60,6 +108,10 @@ created: YYYY-MM-DD
 ## Risks & Considerations
 
 <!-- Known risks with mitigations; performance/security/observability notes worth a task's attention. -->
+
+## Glossary
+
+<!-- Optional. Use `adds: **<term>**`, `changes: **<term>**`, or `not a term: **<phrase>** — <reason>`. Write `None.` when there are no entries. -->
 
 ## Decisions
 

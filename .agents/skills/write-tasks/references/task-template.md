@@ -4,12 +4,13 @@ Two templates: the `_tasks.md` manifest and the per-task `task_NN.md` file. Guid
 
 ## `_tasks.md` — the DAG manifest
 
-Machine-parseable. Dependencies live **only** here; status lives **only** in task files. The body table is a human-readable projection of the frontmatter graph — regenerate it whenever the graph changes.
+Machine-parseable. Dependencies live **only** here; status and type live **only** in task file frontmatter. The manifest frontmatter also owns the one-time QA decision: `qa: task_NN` names the authored terminal gate, or `qa: declined` pairs with a non-empty `qa_reason`. The body table is a human-readable projection of the frontmatter graph; every `type` cell must be byte-identical to the matching task file's `type` value. Regenerate it whenever the graph changes.
 
 ```markdown
 ---
 schema: spec-tasks/v1
 spec: <feature-slug>
+qa: task_04
 graph:
   nodes:
     - id: task_01
@@ -30,13 +31,30 @@ graph:
 
 | id      | title                            | type    | complexity | needs            |
 | ------- | -------------------------------- | ------- | ---------- | ---------------- |
-| task_01 | <title>                          | chore   | low        | —                |
-| task_02 | <title>                          | backend | medium     | task_01          |
-| task_03 | <title>                          | frontend| medium     | task_01          |
-| task_04 | <title>                          | backend | high       | task_02, task_03 |
+| task_01 | <title>                          | chore    | low        | —                |
+| task_02 | <title>                          | backend  | medium     | task_01          |
+| task_03 | <title>                          | frontend | medium     | task_01          |
+| task_04 | Run the final QA gate            | qa       | high       | task_02, task_03 |
 
 Waves: 1 → task_01 · 2 → task_02, task_03 · 3 → task_04
 ```
+
+The included gate is the unique `type: qa` Task, has no dependents, and
+depends on every non-QA leaf (`task_02` and `task_03` in this example). Its
+task file uses the ordinary template below with `type: qa` and directs the
+Daemon to execute `qa-gate` as this authored terminal node.
+
+When the Spec declines the gate, replace the `qa: task_NN` declaration with
+both lines below and emit no `type: qa` Task:
+
+```yaml
+qa: declined
+qa_reason: <specific reason the Spec needs no final QA gate>
+```
+
+Every post-contract manifest must use exactly one of these forms. Refuse to
+produce a graph with neither form or both forms; only proven legacy graphs may
+omit the declaration, and they remain byte-identical.
 
 ## `task_NN.md` — one task
 
@@ -46,8 +64,9 @@ A fresh agent session must be able to build this with no context beyond the spec
 ---
 task: task_02
 spec: <feature-slug>
-status: pending # pending | in_progress | completed | failed — only implement-task changes this
-type: backend # frontend | backend | data | infra | docs | test | chore
+status: pending # pending | in_progress | completed | failed — the Daemon writes this during a Run; implement-task writes it only in standalone execution
+type: backend # REQUIRED: backend | frontend | data | infra | docs | test | chore | qa; qa is only for the authored terminal gate
+verification: independent # optional; declare only when every Verification command is independent and must run after a failure
 complexity: medium # low | medium | high
 ---
 
@@ -60,6 +79,8 @@ complexity: medium # low | medium | high
 ## Requirements
 
 <!-- Numbered. MUST for the contract, SHOULD for preferences. Behavior and interfaces, not file paths. -->
+
+<!-- If a Task creates `docs/adr/NNNN-...`, it claims that ordinal; a duplicate is refused with `SC-ORDINAL-CLAIMED`. A future release, external observation, or generated identifier is a named temporal prerequisite and never invents release authority. -->
 
 1. MUST ...
 2. SHOULD ...
@@ -75,19 +96,54 @@ complexity: medium # low | medium | high
 <!-- Independently verifiable checkboxes — each one checkable by a command, a test, or an observable behavior.
      qa-gate re-validates these against the running app at the end of the spec. -->
 
+<!-- Shape acceptance as property-shaped acceptance over meaningful inputs and failure boundaries. Name the narrowest test seam that can fail for the regression, update the affected existing contract when possible, and declare any newly required test class only after confirming the repository gate runs it. Keep Spec commits narrow. -->
+
 - [ ] ...
+
+## Context
+
+<!-- Optional. Include only task-specific path references that help a fresh Agent orient.
+     Use at most 50 unique clean repository-relative paths, labeled exactly as:
+     - instruction: `.agents/skills/<skill>/SKILL.md`
+     - interface: `internal/package/file.go`
+     - creates: <path>
+     - deletes: <path>
+     A deletes path must be absent before the Daemon runs Verification;
+     otherwise the attempt fails with deletes: <path> still exists.
+     Deletions count in scope, Governed Path and Wave collision audits.
+     The Daemon includes these paths in the 200-path Spec Context Bundle before prior changed files. -->
+
+- instruction: `<path>`
+- interface: `.agents/skills/roundfix/references/<command>.md`
+- interface: `docs/user-guide/commands/<command>.md`
+
+## Consumers
+
+<!-- Every non-QA Task that has not completed declares the suites that consume
+     each Shared Contract it changes, named in its Verification or in an
+     Integration Checkpoint between the Task and the QA gate, or writes `None.`
+     with the reason it changes no Shared Contract. -->
+
+- <contract> — consumers: `<suite>`
 
 ## Verification
 
 <!-- The exact commands that prove this task done, with what to expect from each.
-     implement-task runs these verbatim and will not mark the task completed until they pass. -->
+     The Daemon runs these verbatim after the Agent turn and will not settle the task completed until they pass.
+     Use portable shell forms: prefer grep over rg in Task gates, avoid wc-pipeline shape checks, use repository build flags such as go build -buildvcs=false ./... when a build is required, and include executable checks that prove the Task's effect. -->
+
+<!-- A tool piped into grep inside a command substitution hides the tool's status and is refused with `SC-VERIFY-INVERTED-EXIT`. Preserve the status with `out="$(tool 2>&1)" || exit 1; ! printf '%s\n' "$out" | grep -q pattern`. -->
+
+<!-- A multi-word grep pattern against Markdown is line-bound and refused with `SC-VERIFY-WRAP-FRAGILE`. Use the self-reporting wrap-tolerant presence form `tr -s '[:space:]' ' ' < <file> | grep -qF -- "<phrase>" || { printf 'missing phrase in %s: %s\n' <file> "<phrase>" >&2; exit 1; }`. -->
+
+<!-- A red repository gate admits only a Task named in the frozen `_authorization.md` `precondition_repairs` list; the Task or Agent cannot add itself. -->
 
 - `<command>` — expected: ...
 
 ## References
 
 <!-- PRD/TechSpec sections and ADRs this task implements, by name:
-     `_prd.md` → User Stories 3-4; `_techspec.md` → Build Order 2, Interfaces: ImportScheduler; ADR-0012. -->
+     `_prd.md` → User Stories 3-4, Success Metric 2; `_techspec.md` → Build Order 2, API Contract 1, Interfaces: ImportScheduler; ADR-0012. -->
 ```
 
 ## Result section (appended by `implement-task`, not by `write-tasks`)
