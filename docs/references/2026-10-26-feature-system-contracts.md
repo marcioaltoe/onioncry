@@ -18,10 +18,10 @@ Context7 source consulted for Rust API orientation: /oxc-project/oxc. The reposi
 
 ## Consultation limits
 
-Secondbrain index read: /Users/marcio/dev/secondbrain/wiki/index.md. A qmd query for OnionCry per-file overrides and Error reexports was initiated; no returned page is claimed as validation here. Exa MCP is unavailable in this session's exposed tools. Independent local source exploration confirmed the two defects and the absence of a reusable export-binding resolver. No Secondbrain file was written.
+Secondbrain index read: secondbrain/wiki/index.md. A qmd query for OnionCry per-file overrides and Error reexports was initiated; no returned page is claimed as validation here. Exa MCP is unavailable in this session's exposed tools. Independent local source exploration confirmed the two defects and the absence of a reusable export-binding resolver. No Secondbrain file was written.
 
 ## Entry verification
 
 make verify passed on db73399 before this correction: formatting, Cargo check, clippy with warnings denied, Conventional Commit checks and 128 tests across 17 suites. New regression tests must be observed failing before each implementation.
 
-Secondbrain follow-up: qmd returned the existing OnionCry ADR mirrors. Read /Users/marcio/dev/secondbrain/projects/onioncry/mirror/docs/adr/0003-use-linter-style-configuration.md and /Users/marcio/dev/secondbrain/projects/onioncry/mirror/docs/adr/0004-use-oxc-parser-for-javascript-and-typescript.md; they confirmed last-match per-file replacement and the Oxc choice, matching the current local originals. No mirror code or configuration was copied.
+Secondbrain follow-up: qmd returned the existing OnionCry ADR mirrors. Read secondbrain/projects/onioncry/mirror/docs/adr/0003-use-linter-style-configuration.md and secondbrain/projects/onioncry/mirror/docs/adr/0004-use-oxc-parser-for-javascript-and-typescript.md; they confirmed last-match per-file replacement and the Oxc choice, matching the current local originals. No mirror code or configuration was copied.

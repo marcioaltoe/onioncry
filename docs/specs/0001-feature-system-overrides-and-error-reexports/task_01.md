@@ -51,7 +51,7 @@ Correct the first-setting collector defect measured on 2026-10-26 in all five fe
 
 ## Verification
 
-- `grep -q '^fn feature_system_overrides_are_applied_per_diagnostic_file' tests/feature_system.rs && rtk cargo test --test feature_system` — expected: exit 0; the new per-file regression and the existing public CLI suite pass, with preserved production-negative and aggregate behavior.
+- `rg -q '^fn feature_system_overrides_are_applied_per_diagnostic_file' tests/feature_system.rs && rtk cargo test --test feature_system` — expected: exit 0; the new per-file regression and the existing public CLI suite pass, with preserved production-negative and aggregate behavior.
 
 ## References
 

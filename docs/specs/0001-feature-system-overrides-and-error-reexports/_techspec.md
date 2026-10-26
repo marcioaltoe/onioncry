@@ -91,7 +91,7 @@ None.
 ## Research
 
 - Local source inspection and independent read-only exploration at db73399 established both root causes and the absence of export-binding data in ImportEdge.
-- Secondbrain index consulted: /Users/marcio/dev/secondbrain/wiki/index.md; qmd query for OnionCry overrides/reexports was attempted. Results, if any, are reference evidence rather than authority.
+- Secondbrain index consulted: secondbrain/wiki/index.md; qmd query for OnionCry overrides/reexports was attempted. Results, if any, are reference evidence rather than authority.
 - Exa MCP is unavailable in the exposed tool set; no Exa validation is claimed.
 - Context7 Oxc documentation and the ECMAScript module specification are recorded in the committed reference. The installed Oxc source version remains authoritative for exact Rust APIs.
 
@@ -99,4 +99,4 @@ None.
 
 - 2026-10-26: preserve diagnostic ownership and full graph; deduplicate equal policy settings. Accept only proven named runtime Error exports, with unsupported/unresolved forms remaining violations.
 
-Secondbrain follow-up: qmd returned the existing OnionCry ADR mirrors. Read /Users/marcio/dev/secondbrain/projects/onioncry/mirror/docs/adr/0003-use-linter-style-configuration.md and /Users/marcio/dev/secondbrain/projects/onioncry/mirror/docs/adr/0004-use-oxc-parser-for-javascript-and-typescript.md; they confirmed last-match per-file replacement and the Oxc choice, matching the current local originals. No mirror code or configuration was copied.
+Secondbrain follow-up: qmd returned the existing OnionCry ADR mirrors. Read secondbrain/projects/onioncry/mirror/docs/adr/0003-use-linter-style-configuration.md and secondbrain/projects/onioncry/mirror/docs/adr/0004-use-oxc-parser-for-javascript-and-typescript.md; they confirmed last-match per-file replacement and the Oxc choice, matching the current local originals. No mirror code or configuration was copied.

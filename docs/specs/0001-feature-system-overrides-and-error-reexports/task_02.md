@@ -50,7 +50,7 @@ Replace the adapter contract's textual Error-class heuristic with proof of the a
 
 ## Verification
 
-- `grep -q '^fn feature_system_error_exports_follow_runtime_named_bindings' tests/feature_system.rs && rtk cargo test --test feature_system` — expected: exit 0; new runtime binding cases and all existing feature-system consumers pass.
+- `rg -q '^fn feature_system_error_exports_follow_runtime_named_bindings' tests/feature_system.rs && rtk cargo test --test feature_system` — expected: exit 0; new runtime binding cases and all existing feature-system consumers pass.
 
 ## References
 
