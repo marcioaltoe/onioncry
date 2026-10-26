@@ -8,7 +8,7 @@
   },
   "profile": "rust-cli",
   "profileDigest": "sha256:fc75ffb927a1294d65e7f7267771e9edfccf2fdda5da086c43ff27f3b04d52d4",
-  "catalogDigest": "sha256:a5c687aa60ad35f3d967cb4bdc3094f404c8ff103f39447c4c5e83c8d4fa22ba",
+  "catalogDigest": "sha256:1ff0160ad112c3654df7ee60606afb79c3ff4740925449774c6d0ab942cac60e",
   "modules": [
     "core",
     "context-workflow",
@@ -58,7 +58,7 @@
       "module": "core",
       "template": "template.guide.skill-dispatch",
       "version": "0.0.1",
-      "digest": "823562bfb57ce612eae4f1b10e0587715e58f29f8e7622c43bd57e373de7a1f1"
+      "digest": "4405bc8506e6a34d7770196538be7214abce056193044f82a6d6e0edcc637b5b"
     },
     {
       "id": "root.core",
@@ -76,7 +76,7 @@
       "module": "context-workflow",
       "template": "template.guide.docs-layout",
       "version": "0.0.1",
-      "digest": "356823bbd0c1fcf7eb05c4e235fcb8639b720afbc8ab6d596b25f583853daef6"
+      "digest": "0223842b6ba56cba723b0bee64719ddc662f06b1d93452d823bf409a559c87a2"
     },
     {
       "id": "root.context-workflow",
@@ -130,7 +130,7 @@
       "module": "core",
       "template": "template.guide.agent-instructions",
       "version": "0.0.1",
-      "digest": "f36c3fb0d6a348deb83cb3a2cfc0a3c4b1a92aa2d25eb2355419d5ce696ef6ef"
+      "digest": "f1ca19ac21560edd36579a928089a2526d7a5f70f755f44c240f0c7902be65a9"
     },
     {
       "id": "root.cli-surface",
@@ -148,7 +148,7 @@
       "module": "spec-workflow",
       "template": "template.guide.spec-routing",
       "version": "0.0.1",
-      "digest": "64d60a438853e6b2eacc1f1777a1e8822f76c41f1079a3fb050a35d2fd438e41"
+      "digest": "1711166034c6e9ccc1424e12c7cf94ed4e9dbe79d169b38ee5c1bed1c1c646b7"
     },
     {
       "id": "guide.issue-tracker",
@@ -193,7 +193,7 @@
       "module": "secondbrain",
       "template": "template.guide.secondbrain",
       "version": "0.0.1",
-      "digest": "d1df25c7f77e78d3f816b5f2c542eca9236c25a681ff2aefe9b862237a60c1e0"
+      "digest": "9f3a4a3e4e3f7a2904dfe4a7e1cfd5f6472799a0e5d564e4bc5512b2c2f86c70"
     },
     {
       "id": "root.repository-extension",
