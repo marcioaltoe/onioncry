@@ -1,0 +1,271 @@
+{
+  "head": "92d90cdcf62337697c226c29596714b6158d38a7",
+  "commit_range": "db73399b1922b5236c0b12d06d609edbfed9f3db..92d90cdcf62337697c226c29596714b6158d38a7",
+  "scope": [
+    {
+      "task": "task_01",
+      "commit": "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa",
+      "paths": [
+        "docs/specs/0001-feature-system-overrides-and-error-reexports/task_01.md",
+        "src/rules/feature_system/mod.rs",
+        "tests/feature_system.rs"
+      ],
+      "authorization": "633dec2da9582209d71c714bf0181faf271f57fa",
+      "undeclared": [],
+      "unbounded": []
+    },
+    {
+      "task": "task_02",
+      "commit": "9881a54974476a16e1033b719d44ea974bd173a1",
+      "paths": [
+        ".agents/skills/onioncry/SKILL.md",
+        "docs/specs/0001-feature-system-overrides-and-error-reexports/task_02.md",
+        "src/rules/feature_system/adapter_contract.rs",
+        "src/rules/feature_system/error_exports.rs",
+        "src/rules/feature_system/helpers.rs",
+        "src/rules/feature_system/mod.rs",
+        "tests/feature_system.rs"
+      ],
+      "authorization": "93c9e80040c51dc895d50a52f7491589224ce827",
+      "undeclared": [],
+      "unbounded": []
+    },
+    {
+      "task": "task_04",
+      "commit": "92d90cdcf62337697c226c29596714b6158d38a7",
+      "paths": [
+        ".agents/skills/onioncry/SKILL.md",
+        "docs/specs/0001-feature-system-overrides-and-error-reexports/task_04.md",
+        "src/rules/feature_system/error_exports.rs",
+        "tests/feature_system.rs"
+      ],
+      "authorization": "93c9e80040c51dc895d50a52f7491589224ce827",
+      "undeclared": [],
+      "unbounded": []
+    }
+  ],
+  "observations": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit": 0,
+      "stdout": "92d90cdcf62337697c226c29596714b6158d38a7\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--reverse",
+        "--format=%H %s",
+        "db73399b1922b5236c0b12d06d609edbfed9f3db..92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": "633dec2da9582209d71c714bf0181faf271f57fa docs: authorize feature-system contract corrections\n6e885b7b22f3d9cb8907609adaeb1834a9a012b0 docs: keep verification and research references portable\n85a1ff10598dd8cafc7f96f57231f5ea1c8184aa feat: honor each diagnostic owner's effective rule\n93c9e80040c51dc895d50a52f7491589224ce827 docs: authorize feature-system fixes and stable publication (#11)\n653ee85891d4f5527c46549488cb05aeed921bf0 Merge remote-tracking branch 'origin/main' into fix/feature-system-overrides-and-error-reexports\n9881a54974476a16e1033b719d44ea974bd173a1 feat: prove named Error class exports with the parser\nc6c81be6c3588c7c56da72764fb138f22c647143 docs: qa report for 0001-feature-system-overrides-and-error-reexports (partial)\n3b9e610188d9f35d74ca1ba0c4ab9c23ae1adb03 docs: plan runtime namespace correction and reopen qa\n92d90cdcf62337697c226c29596714b6158d38a7 feat: reject runtime namespaces that shadow Error\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit": 0,
+      "stdout": "?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/qa-report-2026-10-26-01.md\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa"
+      ],
+      "exit": 0,
+      "stdout": "docs/specs/0001-feature-system-overrides-and-error-reexports/task_01.md\nsrc/rules/feature_system/mod.rs\ntests/feature_system.rs\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa",
+        "92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "633dec2da9582209d71c714bf0181faf271f57fa",
+        "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "633dec2da9582209d71c714bf0181faf271f57fa:docs/specs/0001-feature-system-overrides-and-error-reexports/_authorization.md"
+      ],
+      "exit": 0,
+      "stdout": "---\nstatus: approved\ngranted: 2026-10-26\naction: correct feature-system per-file overrides and genuine named Error class reexports, verify and deliver the fixes, then publish a stable release through the existing release process\nconsuming:\n  - 0001-feature-system-overrides-and-error-reexports\npaths:\n  - src/rules/feature_system/mod.rs\n  - src/rules/feature_system/helpers.rs\n  - src/rules/feature_system/adapter_contract.rs\n  - src/rules/feature_system/error_exports.rs\n  - tests/feature_system.rs\n  - .agents/skills/onioncry/SKILL.md\n  - Cargo.toml\n  - Cargo.lock\n  - npm/package.json\n  - npm/platforms/darwin-arm64/package.json\n  - npm/platforms/darwin-x64/package.json\n  - npm/platforms/linux-arm64/package.json\n  - npm/platforms/linux-x64/package.json\n  - npm/platforms/win32-x64/package.json\noperations:\n  - implement\n  - commit\n  - push\n  - pull_request\n  - merge\n  - release\n---\n\n# Authorization\n\nThe maintainer explicitly approved correcting and publishing OnionCry through the question tool on 2026-10-26, including tests, review, PR and merge with approved CI. Preserve the configured reviewer and all required checks. Source implementation and real CLI regression tests are authorized for the two defects only. The canonical shipped skill must describe the corrected behavior in the same PR.\n\nThe exact release manifest paths above authorize the own-package version changes required by docs/release.md after a conclusive public release plan; dependency updates and unrelated configuration changes are outside this grant. Regenerate the own-package Cargo.lock entry through Cargo. Version selection follows the release plan; a required minor/major or version-zero breaking decision remains a maintainer decision rather than an inferred waiver. Do not publish a tag before the documented verification and publish dry-runs pass.\n\nLand this grant in main before the consuming delivery. No credential change, production data write, unrelated package removal or other repository's implementation is authorized by this record.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa^",
+        "85a1ff10598dd8cafc7f96f57231f5ea1c8184aa",
+        "--",
+        "src/rules/feature_system",
+        ".agents/skills/onioncry/SKILL.md"
+      ],
+      "exit": 0,
+      "stdout": "diff --git a/src/rules/feature_system/mod.rs b/src/rules/feature_system/mod.rs\nindex ee64da3..008f30a 100644\n--- a/src/rules/feature_system/mod.rs\n+++ b/src/rules/feature_system/mod.rs\n@@ -17,23 +17,61 @@ use crate::rules::catalog::{\n     RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT, RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW,\n     RULE_FEATURE_SYSTEM_LAYOUT, RULE_FEATURE_SYSTEM_PUBLIC_API, RULE_FEATURE_SYSTEM_QUERY_CONTRACT,\n };\n-use crate::{ImportEdge, Result, RulePolicy, Severity, Violation};\n+use crate::{ImportEdge, Result, RulePolicy, RuleSetting, Severity, Violation};\n+use std::collections::BTreeMap;\n use std::path::{Path, PathBuf};\n \n+// Policies need the complete graph, even when a related file uses another setting.\n+// Only diagnostic ownership is scoped; equal settings share one policy evaluation.\n+fn collect_for_effective_settings(\n+    project_root: &Path,\n+    files: &[PathBuf],\n+    rule_policy: &RulePolicy,\n+    rule: &str,\n+    mut evaluate: impl FnMut(&RuleSetting) -> Result<Vec<Violation>>,\n+) -> Result<Vec<Violation>> {\n+    let settings_by_file = files\n+        .iter()\n+        .map(|file| {\n+            (\n+                file.display().to_string(),\n+                rule_policy.effective_rule(rule, project_root, file),\n+            )\n+        })\n+        .collect::<BTreeMap<_, _>>();\n+    let mut distinct_settings = Vec::new();\n+    let mut violations = Vec::new();\n+\n+    for setting in settings_by_file.values() {\n+        if setting.severity == Severity::Off || distinct_settings.contains(&setting) {\n+            continue;\n+        }\n+        distinct_settings.push(setting);\n+        violations.extend(\n+            evaluate(setting)?\n+                .into_iter()\n+                .filter(|violation| settings_by_file.get(&violation.file) == Some(setting)),\n+        );\n+    }\n+\n+    Ok(violations)\n+}\n+\n pub(crate) fn collect_feature_system_layout_violations(\n     project_root: &Path,\n     files: &[PathBuf],\n     rule_policy: &RulePolicy,\n ) -> Result<Vec<Violation>> {\n-    let Some(rule_setting) = files.iter().find_map(|file| {\n-        let setting = rule_policy.effective_rule(RULE_FEATURE_SYSTEM_LAYOUT, project_root, file);\n-        (setting.severity != Severity::Off).then_some(setting)\n-    }) else {\n-        return Ok(Vec::new());\n-    };\n-    let policy = FeatureSystemLayoutPolicy::from_rule_setting(&rule_setting)?;\n-\n-    Ok(policy.violations(project_root, files, rule_setting.severity))\n+    collect_for_effective_settings(\n+        project_root,\n+        files,\n+        rule_policy,\n+        RULE_FEATURE_SYSTEM_LAYOUT,\n+        |setting| {\n+            let policy = FeatureSystemLayoutPolicy::from_rule_setting(setting)?;\n+            Ok(policy.violations(project_root, files, setting.severity))\n+        },\n+    )\n }\n \n pub(crate) fn collect_feature_system_public_api_violations(\n@@ -42,16 +80,16 @@ pub(crate) fn collect_feature_system_public_api_violations(\n     edges: &[ImportEdge],\n     rule_policy: &RulePolicy,\n ) -> Result<Vec<Violation>> {\n-    let Some(rule_setting) = files.iter().find_map(|file| {\n-        let setting =\n-            rule_policy.effective_rule(RULE_FEATURE_SYSTEM_PUBLIC_API, project_root, file);\n-        (setting.severity != Severity::Off).then_some(setting)\n-    }) else {\n-        return Ok(Vec::new());\n-    };\n-    let policy = FeatureSystemPublicApiPolicy::from_rule_setting(&rule_setting)?;\n-\n-    policy.violations(project_root, files, edges, rule_setting.severity)\n+    collect_for_effective_settings(\n+        project_root,\n+        files,\n+        rule_policy,\n+        RULE_FEATURE_SYSTEM_PUBLIC_API,\n+        |setting| {\n+            let policy = FeatureSystemPublicApiPolicy::from_rule_setting(setting)?;\n+            policy.violations(project_root, files, edges, setting.severity)\n+        },\n+    )\n }\n \n pub(crate) fn collect_feature_system_dependency_flow_violations(\n@@ -60,16 +98,16 @@ pub(crate) fn collect_feature_system_dependency_flow_violations(\n     edges: &[ImportEdge],\n     rule_policy: &RulePolicy,\n ) -> Result<Vec<Violation>> {\n-    let Some(rule_setting) = files.iter().find_map(|file| {\n-        let setting =\n-            rule_policy.effective_rule(RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW, project_root, file);\n-        (setting.severity != Severity::Off).then_some(setting)\n-    }) else {\n-        return Ok(Vec::new());\n-    };\n-    let policy = FeatureSystemDependencyFlowPolicy::from_rule_setting(&rule_setting)?;\n-\n-    Ok(policy.violations(project_root, edges, rule_setting.severity))\n+    collect_for_effective_settings(\n+        project_root,\n+        files,\n+        rule_policy,\n+        RULE_FEATURE_SYSTEM_DEPENDENCY_FLOW,\n+        |setting| {\n+            let policy = FeatureSystemDependencyFlowPolicy::from_rule_setting(setting)?;\n+            Ok(policy.violations(project_root, edges, setting.severity))\n+        },\n+    )\n }\n \n pub(crate) fn collect_feature_system_adapter_contract_violations(\n@@ -78,16 +116,16 @@ pub(crate) fn collect_feature_system_adapter_contract_violations(\n     edges: &[ImportEdge],\n     rule_policy: &RulePolicy,\n ) -> Result<Vec<Violation>> {\n-    let Some(rule_setting) = files.iter().find_map(|file| {\n-        let setting =\n-            rule_policy.effective_rule(RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT, project_root, file);\n-        (setting.severity != Severity::Off).then_some(setting)\n-    }) else {\n-        return Ok(Vec::new());\n-    };\n-    let policy = FeatureSystemAdapterContractPolicy::from_rule_setting(&rule_setting)?;\n-\n-    policy.violations(project_root, files, edges, rule_setting.severity)\n+    collect_for_effective_settings(\n+        project_root,\n+        files,\n+        rule_policy,\n+        RULE_FEATURE_SYSTEM_ADAPTER_CONTRACT,\n+        |setting| {\n+            let policy = FeatureSystemAdapterContractPolicy::from_rule_setting(setting)?;\n+            policy.violations(project_root, files, edges, setting.severity)\n+        },\n+    )\n }\n \n pub(crate) fn collect_feature_system_query_contract_violations(\n@@ -96,14 +134,14 @@ pub(crate) fn collect_feature_system_query_contract_violations(\n     edges: &[ImportEdge],\n     rule_policy: &RulePolicy,\n ) -> Result<Vec<Violation>> {\n-    let Some(rule_setting) = files.iter().find_map(|file| {\n-        let setting =\n-            rule_policy.effective_rule(RULE_FEATURE_SYSTEM_QUERY_CONTRACT, project_root, file);\n-        (setting.severity != Severity::Off).then_some(setting)\n-    }) else {\n-        return Ok(Vec::new());\n-    };\n-    let policy = FeatureSystemQueryContractPolicy::from_rule_setting(&rule_setting)?;\n-\n-    policy.violations(project_root, files, edges, rule_setting.severity)\n+    collect_for_effective_settings(\n+        project_root,\n+        files,\n+        rule_policy,\n+        RULE_FEATURE_SYSTEM_QUERY_CONTRACT,\n+        |setting| {\n+            let policy = FeatureSystemQueryContractPolicy::from_rule_setting(setting)?;\n+            policy.violations(project_root, files, edges, setting.severity)\n+        },\n+    )\n }\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "9881a54974476a16e1033b719d44ea974bd173a1"
+      ],
+      "exit": 0,
+      "stdout": ".agents/skills/onioncry/SKILL.md\ndocs/specs/0001-feature-system-overrides-and-error-reexports/task_02.md\nsrc/rules/feature_system/adapter_contract.rs\nsrc/rules/feature_system/error_exports.rs\nsrc/rules/feature_system/helpers.rs\nsrc/rules/feature_system/mod.rs\ntests/feature_system.rs\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "9881a54974476a16e1033b719d44ea974bd173a1",
+        "92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "93c9e80040c51dc895d50a52f7491589224ce827",
+        "9881a54974476a16e1033b719d44ea974bd173a1"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "93c9e80040c51dc895d50a52f7491589224ce827:docs/specs/0001-feature-system-overrides-and-error-reexports/_authorization.md"
+      ],
+      "exit": 0,
+      "stdout": "---\nstatus: approved\ngranted: 2026-10-26\naction: correct feature-system per-file overrides and genuine named Error class reexports, verify and deliver the fixes, then publish a stable release through the existing release process\nconsuming:\n  - 0001-feature-system-overrides-and-error-reexports\npaths:\n  - src/rules/feature_system/mod.rs\n  - src/rules/feature_system/helpers.rs\n  - src/rules/feature_system/adapter_contract.rs\n  - src/rules/feature_system/error_exports.rs\n  - tests/feature_system.rs\n  - .agents/skills/onioncry/SKILL.md\n  - Cargo.toml\n  - Cargo.lock\n  - npm/package.json\n  - npm/platforms/darwin-arm64/package.json\n  - npm/platforms/darwin-x64/package.json\n  - npm/platforms/linux-arm64/package.json\n  - npm/platforms/linux-x64/package.json\n  - npm/platforms/win32-x64/package.json\noperations:\n  - implement\n  - commit\n  - push\n  - pull_request\n  - merge\n  - release\n---\n\n# Authorization\n\nThe maintainer explicitly approved correcting and publishing OnionCry through the question tool on 2026-10-26, including tests, review, PR and merge with approved CI. Preserve the configured reviewer and all required checks. Source implementation and real CLI regression tests are authorized for the two defects only. The canonical shipped skill must describe the corrected behavior in the same PR.\n\nThe exact release manifest paths above authorize the own-package version changes required by docs/release.md after a conclusive public release plan; dependency updates and unrelated configuration changes are outside this grant. Regenerate the own-package Cargo.lock entry through Cargo. Version selection follows the release plan; a required minor/major or version-zero breaking decision remains a maintainer decision rather than an inferred waiver. Do not publish a tag before the documented verification and publish dry-runs pass.\n\nLand this grant in main before the consuming delivery. No credential change, production data write, unrelated package removal or other repository's implementation is authorized by this record.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "9881a54974476a16e1033b719d44ea974bd173a1^",
+        "9881a54974476a16e1033b719d44ea974bd173a1",
+        "--",
+        "src/rules/feature_system",
+        ".agents/skills/onioncry/SKILL.md"
+      ],
+      "exit": 0,
+      "stdout": "diff --git a/.agents/skills/onioncry/SKILL.md b/.agents/skills/onioncry/SKILL.md\nindex 799cce8..17a1757 100644\n--- a/.agents/skills/onioncry/SKILL.md\n+++ b/.agents/skills/onioncry/SKILL.md\n@@ -97,6 +97,26 @@ Baseline entries are fingerprinted by `rule + file + target` (no line/column, so\n }\n ```\n \n+## Feature system contracts\n+\n+The five `frontend/feature-system-*` rules use each diagnostic file's effective\n+rule setting. Matching overrides replace the whole rule value, including\n+options; the last match wins. Cross-file checks retain the complete analyzed\n+file and import graph. Aggregate findings keep their existing representative\n+file, so changing a sibling's setting does not move ownership. Scope a narrow\n+export-hook exception to that file; production import boundaries still apply.\n+\n+`frontend/feature-system-adapter-contract` proves the configured named API\n+error export through parser bindings. It accepts a direct named class extending\n+`Error`, a local class exported by name, named reexports with aliases and\n+multiple local hops, and a named import followed by a local named export.\n+Every hop must resolve to a file in the analyzed universe. Comments, strings,\n+unrelated Error subclasses, ordinary values, non-Error classes, missing names,\n+type-only bindings, external or unresolved modules, excluded files, and cycles\n+do not prove the export. Wildcard/default exports and indirect inheritance are\n+unsupported. A valid Error export still leaves adapter imports from upper\n+frontend layers subject to the existing boundary checks.\n+\n ## Fix strategy\n \n - Fix the code boundary when the diagnostic points to a real architecture violation.\ndiff --git a/src/rules/feature_system/adapter_contract.rs b/src/rules/feature_system/adapter_contract.rs\nindex e2fa6de..959570a 100644\n--- a/src/rules/feature_system/adapter_contract.rs\n+++ b/src/rules/feature_system/adapter_contract.rs\n@@ -1,6 +1,7 @@\n+use super::error_exports::ErrorExports;\n use super::helpers::{\n-    render_feature_template, source_accepts_and_passes_abort_signal, source_exports_error_class,\n-    source_exports_value, source_has_configured_read_call,\n+    render_feature_template, source_accepts_and_passes_abort_signal, source_exports_value,\n+    source_has_configured_read_call,\n };\n use super::location::{is_file_in_area, is_route_file, system_location};\n use super::{FeatureSystemDependencyArea, FeatureSystemLocation};\n@@ -99,6 +100,7 @@ impl FeatureSystemAdapterContractPolicy {\n         let mut violations = Vec::new();\n         let adapter_systems = self.adapter_systems(project_root, files);\n         let file_set = files.iter().cloned().collect::<HashSet<_>>();\n+        let mut error_exports = ErrorExports::new(files, edges);\n \n         for adapter_system in adapter_systems.values() {\n             if !file_set.contains(&adapter_system.expected_adapter_file) {\n@@ -137,7 +139,10 @@ impl FeatureSystemAdapterContractPolicy {\n \n             let expected_error_export =\n                 render_feature_template(&self.error_export_name_template, &adapter_system.domain);\n-            if !source_exports_error_class(&source, &expected_error_export) {\n+            if !error_exports.exports_error_class(\n+                &adapter_system.expected_adapter_file,\n+                &expected_error_export,\n+            )? {\n                 violations.push(Violation::feature_system_adapter_contract(\n                     &adapter_system.expected_adapter_file,\n                     severity,\ndiff --git a/src/rules/feature_system/error_exports.rs b/src/rules/feature_system/error_exports.rs\nnew file mode 100644\nindex 0000000..fce8228\n--- /dev/null\n+++ b/src/rules/feature_system/error_exports.rs\n@@ -0,0 +1,227 @@\n+use crate::{ImportEdge, ImportKind, ImportResolution, OnionCryError, Result};\n+use oxc_allocator::Allocator;\n+use oxc_ast::ast::{\n+    Class, Declaration, Expression, ImportDeclarationSpecifier, ImportOrExportKind, Statement,\n+};\n+use oxc_parser::Parser;\n+use oxc_span::SourceType;\n+use std::collections::{HashMap, HashSet, hash_map::Entry};\n+use std::fs;\n+use std::path::{Path, PathBuf};\n+\n+enum ExportBinding {\n+    Local(String),\n+    Remote { module: String, name: String },\n+}\n+\n+#[derive(Default)]\n+struct ModuleSummary {\n+    error_classes: HashSet<String>,\n+    imports: HashMap<String, ExportBinding>,\n+    exports: HashMap<String, ExportBinding>,\n+}\n+\n+pub(super) struct ErrorExports<'a> {\n+    files: HashSet<&'a Path>,\n+    local_modules: HashMap<(&'a Path, &'a str), &'a Path>,\n+    summaries: HashMap<PathBuf, ModuleSummary>,\n+}\n+\n+impl<'a> ErrorExports<'a> {\n+    pub(super) fn new(files: &'a [PathBuf], edges: &'a [ImportEdge]) -> Self {\n+        Self {\n+            files: files.iter().map(PathBuf::as_path).collect(),\n+            local_modules: edges\n+                .iter()\n+                .filter_map(|edge| {\n+                    if edge.type_only\n+                        || !matches!(edge.kind, ImportKind::StaticImport | ImportKind::ReExport)\n+                    {\n+                        return None;\n+                    }\n+                    let ImportResolution::Local(target) = &edge.resolution else {\n+                        return None;\n+                    };\n+                    Some((\n+                        (edge.source.as_path(), edge.specifier.as_str()),\n+                        target.as_path(),\n+                    ))\n+                })\n+                .collect(),\n+            summaries: HashMap::new(),\n+        }\n+    }\n+\n+    pub(super) fn exports_error_class(&mut self, file: &Path, name: &str) -> Result<bool> {\n+        let mut file = file.to_path_buf();\n+        let mut name = name.to_string();\n+        let mut visited = HashSet::new();\n+        loop {\n+            // Guard before reading: a resolved path can still be excluded from analysis.\n+            if name == \"default\"\n+                || !self.files.contains(file.as_path())\n+                || !visited.insert((file.clone(), name.clone()))\n+            {\n+                return Ok(false);\n+            }\n+            let summary = match self.summaries.entry(file.clone()) {\n+                Entry::Occupied(entry) => entry.into_mut(),\n+                Entry::Vacant(entry) => entry.insert(summarize_module(&file)?),\n+            };\n+            let binding = match summary.exports.get(&name) {\n+                Some(ExportBinding::Local(local)) => {\n+                    if summary.error_classes.contains(local) {\n+                        return Ok(true);\n+                    }\n+                    summary.imports.get(local)\n+                }\n+                remote => remote,\n+            };\n+            let Some(ExportBinding::Remote {\n+                module,\n+                name: imported,\n+            }) = binding\n+            else {\n+                return Ok(false);\n+            };\n+            let Some(target) = self.local_modules.get(&(file.as_path(), module.as_str())) else {\n+                return Ok(false);\n+            };\n+            name = imported.clone();\n+            file = target.to_path_buf();\n+        }\n+    }\n+}\n+\n+fn summarize_module(file: &Path) -> Result<ModuleSummary> {\n+    let source = fs::read_to_string(file).map_err(|source| OnionCryError::ReadSource {\n+        path: file.to_path_buf(),\n+        source,\n+    })?;\n+    let source_type = SourceType::from_path(file).map_err(|source| OnionCryError::ParseSource {\n+        path: file.to_path_buf(),\n+        message: source.to_string(),\n+    })?;\n+    let allocator = Allocator::default();\n+    let parsed = Parser::new(&allocator, &source, source_type).parse();\n+    if parsed.panicked || !parsed.errors.is_empty() {\n+        return Err(OnionCryError::ParseSource {\n+            path: file.to_path_buf(),\n+            message: parsed\n+                .errors\n+                .first()\n+                .map_or_else(|| \"parser panicked\".to_string(), ToString::to_string),\n+        });\n+    }\n+    let mut summary = ModuleSummary::default();\n+    if source_type.is_typescript_definition() {\n+        return Ok(summary);\n+    }\n+    let mut shadows_error = false;\n+    for statement in &parsed.program.body {\n+        let declaration = match statement {\n+            Statement::ExportNamedDeclaration(export) => export.declaration.as_ref(),\n+            _ => statement.as_declaration(),\n+        };\n+        shadows_error |= declaration.is_some_and(declares_error_binding);\n+        if let Statement::ImportDeclaration(import) = statement {\n+            shadows_error |= import\n+                .specifiers\n+                .iter()\n+                .flatten()\n+                .any(|specifier| specifier.local().name == \"Error\");\n+        }\n+        match statement {\n+            Statement::ClassDeclaration(class) => summary.add_class(class, false),\n+            Statement::ExportNamedDeclaration(export)\n+                if export.export_kind == ImportOrExportKind::Value =>\n+            {\n+                if let Some(Declaration::ClassDeclaration(class)) = &export.declaration {\n+                    summary.add_class(class, true);\n+                }\n+                for specifier in &export.specifiers {\n+                    if specifier.export_kind == ImportOrExportKind::Type {\n+                        continue;\n+                    }\n+                    let name = specifier.local.name().to_string();\n+                    let binding = export.source.as_ref().map_or_else(\n+                        || ExportBinding::Local(name.clone()),\n+                        |source| ExportBinding::Remote {\n+                            module: source.value.to_string(),\n+                            name: name.clone(),\n+                        },\n+                    );\n+                    summary\n+                        .exports\n+                        .insert(specifier.exported.name().to_string(), binding);\n+                }\n+            }\n+            Statement::ImportDeclaration(import)\n+                if import.import_kind == ImportOrExportKind::Value =>\n+            {\n+                for specifier in import.specifiers.iter().flatten() {\n+                    let ImportDeclarationSpecifier::ImportSpecifier(specifier) = specifier else {\n+                        continue;\n+                    };\n+                    if specifier.import_kind == ImportOrExportKind::Type {\n+                        continue;\n+                    }\n+                    summary.imports.insert(\n+                        specifier.local.name.to_string(),\n+                        ExportBinding::Remote {\n+                            module: import.source.value.to_string(),\n+                            name: specifier.imported.name().to_string(),\n+                        },\n+                    );\n+                }\n+            }\n+            _ => {}\n+        }\n+    }\n+    if shadows_error {\n+        summary.error_classes.clear();\n+    }\n+    Ok(summary)\n+}\n+\n+fn declares_error_binding(declaration: &Declaration<'_>) -> bool {\n+    match declaration {\n+        Declaration::ClassDeclaration(class) => {\n+            class.id.as_ref().is_some_and(|id| id.name == \"Error\")\n+        }\n+        Declaration::FunctionDeclaration(function) => {\n+            function.id.as_ref().is_some_and(|id| id.name == \"Error\")\n+        }\n+        Declaration::VariableDeclaration(variables) => {\n+            variables.declarations.iter().any(|declaration| {\n+                declaration\n+                    .id\n+                    .get_binding_identifiers()\n+                    .iter()\n+                    .any(|id| id.name == \"Error\")\n+            })\n+        }\n+        Declaration::TSEnumDeclaration(enumeration) => enumeration.id.name == \"Error\",\n+        Declaration::TSImportEqualsDeclaration(import) => import.id.name == \"Error\",\n+        _ => false,\n+    }\n+}\n+\n+impl ModuleSummary {\n+    fn add_class(&mut self, class: &Class<'_>, exported: bool) {\n+        let Some(id) = &class.id else {\n+            return;\n+        };\n+        if !class.declare\n+            && matches!(&class.super_class, Some(Expression::Identifier(base)) if base.name == \"Error\")\n+        {\n+            self.error_classes.insert(id.name.to_string());\n+        }\n+        if exported {\n+            self.exports.insert(\n+                id.name.to_string(),\n+                ExportBinding::Local(id.name.to_string()),\n+            );\n+        }\n+    }\n+}\ndiff --git a/src/rules/feature_system/helpers.rs b/src/rules/feature_system/helpers.rs\nindex 16fa138..4d99114 100644\n--- a/src/rules/feature_system/helpers.rs\n+++ b/src/rules/feature_system/helpers.rs\n@@ -45,13 +45,6 @@ pub(super) fn source_exports_value(source: &str, name: &str) -> bool {\n             && source.contains(&format!(\"export {{ {name} }}\")))\n }\n \n-pub(super) fn source_exports_error_class(source: &str, name: &str) -> bool {\n-    (source.contains(&format!(\"export class {name}\")) && source.contains(\"extends Error\"))\n-        || (source.contains(&format!(\"class {name}\"))\n-            && source.contains(\"extends Error\")\n-            && source.contains(&format!(\"export {{ {name} }}\")))\n-}\n-\n pub(super) fn source_has_configured_read_call(source: &str, http_client_names: &[String]) -> bool {\n     http_client_names.iter().any(|client| {\n         if client == \"fetch\" {\ndiff --git a/src/rules/feature_system/mod.rs b/src/rules/feature_system/mod.rs\nindex 008f30a..c94cf4b 100644\n--- a/src/rules/feature_system/mod.rs\n+++ b/src/rules/feature_system/mod.rs\n@@ -1,5 +1,6 @@\n mod adapter_contract;\n mod dependency_flow;\n+mod error_exports;\n mod helpers;\n mod layout;\n mod location;\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-r",
+        "92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": ".agents/skills/onioncry/SKILL.md\ndocs/specs/0001-feature-system-overrides-and-error-reexports/task_04.md\nsrc/rules/feature_system/error_exports.rs\ntests/feature_system.rs\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "92d90cdcf62337697c226c29596714b6158d38a7",
+        "92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "merge-base",
+        "--is-ancestor",
+        "93c9e80040c51dc895d50a52f7491589224ce827",
+        "92d90cdcf62337697c226c29596714b6158d38a7"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "show",
+        "93c9e80040c51dc895d50a52f7491589224ce827:docs/specs/0001-feature-system-overrides-and-error-reexports/_authorization.md"
+      ],
+      "exit": 0,
+      "stdout": "---\nstatus: approved\ngranted: 2026-10-26\naction: correct feature-system per-file overrides and genuine named Error class reexports, verify and deliver the fixes, then publish a stable release through the existing release process\nconsuming:\n  - 0001-feature-system-overrides-and-error-reexports\npaths:\n  - src/rules/feature_system/mod.rs\n  - src/rules/feature_system/helpers.rs\n  - src/rules/feature_system/adapter_contract.rs\n  - src/rules/feature_system/error_exports.rs\n  - tests/feature_system.rs\n  - .agents/skills/onioncry/SKILL.md\n  - Cargo.toml\n  - Cargo.lock\n  - npm/package.json\n  - npm/platforms/darwin-arm64/package.json\n  - npm/platforms/darwin-x64/package.json\n  - npm/platforms/linux-arm64/package.json\n  - npm/platforms/linux-x64/package.json\n  - npm/platforms/win32-x64/package.json\noperations:\n  - implement\n  - commit\n  - push\n  - pull_request\n  - merge\n  - release\n---\n\n# Authorization\n\nThe maintainer explicitly approved correcting and publishing OnionCry through the question tool on 2026-10-26, including tests, review, PR and merge with approved CI. Preserve the configured reviewer and all required checks. Source implementation and real CLI regression tests are authorized for the two defects only. The canonical shipped skill must describe the corrected behavior in the same PR.\n\nThe exact release manifest paths above authorize the own-package version changes required by docs/release.md after a conclusive public release plan; dependency updates and unrelated configuration changes are outside this grant. Regenerate the own-package Cargo.lock entry through Cargo. Version selection follows the release plan; a required minor/major or version-zero breaking decision remains a maintainer decision rather than an inferred waiver. Do not publish a tag before the documented verification and publish dry-runs pass.\n\nLand this grant in main before the consuming delivery. No credential change, production data write, unrelated package removal or other repository's implementation is authorized by this record.\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "92d90cdcf62337697c226c29596714b6158d38a7^",
+        "92d90cdcf62337697c226c29596714b6158d38a7",
+        "--",
+        "src/rules/feature_system",
+        ".agents/skills/onioncry/SKILL.md"
+      ],
+      "exit": 0,
+      "stdout": "diff --git a/.agents/skills/onioncry/SKILL.md b/.agents/skills/onioncry/SKILL.md\nindex 17a1757..ed4cc14 100644\n--- a/.agents/skills/onioncry/SKILL.md\n+++ b/.agents/skills/onioncry/SKILL.md\n@@ -117,6 +117,14 @@ do not prove the export. Wildcard/default exports and indirect inheritance are\n unsupported. A valid Error export still leaves adapter imports from upper\n frontend layers subject to the existing boundary checks.\n \n+A top-level value binding named `Error` prevents proof that a local subclass\n+extends the intrinsic constructor. This covers exported namespaces and\n+identifier roots such as `namespace Error.Inner`.\n+Namespace bindings remain conservative for ambient\n+declarations and bodies containing only types; the resolver does not infer\n+TypeScript emit. Unrelated namespaces and nested bindings do not shadow the\n+class's top-level scope.\n+\n ## Fix strategy\n \n - Fix the code boundary when the diagnostic points to a real architecture violation.\ndiff --git a/src/rules/feature_system/error_exports.rs b/src/rules/feature_system/error_exports.rs\nindex fce8228..7407cba 100644\n--- a/src/rules/feature_system/error_exports.rs\n+++ b/src/rules/feature_system/error_exports.rs\n@@ -2,6 +2,7 @@ use crate::{ImportEdge, ImportKind, ImportResolution, OnionCryError, Result};\n use oxc_allocator::Allocator;\n use oxc_ast::ast::{\n     Class, Declaration, Expression, ImportDeclarationSpecifier, ImportOrExportKind, Statement,\n+    TSModuleDeclarationName,\n };\n use oxc_parser::Parser;\n use oxc_span::SourceType;\n@@ -203,6 +204,11 @@ fn declares_error_binding(declaration: &Declaration<'_>) -> bool {\n         }\n         Declaration::TSEnumDeclaration(enumeration) => enumeration.id.name == \"Error\",\n         Declaration::TSImportEqualsDeclaration(import) => import.id.name == \"Error\",\n+        Declaration::TSModuleDeclaration(module) => {\n+            // Only the identifier root binds here, including dotted namespaces.\n+            // Keep ambient/type-only namespace bodies conservative without emit inference.\n+            matches!(&module.id, TSModuleDeclarationName::Identifier(id) if id.name == \"Error\")\n+        }\n         _ => false,\n     }\n }\n",
+      "stderr": ""
+    }
+  ],
+  "problems": [],
+  "notes": [
+    "Seeded granted authorization results for Task 02 and Task 04 remain authoritative; exact scope and ancestry inspections corroborate them.",
+    "No prerequisite or consequent fix declaration, derived-pin claim, dependency, version or checker-configuration change in Task commits.",
+    "No changed public ImportEdge/output schema paths; complete public behavior observed independently in Q03-Q10.",
+    "Canonical skill keeps release metadata 0.1.0 and documents conservative ambient/type-only namespaces."
+  ]
+}

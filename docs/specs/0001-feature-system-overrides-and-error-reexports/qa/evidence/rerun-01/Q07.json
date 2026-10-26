@@ -1,0 +1,261 @@
+{
+  "row": "Q07",
+  "binary": "/Volumes/Brain-SSD/cache/.roundfix/worktrees/onioncry-e63aaf35/run_20261026T191714Z_fa461164b6c27520/target/debug/onioncry",
+  "observations": [
+    {
+      "case": "off adapter still exists for enabled helper",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 5,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"off\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/adapters/a-helper.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}}]}",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "export const helper = 1;",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = { list: () => [] }; export class BillingApiError extends Error {}",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; import { billingOptions } from '../lib/query-options'; export const useBilling = () => useQuery(billingOptions());",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const billingKeys = { list: () => ['billing'] };",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; import { billingKeys } from './query-keys'; export const billingOptions = () => queryOptions({ queryKey: billingKeys.list(), queryFn: ({ signal }) => billingApi.list({ signal }) });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "6ef7a0b106ab32feec9a49256d06b9e74220d85416c7b35a2c58fd24d704e64b",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "68402d951342ec4707a37cc3e816d1601c4be1d6919063319d727979d466046b"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "6ef7a0b106ab32feec9a49256d06b9e74220d85416c7b35a2c58fd24d704e64b",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "68402d951342ec4707a37cc3e816d1601c4be1d6919063319d727979d466046b"
+      }
+    },
+    {
+      "case": "off factories still satisfy hook",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 5,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/hooks/use-billing.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}]}",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "export const helper = 1;",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = { list: () => [] }; export class BillingApiError extends Error {}",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; import { billingOptions } from '../lib/query-options'; export const useBilling = () => useQuery(billingOptions());",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const billingKeys = { list: () => ['billing'] };",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; import { billingKeys } from './query-keys'; export const billingOptions = () => queryOptions({ queryKey: billingKeys.list(), queryFn: ({ signal }) => billingApi.list({ signal }) });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "74f350e8644e54cbaefa0efc7c447039c513c4b4059049c7d1f2f70683a64a04",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "68402d951342ec4707a37cc3e816d1601c4be1d6919063319d727979d466046b"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "74f350e8644e54cbaefa0efc7c447039c513c4b4059049c7d1f2f70683a64a04",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "68402d951342ec4707a37cc3e816d1601c4be1d6919063319d727979d466046b"
+      }
+    },
+    {
+      "case": "off adapter retains signal obligation",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 5,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query functions should pass the query context signal to adapters\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-cross-file-v6e5llzl/packages/frontend/src/systems/billing/lib/query-options.ts\",\n      \"suggestion\": \"destructure signal in queryFn and pass it to the adapter call\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/lib/query-options.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}]}",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "export const helper = 1;",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = { list: () => [] }; export class BillingApiError extends Error {}",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; import { billingOptions } from '../lib/query-options'; export const useBilling = () => useQuery(billingOptions());",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const billingKeys = { list: () => ['billing'] };",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; export const billingOptions = () => queryOptions({ queryKey: ['billing'], queryFn: () => billingApi.list() });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "865fe0f3f9273ac2f954db3c924bc5a44831247a380310ae52ab828d72ec95c8",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "b01935bb3656182b040b432c2e450ac2ebd2207727d36bedbc469d2f8f908195"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "865fe0f3f9273ac2f954db3c924bc5a44831247a380310ae52ab828d72ec95c8",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "b01935bb3656182b040b432c2e450ac2ebd2207727d36bedbc469d2f8f908195"
+      }
+    },
+    {
+      "case": "explain signal obligation",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/lib/query-options.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-cross-file-v6e5llzl/packages/frontend/src/systems/billing/lib/query-options.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 30,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../adapters/billing-api\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 82,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-cross-file-v6e5llzl/packages/frontend/src/systems/billing/adapters/billing-api.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query functions should pass the query context signal to adapters\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-cross-file-v6e5llzl/packages/frontend/src/systems/billing/lib/query-options.ts\",\n      \"suggestion\": \"destructure signal in queryFn and pass it to the adapter call\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/lib/query-options.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}]}",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "export const helper = 1;",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = { list: () => [] }; export class BillingApiError extends Error {}",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; import { billingOptions } from '../lib/query-options'; export const useBilling = () => useQuery(billingOptions());",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const billingKeys = { list: () => ['billing'] };",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; export const billingOptions = () => queryOptions({ queryKey: ['billing'], queryFn: () => billingApi.list() });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "865fe0f3f9273ac2f954db3c924bc5a44831247a380310ae52ab828d72ec95c8",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "b01935bb3656182b040b432c2e450ac2ebd2207727d36bedbc469d2f8f908195"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "865fe0f3f9273ac2f954db3c924bc5a44831247a380310ae52ab828d72ec95c8",
+        "packages/frontend/src/systems/billing/adapters/a-helper.ts": "6e5c2b1c7b7bde8861d7b3a670968c4a46be122d9ab97874e0765426fdb9b4be",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a8a60bdefdad9473d1af7fb689d217ebb47364a069efa5df1a3dccd291aa17ca",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "53663e7bb80af460c3574dbe24dfe3e3064922ba28b24cfdb59562d0220a8198",
+        "packages/frontend/src/systems/billing/lib/query-keys.ts": "b8afd200c86871291d110214c29dddc724e9846f595800b25c769b90e46ccbcb",
+        "packages/frontend/src/systems/billing/lib/query-options.ts": "b01935bb3656182b040b432c2e450ac2ebd2207727d36bedbc469d2f8f908195"
+      }
+    },
+    {
+      "case": "exempt hook beside production negative",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 0,\n    \"errorCount\": 1,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-dependency-flow\",\n      \"severity\": \"error\",\n      \"message\": \"components may not import adapters in the billing system through ../adapters/billing-api\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/components/production.tsx\",\n      \"importSpecifier\": \"../adapters/billing-api\",\n      \"line\": 1,\n      \"column\": 28,\n      \"fromLayer\": \"components\",\n      \"toLayer\": \"adapters\",\n      \"toContext\": \"billing\",\n      \"targetFile\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"route this dependency through an allowed lower area or update allowedImports if the flow is intentional\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-dependency-flow\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/lib/export-hook.ts\"], \"rules\": {\"frontend/feature-system-dependency-flow\": [\"error\", {\"allowedImports\": {\"components\": [\"adapters\"]}, \"adapterBridgeFiles\": [\"lib/export-hook.ts\"]}]}}]}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {};",
+        "packages/frontend/src/systems/billing/components/production.tsx": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      }
+    },
+    {
+      "case": "explain exempt hook",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/lib/export-hook.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"../adapters/billing-api\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 28,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/adapters/billing-api.ts\"\n    }\n  ],\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-dependency-flow\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/lib/export-hook.ts\"], \"rules\": {\"frontend/feature-system-dependency-flow\": [\"error\", {\"allowedImports\": {\"components\": [\"adapters\"]}, \"adapterBridgeFiles\": [\"lib/export-hook.ts\"]}]}}]}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {};",
+        "packages/frontend/src/systems/billing/components/production.tsx": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      }
+    },
+    {
+      "case": "explain protected production",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/components/production.tsx",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/components/production.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"../adapters/billing-api\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 28,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/adapters/billing-api.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-dependency-flow\",\n      \"severity\": \"error\",\n      \"message\": \"components may not import adapters in the billing system through ../adapters/billing-api\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/components/production.tsx\",\n      \"importSpecifier\": \"../adapters/billing-api\",\n      \"line\": 1,\n      \"column\": 28,\n      \"fromLayer\": \"components\",\n      \"toLayer\": \"adapters\",\n      \"toContext\": \"billing\",\n      \"targetFile\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-production-usjw2jc5/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"route this dependency through an allowed lower area or update allowedImports if the flow is intentional\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-dependency-flow\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/lib/export-hook.ts\"], \"rules\": {\"frontend/feature-system-dependency-flow\": [\"error\", {\"allowedImports\": {\"components\": [\"adapters\"]}, \"adapterBridgeFiles\": [\"lib/export-hook.ts\"]}]}}]}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {};",
+        "packages/frontend/src/systems/billing/components/production.tsx": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "772729c46a49b2606addc2ebcfd7cd1bb00227467f2ed0775332e623fc515f7c",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "10b78bd017ee6ab69d4c610b88bb5d061f98416dcda421495079cbdb38ad5972",
+        "packages/frontend/src/systems/billing/components/production.tsx": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee",
+        "packages/frontend/src/systems/billing/lib/export-hook.ts": "46ac8d33d862de2c214b1a59a2309450079331707ea04b00f48609b2803311ee"
+      }
+    }
+  ],
+  "problems": [],
+  "command_count": 7,
+  "status": "pass"
+}

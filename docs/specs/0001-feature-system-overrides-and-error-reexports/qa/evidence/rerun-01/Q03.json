@@ -1,0 +1,347 @@
+{
+  "row": "Q03",
+  "binary": "/Volumes/Brain-SSD/cache/.roundfix/worktrees/onioncry-e63aaf35/run_20261026T191714Z_fa461164b6c27520/target/debug/onioncry",
+  "observations": [
+    {
+      "case": "identity/help --version",
+      "command": [
+        "<RUN_BINARY>",
+        "--version"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "onioncry 0.1.0 revision: 92d90cdcf623\n",
+      "stderr": "",
+      "fixture": {},
+      "sha256_before": {},
+      "sha256_after": {}
+    },
+    {
+      "case": "identity/help --help",
+      "command": [
+        "<RUN_BINARY>",
+        "--help"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "Check architectural boundaries in source projects\n\nUsage: onioncry <COMMAND>\n\nCommands:\n  check    Check the configured file universe against architecture rules\n  graph    Render the boundary dependency graph as Mermaid or JSON\n  init     Create a conservative .onioncryrc.jsonc configuration template\n  explain  Explain one file's classification, imports, and violations\n  rules    List built-in rules\n  schema   Print the .onioncryrc JSON Schema\n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n  -h, --help     Print help\n  -V, --version  Print version\n",
+      "stderr": "",
+      "fixture": {},
+      "sha256_before": {},
+      "sha256_after": {}
+    },
+    {
+      "case": "identity/help check --help",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--help"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "Check the configured file universe against architecture rules\n\nUsage: onioncry check [OPTIONS]\n\nOptions:\n      --config <CONFIG>    \n      --format <FORMAT>    [default: pretty] [possible values: pretty, json, sarif]\n      --fail-on <FAIL_ON>  [default: error] [possible values: error, warning]\n      --tips               Show remediation tips for diagnostics\n      --baseline <PATH>    Path to the violation baseline file\n      --write-baseline     Write current violations to the baseline file\n      --no-baseline        Disable violation baseline consumption for this run\n      --files <PATH>...    Scope the report to these files; analysis stays whole-project\n      --llm-mode           Show an LLM-optimized grouped diagnostic report\n  -h, --help               Print help\n",
+      "stderr": "",
+      "fixture": {},
+      "sha256_before": {},
+      "sha256_after": {}
+    },
+    {
+      "case": "identity/help explain --help",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "--help"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "Explain one file's classification, imports, and violations\n\nUsage: onioncry explain [OPTIONS] <FILE>\n\nArguments:\n  <FILE>  \n\nOptions:\n      --config <CONFIG>  \n      --format <FORMAT>  [default: pretty] [possible values: pretty, json]\n      --tips             Show remediation tips for diagnostics\n  -h, --help             Print help\n",
+      "stderr": "",
+      "fixture": {},
+      "sha256_before": {},
+      "sha256_after": {}
+    },
+    {
+      "case": "warning default",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 1,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-adapter-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"adapter file should export typed API error BillingApiError\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"export class BillingApiError extends Error\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "warning strict",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 1,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-adapter-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"adapter file should export typed API error BillingApiError\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"export class BillingApiError extends Error\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "explain same warning",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-adapter-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"adapter file should export typed API error BillingApiError\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"export class BillingApiError extends Error\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "pretty",
+      "command": [
+        "<RUN_BINARY>",
+        "check"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\n  1:1  warning adapter file should export typed API error BillingApiError  frontend/feature-system-adapter-contract\n\n1 problem (0 errors, 1 warning)\n1 file checked\nstatus: pass\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "sarif",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "sarif"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"$schema\": \"https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json\",\n  \"version\": \"2.1.0\",\n  \"runs\": [\n    {\n      \"tool\": {\n        \"driver\": {\n          \"name\": \"OnionCry\",\n          \"semanticVersion\": \"0.1.0\",\n          \"rules\": [\n            {\n              \"id\": \"cleanarch/no-layer-leak\",\n              \"name\": \"cleanarch/no-layer-leak\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-layer-leak\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Layer rules only allow imports declared in the importing layer's mayImport policy.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-forbidden-imports\",\n              \"name\": \"cleanarch/no-forbidden-imports\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-forbidden-imports\"\n              },\n              \"fullDescription\": {\n                \"text\": \"External packages are closed by default in sensitive layers unless explicitly allowed.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-cross-context-internal-import\",\n              \"name\": \"cleanarch/no-cross-context-internal-import\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-cross-context-internal-import\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Cross-context imports must target the imported context's configured public surface.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-framework-in-core\",\n              \"name\": \"cleanarch/no-framework-in-core\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-framework-in-core\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Core layers should depend on ports, not framework packages.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-outer-data-format-in-core\",\n              \"name\": \"cleanarch/no-outer-data-format-in-core\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-outer-data-format-in-core\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Core layers should not mention data formats owned by outer details.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-public-surface-internal-reexport\",\n              \"name\": \"cleanarch/no-public-surface-internal-reexport\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-public-surface-internal-reexport\"\n              },\n              \"fullDescription\": {\n                \"text\": \"A public surface should expose intentional contracts, not internal implementation files.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-context-cycle\",\n              \"name\": \"cleanarch/no-context-cycle\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-context-cycle\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Context dependencies should form a directed acyclic ownership graph.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/no-unowned-schema-import\",\n              \"name\": \"cleanarch/no-unowned-schema-import\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/no-unowned-schema-import\"\n              },\n              \"fullDescription\": {\n                \"text\": \"A context should not depend directly on another context's storage schema.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/artifact-placement\",\n              \"name\": \"cleanarch/artifact-placement\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/artifact-placement\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/unclassified-file\",\n              \"name\": \"cleanarch/unclassified-file\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/unclassified-file\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Layer checks need each analyzed file to match exactly one configured architectural layer.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"warning\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/ambiguous-layer\",\n              \"name\": \"cleanarch/ambiguous-layer\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/ambiguous-layer\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Overlapping layer patterns make it unclear which dependency policy applies to this file.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"cleanarch/ambiguous-context\",\n              \"name\": \"cleanarch/ambiguous-context\",\n              \"shortDescription\": {\n                \"text\": \"cleanarch/ambiguous-context\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Overlapping context patterns make it unclear which ownership boundary applies to this file.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"verticalslice/no-cross-slice-internal-import\",\n              \"name\": \"verticalslice/no-cross-slice-internal-import\",\n              \"shortDescription\": {\n                \"text\": \"verticalslice/no-cross-slice-internal-import\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Cross-slice imports should target the imported slice's configured public surface.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"verticalslice/no-global-slice-artifacts\",\n              \"name\": \"verticalslice/no-global-slice-artifacts\",\n              \"shortDescription\": {\n                \"text\": \"verticalslice/no-global-slice-artifacts\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Vertical Slice artifacts should live under the configured slice root unless their global folder is explicitly allowed.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"verticalslice/slice-entry-point\",\n              \"name\": \"verticalslice/slice-entry-point\",\n              \"shortDescription\": {\n                \"text\": \"verticalslice/slice-entry-point\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Each Vertical Slice should expose a small configured entry point so routes, jobs, or composition code depend on the slice boundary.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"verticalslice/no-shared-layer-artifacts\",\n              \"name\": \"verticalslice/no-shared-layer-artifacts\",\n              \"shortDescription\": {\n                \"text\": \"verticalslice/no-shared-layer-artifacts\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Vertical Slice projects should not rebuild shared technical layers such as global services, repositories, handlers, or use cases.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"solid/no-concrete-dependency\",\n              \"name\": \"solid/no-concrete-dependency\",\n              \"shortDescription\": {\n                \"text\": \"solid/no-concrete-dependency\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Core layers should depend on abstractions rather than concrete details.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"codesmells/feature-envy\",\n              \"name\": \"codesmells/feature-envy\",\n              \"shortDescription\": {\n                \"text\": \"codesmells/feature-envy\"\n              },\n              \"fullDescription\": {\n                \"text\": \"A file that mostly imports another context may contain behavior owned by that context.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"codesmells/shotgun-surgery\",\n              \"name\": \"codesmells/shotgun-surgery\",\n              \"shortDescription\": {\n                \"text\": \"codesmells/shotgun-surgery\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Files that repeatedly change with many companions may hide scattered responsibilities.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"repo/test-placement\",\n              \"name\": \"repo/test-placement\",\n              \"shortDescription\": {\n                \"text\": \"repo/test-placement\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Source-level unit tests should live in colocated test directories, while integration and e2e tests should live under their dedicated workspace roots.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"repo/path-naming\",\n              \"name\": \"repo/path-naming\",\n              \"shortDescription\": {\n                \"text\": \"repo/path-naming\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Path naming checks observable file and directory names, not code symbols.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"repo/invalid-suppression\",\n              \"name\": \"repo/invalid-suppression\",\n              \"shortDescription\": {\n                \"text\": \"repo/invalid-suppression\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Inline suppression comments must name known rules and include a non-empty reason.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"error\"\n              }\n            },\n            {\n              \"id\": \"repo/unused-suppression\",\n              \"name\": \"repo/unused-suppression\",\n              \"shortDescription\": {\n                \"text\": \"repo/unused-suppression\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Inline suppression comments should match at least one current violation on the next line.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"warning\"\n              }\n            },\n            {\n              \"id\": \"frontend/feature-system-layout\",\n              \"name\": \"frontend/feature-system-layout\",\n              \"shortDescription\": {\n                \"text\": \"frontend/feature-system-layout\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Feature system layout checks observable systems/<domain> folders, shared UI roots, and surface CSS placement.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"frontend/feature-system-public-api\",\n              \"name\": \"frontend/feature-system-public-api\",\n              \"shortDescription\": {\n                \"text\": \"frontend/feature-system-public-api\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Feature system public APIs should be explicit barrels, and callers outside a system should depend on those barrels instead of internals.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"frontend/feature-system-dependency-flow\",\n              \"name\": \"frontend/feature-system-dependency-flow\",\n              \"shortDescription\": {\n                \"text\": \"frontend/feature-system-dependency-flow\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Feature system dependency flow keeps upper UI layers from shortcutting into adapters and keeps routes on public barrels.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"frontend/feature-system-adapter-contract\",\n              \"name\": \"frontend/feature-system-adapter-contract\",\n              \"shortDescription\": {\n                \"text\": \"frontend/feature-system-adapter-contract\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Feature system adapter contracts check domain-named API adapters, typed API errors, cancellable reads, and adapter import boundaries.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            },\n            {\n              \"id\": \"frontend/feature-system-query-contract\",\n              \"name\": \"frontend/feature-system-query-contract\",\n              \"shortDescription\": {\n                \"text\": \"frontend/feature-system-query-contract\"\n              },\n              \"fullDescription\": {\n                \"text\": \"Feature system query contracts keep TanStack Query keys, options, hooks, and cache mutations owned by the system lib layer.\"\n              },\n              \"defaultConfiguration\": {\n                \"level\": \"none\"\n              }\n            }\n          ]\n        }\n      },\n      \"results\": [\n        {\n          \"ruleId\": \"frontend/feature-system-adapter-contract\",\n          \"ruleIndex\": 26,\n          \"level\": \"warning\",\n          \"message\": {\n            \"text\": \"adapter file should export typed API error BillingApiError\"\n          },\n          \"locations\": [\n            {\n              \"physicalLocation\": {\n                \"artifactLocation\": {\n                  \"uri\": \"packages/frontend/src/systems/billing/adapters/billing-api.ts\"\n                }\n              }\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "llm",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--llm-mode"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "status: pass\nfilesChecked: 1\nproblemCount: 1\nerrorCount: 0\nwarningCount: 1\ngroupCount: 1\n\ngroup 1\nstate: active\nactionable: true\ncount: 1\nseverity: warn\nrule: frontend/feature-system-adapter-contract\nmessage: adapter file should export typed API error BillingApiError\nwhy: Feature system adapter contracts check domain-named API adapters, typed API errors, cancellable reads, and adapter import boundaries.\ntip: export class BillingApiError extends Error\nlocations:\n- /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts:1:1\n\n---------------------------------------------------------------------------------------\nonioncry-llm-report v1 revision: 92d90cdcf623\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "invalid threshold",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--fail-on",
+        "invalid"
+      ],
+      "exit": 2,
+      "expected_exit": 2,
+      "stdout": "",
+      "stderr": "error: invalid value 'invalid' for '--fail-on <FAIL_ON>'\n  [possible values: error, warning]\n\nFor more information, try '--help'.\n",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "d18e17d529ce305a1064f9d331c0d8c5eb1f59694492ab777c6a79f1e468e1db",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "invalid config",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json"
+      ],
+      "exit": 2,
+      "expected_exit": 2,
+      "stdout": "",
+      "stderr": "error: could not parse JSONC config /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/.onioncryrc.jsonc: Expected colon after the string or word in object property on line 1 column 11\n",
+      "fixture": {
+        ".onioncryrc.jsonc": "{ invalid jsonc",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "6658e08791e6681b4fe91d69ba44515b9b82ab7fa0dbd1332a61c24a097c85df",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "6658e08791e6681b4fe91d69ba44515b9b82ab7fa0dbd1332a61c24a097c85df",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "9eeff8575faf0f7a73e77890e19b72a08b0e06a21a64fc46676310d4e5110ffe"
+      }
+    },
+    {
+      "case": "recover clean strict",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 1,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError extends Error {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      }
+    },
+    {
+      "case": "fresh process clean replay",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 1,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError extends Error {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      }
+    },
+    {
+      "case": "explain clean recovery",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-contract-7ywu7jkf/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": []}",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "export const billingApi = {}; export class BillingApiError extends Error {}"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "9494cf549ddd7646fdb2778cf8cad72467dee4e8652fc90585ab5bd8577207ef",
+        "packages/frontend/src/systems/billing/adapters/billing-api.ts": "a623ae9173b9dbb6d1eb45e6abcf7ba4b4472f0c65b118352dce5b26d57f4331"
+      }
+    }
+  ],
+  "problems": [],
+  "command_count": 15,
+  "status": "pass"
+}

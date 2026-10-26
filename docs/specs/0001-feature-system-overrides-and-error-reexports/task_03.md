@@ -1,7 +1,7 @@
 ---
 task: task_03
 spec: 0001-feature-system-overrides-and-error-reexports
-status: pending
+status: completed
 type: qa
 complexity: high
 ---

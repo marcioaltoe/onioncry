@@ -1,0 +1,379 @@
+{
+  "status": "pass",
+  "checks": [
+    {
+      "check": "seed preserved: Performed repairs",
+      "pass": true
+    },
+    {
+      "check": "seed preserved: Assigned repair failures",
+      "pass": true
+    },
+    {
+      "check": "seed preserved: Authorization audit inputs",
+      "pass": true
+    },
+    {
+      "check": "seed preserved: Mechanical findings",
+      "pass": true
+    },
+    {
+      "check": "seed preserved: Mechanical skips",
+      "pass": true
+    },
+    {
+      "check": "seed preserved: Row carry-forward",
+      "pass": true
+    },
+    {
+      "check": "single frontmatter block",
+      "pass": true
+    },
+    {
+      "check": "Daemon-owned auditing_binary preserved",
+      "pass": true
+    },
+    {
+      "check": "Daemon-owned auditor_staleness preserved",
+      "pass": true
+    },
+    {
+      "check": "closed partial",
+      "pass": true
+    },
+    {
+      "check": "exact blocked counts",
+      "pass": true
+    },
+    {
+      "check": "eleven unique Results rows",
+      "pass": true
+    },
+    {
+      "check": "ten pass rows",
+      "pass": true
+    },
+    {
+      "check": "one no-PR environment row",
+      "pass": true
+    },
+    {
+      "check": "Q01 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q02 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q02 commit range",
+      "pass": true
+    },
+    {
+      "check": "Q03 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q04 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q05 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q06 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q07 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q08 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q09 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q10 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q11 nonempty typed inputs",
+      "pass": true
+    },
+    {
+      "check": "Q11 commit range",
+      "pass": true
+    },
+    {
+      "check": "no Agent-owned evidence snapshots",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/build.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/scope.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q03.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q04.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q05.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q06.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q07.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q08.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q09.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/Q10.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/pull-request.json",
+      "pass": true
+    },
+    {
+      "check": "evidence link resolves: evidence/rerun-01/report-audit.json",
+      "pass": true
+    },
+    {
+      "check": "Q03 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q03 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q04 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q04 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q05 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q05 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q06 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q06 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q07 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q07 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q08 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q08 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q09 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q09 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "Q10 raw observations pass",
+      "pass": true
+    },
+    {
+      "check": "Q10 fixture read-only",
+      "pass": true
+    },
+    {
+      "check": "199 public CLI subprocesses",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q03.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q04.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q05.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q06.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q07.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q08.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q09.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/Q10.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/build.txt",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/cli-probes.py.txt",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/help.txt",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/pull-request.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/report-audit.json",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/scope.txt",
+      "pass": true
+    },
+    {
+      "check": "prior artifact unchanged: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/qa-report-2026-10-26.md",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/qa-report-2026-10-26-01.md",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q03.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q04.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q05.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q06.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q07.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q08.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q09.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q10.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/build.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/cli-probes.py.txt",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/precondition.txt",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/preserved-sha256.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/pull-request.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/scope.json",
+      "pass": true
+    },
+    {
+      "check": "UTF-8 text evidence: docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/seed.txt",
+      "pass": true
+    },
+    {
+      "check": "bounded credential-pattern scan; no environment values printed or persisted",
+      "pass": true
+    },
+    {
+      "check": "worktree delta only authorized QA report/evidence",
+      "pass": true
+    }
+  ],
+  "failures": [],
+  "command_counts": {
+    "Q03": 15,
+    "Q04": 25,
+    "Q05": 15,
+    "Q06": 12,
+    "Q07": 7,
+    "Q08": 22,
+    "Q09": 98,
+    "Q10": 5
+  },
+  "secret_matches": [],
+  "git_status": "?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q03.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q04.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q05.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q06.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q07.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q08.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q09.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/Q10.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/build.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/cli-probes.py.txt\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/precondition.txt\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/preserved-sha256.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/pull-request.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/report-audit.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/scope.json\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/evidence/rerun-01/seed.txt\n?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/qa-report-2026-10-26-01.md\n",
+  "audit_bootstrap": "Initial link check ran before this audit file was written; the resolving link was freshly checked after creation. No product row failed."
+}

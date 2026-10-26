@@ -1,0 +1,16 @@
+{
+  "row": "Q11",
+  "status": "blocked (environment: no open Pull Request)",
+  "source": "Current Roundfix child QA assignment explicitly states no open Pull Request.",
+  "target_branch": "fix/feature-system-overrides-and-error-reexports",
+  "audited_head": "92d90cdcf62337697c226c29596714b6158d38a7",
+  "controls": {
+    "approval": "No final candidate approval at this head was supplied or obtained during this gate. The operative implementation grant is not candidate acceptance.",
+    "checks_and_status": "Daemon-supplied make verify passed (exit 0) at the assigned candidate; current-head PR CI does not exist before an open Pull Request.",
+    "unresolved_review_threads": "No open Pull Request, so there is no live PR thread state to inspect. Prior review F1 is described by task_04 and its behavior is re-observed in Q09; that is not a current-head review acceptance.",
+    "merge_ready_acceptance": "No current-head Review Source acceptance was supplied or obtained.",
+    "review_artifact_ancestry": "Audited head 92d90cdcf62337697c226c29596714b6158d38a7 is independently read from Git. No review artifact for this head was supplied, so current-head review ancestry remains unproven."
+  },
+  "equivalent_evidence_complete": false,
+  "unblock": "Supervisor obtains configured review, approval, current-head CI and acceptance on the Spec target branch after this gate."
+}
