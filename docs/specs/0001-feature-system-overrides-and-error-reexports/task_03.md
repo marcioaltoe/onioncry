@@ -1,7 +1,7 @@
 ---
 task: task_03
 spec: 0001-feature-system-overrides-and-error-reexports
-status: completed
+status: pending
 type: qa
 complexity: high
 ---
@@ -16,7 +16,7 @@ Execute qa-gate against the assembled correction using the Run-built OnionCry bi
 
 1. MUST execute the qa-gate skill and cover every PRD goal, Core Feature, Success Metric and TechSpec API Contract with auditable real CLI evidence. Test check and explain using their actual --help contract; no new flags are assumed.
 2. MUST cover per-file off/warn/error and last-match option replacement across five families, stable aggregate owners and cross-file query/adapter relationships. Prove exempt files coexist with invalid production imports under --fail-on warning.
-3. MUST cover every declared valid/invalid runtime Error export form, the negative adapter import boundary and bounded cycle/unresolved/excluded cases. Use generic local fixtures; do not copy private consumer source into this public repository.
+3. MUST cover every declared valid/invalid runtime Error export form, the negative adapter import boundary and bounded cycle/unresolved/excluded cases. Use generic local fixtures; do not copy private consumer source into this public repository. Include Task 04 runtime namespace Error shadowing, reexport-chain rejection and genuine intrinsic Error controls beside unrelated/nested namespaces.
 4. MUST include a named outside-evidence row comparing an alias/reexport fixture with ECMAScript ExportEntries semantics recorded in docs/references/2026-10-26-feature-system-contracts.md, then inspect the binary's diagnostic output.
 5. MUST verify operative Project Constraints, exact changed-file scope and tooling authorization ancestry. Confirm the canonical skill describes actual behavior. Run make verify and record warnings/failures without weakening checks.
 
@@ -41,3 +41,9 @@ Comando derivado pelo Roundfix, reproduzido sem alteração além do caminho da 
 
 - `_prd.md` → Goals 1–3; Core Features 1–3; Success Metrics 1–3.
 - `_techspec.md` → API Contract 1; Build Order 3; Testing Approach.
+
+## Invalidation
+
+- Date: `2026-10-26`
+- QA Report: `qa/qa-report-2026-10-26.md`
+- Dependencies not completed: `task_04`
