@@ -1499,3 +1499,285 @@ fn feature_system_overrides_exempt_export_hook_without_relaxing_production() {
         true,
     );
 }
+
+const ERROR_EXPORT_ADAPTER: &str = "packages/frontend/src/systems/billing/adapters/billing-api.ts";
+
+fn write_error_export_case(workspace: &TempDir, adapter: &str, modules: &[(&str, &str)]) {
+    write_feature_system_override_config(
+        workspace,
+        "adapter-contract",
+        serde_json::json!("error"),
+        serde_json::json!([]),
+    );
+    write_file(
+        &workspace.path().join(ERROR_EXPORT_ADAPTER),
+        &format!("export const billingApi = {{}};\n{adapter}\n"),
+    );
+    for (file, source) in modules {
+        write_file(&workspace.path().join(file), source);
+    }
+}
+
+#[test]
+fn feature_system_error_exports_follow_runtime_named_bindings() {
+    let modules = [
+        (
+            "errors.ts",
+            "export class ActualError extends Error {} export const value = 1;",
+        ),
+        (
+            "hop.ts",
+            "export { ActualError as Renamed } from './errors';",
+        ),
+        (
+            "second.ts",
+            "export { Renamed as FinalError } from './hop';",
+        ),
+        (
+            "local.ts",
+            "class InternalError extends Error {} export { InternalError as ActualError };",
+        ),
+        (
+            "imported.ts",
+            "import { ActualError as Internal } from './local'; export { Internal as Forwarded };",
+        ),
+        // Revisiting a file under a different binding is not a cycle.
+        (
+            "pair-a.ts",
+            "export { Intermediate as ActualError } from './pair-b'; export class BaseError extends Error {}",
+        ),
+        (
+            "pair-b.ts",
+            "export { BaseError as Intermediate } from './pair-a';",
+        ),
+    ];
+    for adapter in [
+        "export class BillingApiError extends Error {}",
+        "class BillingApiError extends Error {} export { BillingApiError };",
+        "class InternalError extends Error {} export { InternalError as BillingApiError };",
+        "export class BillingApiError\n extends\n Error {}",
+        "export { ActualError as BillingApiError } from '../../../../../../errors';",
+        "export {\n ActualError as\n BillingApiError,\n type value\n} from '../../../../../../errors';",
+        "export { FinalError as BillingApiError } from '../../../../../../second';",
+        "export { Forwarded as BillingApiError } from '../../../../../../imported';",
+        "import { ActualError as LocalError } from '../../../../../../errors'; export { LocalError as BillingApiError };",
+        "export { ActualError as BillingApiError } from '../../../../../../pair-a';",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_error_export_case(&workspace, adapter, &modules);
+        assert_feature_system_override_report(&workspace, "adapter-contract", &[], true);
+    }
+}
+
+#[test]
+fn feature_system_error_exports_reject_false_and_unknown_proofs() {
+    let modules = [
+        (
+            "errors.ts",
+            "export class ActualError extends Error {} export class Ordinary {} export const value = 1;",
+        ),
+        ("cycle-a.ts", "export { Loop as Again } from './cycle-b';"),
+        ("cycle-b.ts", "export { Again as Loop } from './cycle-a';"),
+        (
+            "default.ts",
+            "export default class ActualError extends Error {}",
+        ),
+        (
+            "types.ts",
+            "export declare class ActualError extends Error {}",
+        ),
+        ("ambient.d.ts", "export class ActualError extends Error {}"),
+        (
+            "type-export.ts",
+            "export type { ActualError } from './errors';",
+        ),
+    ];
+    for adapter in [
+        "export class BillingApiError {} class Decoy extends Error {}",
+        "class BillingApiError {} class Decoy extends Error {} export { BillingApiError };",
+        "export const BillingApiError = 1; class Decoy extends Error {}",
+        "// export class BillingApiError extends Error {}",
+        "const text = 'export class BillingApiError extends Error {}';",
+        "export class BillingApiErrorExtra extends Error {}",
+        "class Decoy extends Error {} export { Missing as BillingApiError };",
+        "class Base extends Error {} export class BillingApiError extends Base {}",
+        "class BillingApiError extends Error {} export type { BillingApiError };",
+        "class BillingApiError extends Error {} export { type BillingApiError };",
+        "export declare class BillingApiError extends Error {}",
+        "export { Ordinary as BillingApiError } from '../../../../../../errors';",
+        "export { value as BillingApiError } from '../../../../../../errors';",
+        "export { Missing as BillingApiError } from '../../../../../../errors';",
+        "export type { ActualError as BillingApiError } from '../../../../../../errors';",
+        "export { type ActualError as BillingApiError } from '../../../../../../errors';",
+        "import type { ActualError as BillingApiError } from '../../../../../../errors'; export { BillingApiError };",
+        "import { type ActualError as BillingApiError } from '../../../../../../errors'; export { BillingApiError };",
+        "export { ActualError as BillingApiError } from '../../../../../../type-export';",
+        "export { ActualError as BillingApiError } from '../../../../../../types';",
+        "export { ActualError as BillingApiError } from '../../../../../../ambient.d';",
+        "export { ActualError as BillingApiError } from 'external-errors';",
+        "export { ActualError as BillingApiError } from './missing';",
+        "export { Again as BillingApiError } from '../../../../../../cycle-a';",
+        "export { BillingApiError } from './billing-api';",
+        "export * from '../../../../../../errors';",
+        "export { default as BillingApiError } from '../../../../../../default';",
+        "import BillingApiError from '../../../../../../default'; export { BillingApiError };",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_error_export_case(&workspace, adapter, &modules);
+        let report = assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+        assert_eq!(
+            report["violations"][0]["message"],
+            "adapter file should export typed API error BillingApiError",
+            "{adapter}"
+        );
+    }
+}
+
+#[test]
+fn feature_system_error_exports_do_not_read_excluded_targets() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_error_export_case(
+        &workspace,
+        "export { ActualError as BillingApiError } from '../../../../../../excluded/errors';",
+        &[(
+            "excluded/errors.ts",
+            "export class ActualError extends Error {}",
+        )],
+    );
+    let config_path = workspace.path().join(".onioncryrc.jsonc");
+    let mut config: Value =
+        serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["project"]["exclude"] = serde_json::json!(["excluded/**"]);
+    write_file(&config_path, &serde_json::to_string(&config).unwrap());
+    for excluded_source in [
+        "export class ActualError extends Error {}",
+        "this is deliberately invalid TypeScript {",
+    ] {
+        write_file(
+            &workspace.path().join("excluded/errors.ts"),
+            excluded_source,
+        );
+        assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+    }
+}
+
+#[test]
+fn feature_system_error_exports_preserve_adapter_import_boundaries_and_strict_exits() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_error_export_case(
+        &workspace,
+        "export { ActualError as BillingApiError } from '../../../../../../errors'; import { Card } from '../components/card';",
+        &[
+            ("errors.ts", "export class ActualError extends Error {}"),
+            (
+                "packages/frontend/src/systems/billing/components/card.tsx",
+                "export const Card = () => null;",
+            ),
+        ],
+    );
+    write_feature_system_override_config(
+        &workspace,
+        "adapter-contract",
+        serde_json::json!("warn"),
+        serde_json::json!([]),
+    );
+    for strict in [false, true] {
+        let report = assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "warn")],
+            strict,
+        );
+        assert!(
+            report["violations"][0]["message"]
+                .as_str()
+                .unwrap()
+                .contains("adapter files may not import components")
+        );
+        assert!(
+            report["violations"][0]["targetFile"]
+                .as_str()
+                .unwrap()
+                .ends_with("components/card.tsx")
+        );
+    }
+}
+
+#[test]
+fn feature_system_error_exports_follow_configured_module_aliases() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_error_export_case(
+        &workspace,
+        "import { ActualError as Local } from '@errors/runtime'; export { Local as BillingApiError };",
+        &[(
+            "lib/runtime.ts",
+            "export class ActualError extends Error {}",
+        )],
+    );
+    let config_path = workspace.path().join(".onioncryrc.jsonc");
+    let mut config: Value =
+        serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    config["aliases"] = serde_json::json!({"@errors": "lib"});
+    write_file(&config_path, &serde_json::to_string(&config).unwrap());
+    assert_feature_system_override_report(&workspace, "adapter-contract", &[], true);
+}
+
+#[test]
+fn feature_system_error_exports_keep_shared_module_binding_identity() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_error_export_case(
+        &workspace,
+        "export { ActualError as BillingApiError } from '../../../../../../errors';",
+        &[
+            (
+                "errors.ts",
+                "export class ActualError extends Error {} export class Ordinary {}",
+            ),
+            (
+                "packages/frontend/src/systems/orders/adapters/orders-api.ts",
+                "export const ordersApi = {}; export { Ordinary as OrdersApiError } from '../../../../../../errors';",
+            ),
+        ],
+    );
+    assert_feature_system_override_report(
+        &workspace,
+        "adapter-contract",
+        &[(
+            "packages/frontend/src/systems/orders/adapters/orders-api.ts",
+            "error",
+        )],
+        true,
+    );
+}
+
+#[test]
+fn feature_system_error_exports_reject_shadowed_error_superclasses() {
+    for adapter in [
+        "class Error {} export class BillingApiError extends Error {}",
+        "const Error = class {}; export class BillingApiError extends Error {}",
+        "import { Ordinary as Error } from '../../../../../../errors'; export class BillingApiError extends Error {}",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_error_export_case(
+            &workspace,
+            adapter,
+            &[("errors.ts", "export class Ordinary {}")],
+        );
+        assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+    }
+}

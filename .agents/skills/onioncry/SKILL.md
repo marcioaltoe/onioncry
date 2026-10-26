@@ -97,6 +97,26 @@ Baseline entries are fingerprinted by `rule + file + target` (no line/column, so
 }
 ```
 
+## Feature system contracts
+
+The five `frontend/feature-system-*` rules use each diagnostic file's effective
+rule setting. Matching overrides replace the whole rule value, including
+options; the last match wins. Cross-file checks retain the complete analyzed
+file and import graph. Aggregate findings keep their existing representative
+file, so changing a sibling's setting does not move ownership. Scope a narrow
+export-hook exception to that file; production import boundaries still apply.
+
+`frontend/feature-system-adapter-contract` proves the configured named API
+error export through parser bindings. It accepts a direct named class extending
+`Error`, a local class exported by name, named reexports with aliases and
+multiple local hops, and a named import followed by a local named export.
+Every hop must resolve to a file in the analyzed universe. Comments, strings,
+unrelated Error subclasses, ordinary values, non-Error classes, missing names,
+type-only bindings, external or unresolved modules, excluded files, and cycles
+do not prove the export. Wildcard/default exports and indirect inheritance are
+unsupported. A valid Error export still leaves adapter imports from upper
+frontend layers subject to the existing boundary checks.
+
 ## Fix strategy
 
 - Fix the code boundary when the diagnostic points to a real architecture violation.

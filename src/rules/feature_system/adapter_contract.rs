@@ -1,6 +1,7 @@
+use super::error_exports::ErrorExports;
 use super::helpers::{
-    render_feature_template, source_accepts_and_passes_abort_signal, source_exports_error_class,
-    source_exports_value, source_has_configured_read_call,
+    render_feature_template, source_accepts_and_passes_abort_signal, source_exports_value,
+    source_has_configured_read_call,
 };
 use super::location::{is_file_in_area, is_route_file, system_location};
 use super::{FeatureSystemDependencyArea, FeatureSystemLocation};
@@ -99,6 +100,7 @@ impl FeatureSystemAdapterContractPolicy {
         let mut violations = Vec::new();
         let adapter_systems = self.adapter_systems(project_root, files);
         let file_set = files.iter().cloned().collect::<HashSet<_>>();
+        let mut error_exports = ErrorExports::new(files, edges);
 
         for adapter_system in adapter_systems.values() {
             if !file_set.contains(&adapter_system.expected_adapter_file) {
@@ -137,7 +139,10 @@ impl FeatureSystemAdapterContractPolicy {
 
             let expected_error_export =
                 render_feature_template(&self.error_export_name_template, &adapter_system.domain);
-            if !source_exports_error_class(&source, &expected_error_export) {
+            if !error_exports.exports_error_class(
+                &adapter_system.expected_adapter_file,
+                &expected_error_export,
+            )? {
                 violations.push(Violation::feature_system_adapter_contract(
                     &adapter_system.expected_adapter_file,
                     severity,
