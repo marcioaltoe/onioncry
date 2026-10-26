@@ -39,6 +39,20 @@ deliberately with `roundfix baseline skills restore --profile <id> --skill <name
 A missing skill, or one that no longer matches its lock, is still restored under
 `skills.drifted`.
 
+The preview without `--yes` or `--confirm-plan` lists, under `skills.missing`
+(`Skills missing` in text), each external skill the adopted modules require and
+dispatch that is absent from `.agents/skills` or `skills-lock.json`, or no
+longer matches its lock entry: a Missing Required Skill. Each entry names the
+skill and the command that restores it,
+`roundfix baseline skills restore --profile <id> --skill <name>`.
+`skills.status` reads `missing`; with unchanged guidance the state is
+`plan_ready` instead of `current` and the exit code is `3`, as for an owned
+skill older than the binary's, and `--yes` restores the listed skills.
+A skill the upstream catalog retired while the Baseline still dispatches it
+is a Baseline defect to report, not a skill to keep restoring by hand.
+`--no-skills` skips the list, and an absent or unreadable `skills-lock.json`
+adds nothing to it; `roundfix doctor` reports that state.
+
 `--yes` approves the Plan Digest computed in that invocation;
 `--confirm-plan <digest>` approves a previously reviewed digest, and the two
 flags are mutually exclusive. `--adopt-suggested` explicitly adopts and reports
@@ -328,3 +342,27 @@ A vendored skill is installed from an upstream source and never edited in the re
 3. A repository-authored skill that replaces the vendored one, only when the vendored skill is useless or almost useless to the repository.
 
 Send an objective upstream defect to the upstream as a pull request; it never justifies the third choice.
+
+### Starter Files
+
+A Starter File is repository tooling a Baseline module offers. The `python`
+profile offers `Makefile`, `.roundfixrc.yml` and `.github/workflows/verify.yml`.
+
+```bash
+roundfix baseline starters --profile python
+roundfix baseline starters --profile python --confirm-plan <digest>
+```
+
+Preview writes nothing, lists absent paths as `create` and existing paths as
+`keep`, and prints the Plan Digest. A non-empty preview exits 3; an empty
+preview is `current` and exits 0. Confirmation with `--confirm-plan` writes
+only absent paths, never overwriting, comparing or removing existing files.
+A stale digest exits 3 without writing; preview again. A write failure removes
+every file the call created and exits 1; created directories may remain.
+
+Confirming the exact preview is the maintainer's express authorization for
+exactly those paths. An Agent runs the confirmation only with the
+maintainer's express authorization. Once written, the repository owns the
+file: it is outside the Change Plan and Setup Manifest and no refresh changes
+it. `--format json` emits `roundfix/baseline-starters/v1`; invalid input,
+an unknown profile or an unsupported format exits 2.

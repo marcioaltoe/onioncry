@@ -257,6 +257,20 @@
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/write-techspec/SKILL.md",
       "computedHash": "e78ef4838d6f7fcb3f4b51d4ab15b84962dda8df6021c88bbd036eeb2fca7088"
+    },
+    "ai-memory-handoff": {
+      "source": "marcioaltoe/skills",
+      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
+      "sourceType": "github",
+      "skillPath": "skills/07-evidence-delivery/ai-memory-handoff/SKILL.md",
+      "computedHash": "94423b64ecb2a1c60950154b92a9260b634d35e0b2f45cf484daa3ae746ffc35"
+    },
+    "ai-memory-messaging": {
+      "source": "marcioaltoe/skills",
+      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
+      "sourceType": "github",
+      "skillPath": "skills/07-evidence-delivery/ai-memory-messaging/SKILL.md",
+      "computedHash": "7a3540d052be4f0839fb6f9927581c326524d381306992682693b2ffd2832be7"
     }
   }
 }
