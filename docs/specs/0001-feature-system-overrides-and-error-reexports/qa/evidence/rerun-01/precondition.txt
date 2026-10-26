@@ -1,0 +1,4 @@
+Command: rtk proxy roundfix spec check 0001-feature-system-overrides-and-error-reexports --strict
+Exit: 0
+No findings. Authored Verification commands were not executed.
+Skipped absent-artifact detectors: loop-order (3 missing files), finding lifecycle, rollup membership, archive license, backlog movement, vocabulary contract, skill coverage (2), behavior surfaces, skill versions, references index. No skipped detector is credited.

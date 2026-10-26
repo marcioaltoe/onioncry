@@ -1,0 +1,7 @@
+$ rtk proxy make build
+exit: 0
+stdout:
+
+stderr:
+cargo build (1 crates compiled)
+Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.71s

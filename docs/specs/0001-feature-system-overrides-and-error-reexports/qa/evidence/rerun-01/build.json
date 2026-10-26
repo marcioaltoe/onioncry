@@ -1,0 +1,10 @@
+{
+  "build_command": "rtk proxy make build",
+  "build_exit": 0,
+  "build_output": "cargo build (1 crates compiled)\nFinished dev profile in 3.29s",
+  "version_command": "rtk proxy target/debug/onioncry --version",
+  "version_stdout": "onioncry 0.1.0 revision: 92d90cdcf623\n",
+  "version_stderr": "",
+  "version_exit": 0,
+  "sha256": "f3804907e3297685928cd1c2f1e5c10067034d73c583b22a8e1996ca13b67c08"
+}

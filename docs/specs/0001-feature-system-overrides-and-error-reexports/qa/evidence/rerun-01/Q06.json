@@ -1,0 +1,399 @@
+{
+  "row": "Q06",
+  "binary": "/Volumes/Brain-SSD/cache/.roundfix/worktrees/onioncry-e63aaf35/run_20261026T191714Z_fa461164b6c27520/target/debug/onioncry",
+  "observations": [
+    {
+      "case": "layout representative",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 3,\n    \"errorCount\": 0,\n    \"violationCount\": 3\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing required components/ directory\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add components/ under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing required lib/ directory\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/ under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing root index.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add index.ts under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-layout\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/b.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"error\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "2e497c81114dab72950dfdd1150398ddaa7734f55b397851e10044f0e0b1f7a5",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "2e497c81114dab72950dfdd1150398ddaa7734f55b397851e10044f0e0b1f7a5",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "layout explain representative",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/a.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing required components/ directory\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add components/ under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing required lib/ directory\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/ under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-layout\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system \\\"billing\\\" is missing root index.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add index.ts under /private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-layout\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/b.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"error\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "2e497c81114dab72950dfdd1150398ddaa7734f55b397851e10044f0e0b1f7a5",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "2e497c81114dab72950dfdd1150398ddaa7734f55b397851e10044f0e0b1f7a5",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "layout off owner does not relocate",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-layout\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/b.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"error\"}}, {\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "f03bf9aeb2e198895b4c9f597d5ebbe881eba38b5ebe7370feee9af4f38ed6c7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "f03bf9aeb2e198895b4c9f597d5ebbe881eba38b5ebe7370feee9af4f38ed6c7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "layout sibling does not inherit",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/b.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-vi_kg8gh/packages/frontend/src/systems/billing/b.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-layout\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/b.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"error\"}}, {\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-layout\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "f03bf9aeb2e198895b4c9f597d5ebbe881eba38b5ebe7370feee9af4f38ed6c7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "f03bf9aeb2e198895b4c9f597d5ebbe881eba38b5ebe7370feee9af4f38ed6c7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "adapter-contract representative",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-adapter-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system adapter layer should expose adapters/billing-api.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-s3b0cwh3/packages/frontend/src/systems/billing/adapters/a.ts\",\n      \"suggestion\": \"add adapters/billing-api.ts as the domain-named adapter file\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/b.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "3eda79e895eb74c26b028198c4b484514462e12daec88da3d57fdd9251e9a03d",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "3eda79e895eb74c26b028198c4b484514462e12daec88da3d57fdd9251e9a03d",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "adapter-contract explain representative",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/adapters/a.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-s3b0cwh3/packages/frontend/src/systems/billing/adapters/a.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-adapter-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"feature system adapter layer should expose adapters/billing-api.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-s3b0cwh3/packages/frontend/src/systems/billing/adapters/a.ts\",\n      \"suggestion\": \"add adapters/billing-api.ts as the domain-named adapter file\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/b.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "3eda79e895eb74c26b028198c4b484514462e12daec88da3d57fdd9251e9a03d",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "3eda79e895eb74c26b028198c4b484514462e12daec88da3d57fdd9251e9a03d",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "adapter-contract off owner does not relocate",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/b.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "7b5314ad1db45860d04cc269cf6e2b4e68666487664136486b329c4a4dd8d9f8",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "7b5314ad1db45860d04cc269cf6e2b4e68666487664136486b329c4a4dd8d9f8",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "adapter-contract sibling does not inherit",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/adapters/b.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-s3b0cwh3/packages/frontend/src/systems/billing/adapters/b.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/b.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"error\"}}, {\"files\": [\"packages/frontend/src/systems/billing/adapters/a.ts\"], \"rules\": {\"frontend/feature-system-adapter-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "export const b = 1;"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "7b5314ad1db45860d04cc269cf6e2b4e68666487664136486b329c4a4dd8d9f8",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "7b5314ad1db45860d04cc269cf6e2b4e68666487664136486b329c4a4dd8d9f8",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/adapters/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/adapters/b.ts": "a9ceb8e400c41d6d02b58069b3ae67b4015fdebd1d949431343bdb565c82125a"
+      }
+    },
+    {
+      "case": "query-contract representative",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 1,
+      "expected_exit": 1,
+      "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 2,\n    \"errorCount\": 0,\n    \"violationCount\": 2\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"billing requires lib/query-keys.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/query-keys.ts under packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"billing requires lib/query-options.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/query-options.ts under packages/frontend/src/systems/billing\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/hooks/use-billing.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; export const useBilling = () => useQuery({ queryKey: ['billing'], queryFn: () => [] });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "f6244d858969f37dedbb05c5abc7af33a4cdc5ba92814333e659bf31f4afbac7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "f6244d858969f37dedbb05c5abc7af33a4cdc5ba92814333e659bf31f4afbac7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      }
+    },
+    {
+      "case": "query-contract explain representative",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/a.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/a.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"billing requires lib/query-keys.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/query-keys.ts under packages/frontend/src/systems/billing\"\n    },\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"billing requires lib/query-options.ts\",\n      \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/a.ts\",\n      \"suggestion\": \"add lib/query-options.ts under packages/frontend/src/systems/billing\"\n    }\n  ]\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/hooks/use-billing.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; export const useBilling = () => useQuery({ queryKey: ['billing'], queryFn: () => [] });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "f6244d858969f37dedbb05c5abc7af33a4cdc5ba92814333e659bf31f4afbac7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "f6244d858969f37dedbb05c5abc7af33a4cdc5ba92814333e659bf31f4afbac7",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      }
+    },
+    {
+      "case": "query-contract off owner does not relocate",
+      "command": [
+        "<RUN_BINARY>",
+        "check",
+        "--format",
+        "json",
+        "--fail-on",
+        "warning"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"status\": \"pass\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 0,\n    \"errorCount\": 0,\n    \"violationCount\": 0\n  },\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/hooks/use-billing.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}, {\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; export const useBilling = () => useQuery({ queryKey: ['billing'], queryFn: () => [] });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "c7f38f4fc922e6398705c79d589eb0b461980ed1b10c9fc00a7c361f70a7d489",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "c7f38f4fc922e6398705c79d589eb0b461980ed1b10c9fc00a7c361f70a7d489",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      }
+    },
+    {
+      "case": "query-contract sibling does not inherit",
+      "command": [
+        "<RUN_BINARY>",
+        "explain",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "stdout": "{\n  \"file\": \"/private/var/folders/_7/68y3l_1s55jcsdmmcmmm4dhh0000gn/T/onioncry-qa-owners-tvr_l0j2/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": []\n}\n",
+      "stderr": "",
+      "fixture": {
+        ".onioncryrc.jsonc": "// QA generic source fixture\n{\"version\": 1, \"project\": {\"root\": \".\", \"include\": [\"**/*.ts\", \"**/*.tsx\"], \"exclude\": []}, \"rules\": {\"frontend/feature-system-query-contract\": \"error\"}, \"overrides\": [{\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"warn\"}}, {\"files\": [\"packages/frontend/src/systems/billing/hooks/use-billing.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}, {\"files\": [\"packages/frontend/src/systems/billing/a.ts\"], \"rules\": {\"frontend/feature-system-query-contract\": \"off\"}}]}",
+        "aaa-unrelated.ts": "export const unrelated = 1;",
+        "packages/frontend/src/systems/billing/a.ts": "export const a = 1;",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useQuery } from '@tanstack/react-query'; export const useBilling = () => useQuery({ queryKey: ['billing'], queryFn: () => [] });"
+      },
+      "sha256_before": {
+        ".onioncryrc.jsonc": "c7f38f4fc922e6398705c79d589eb0b461980ed1b10c9fc00a7c361f70a7d489",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      },
+      "sha256_after": {
+        ".onioncryrc.jsonc": "c7f38f4fc922e6398705c79d589eb0b461980ed1b10c9fc00a7c361f70a7d489",
+        "aaa-unrelated.ts": "5e7ea6a07cf22ff7da19a17001d07937203d6208dd191c7f482b6fa3592cbb3a",
+        "packages/frontend/src/systems/billing/a.ts": "683314ed22112e8dea8095c8c6173afa2c61279f5fe07968ebe0e21fff16871d",
+        "packages/frontend/src/systems/billing/hooks/use-billing.ts": "61d1580644264a35f724ba71ce364af53c0015b6c1d1387bb62b6eb7a3c69024"
+      }
+    }
+  ],
+  "problems": [],
+  "command_count": 12,
+  "status": "pass"
+}

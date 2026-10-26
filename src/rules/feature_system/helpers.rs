@@ -45,13 +45,6 @@ pub(super) fn source_exports_value(source: &str, name: &str) -> bool {
             && source.contains(&format!("export {{ {name} }}")))
 }
 
-pub(super) fn source_exports_error_class(source: &str, name: &str) -> bool {
-    (source.contains(&format!("export class {name}")) && source.contains("extends Error"))
-        || (source.contains(&format!("class {name}"))
-            && source.contains("extends Error")
-            && source.contains(&format!("export {{ {name} }}")))
-}
-
 pub(super) fn source_has_configured_read_call(source: &str, http_client_names: &[String]) -> bool {
     http_client_names.iter().any(|client| {
         if client == "fetch" {
