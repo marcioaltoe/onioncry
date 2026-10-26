@@ -1,6 +1,6 @@
 {
   "name": "onioncry",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Check architectural boundaries in JavaScript and TypeScript projects",
   "license": "MIT",
   "repository": {
@@ -26,10 +26,10 @@
     "node": ">=18"
   },
   "optionalDependencies": {
-    "@onioncry/cli-darwin-arm64": "0.1.0",
-    "@onioncry/cli-darwin-x64": "0.1.0",
-    "@onioncry/cli-linux-arm64": "0.1.0",
-    "@onioncry/cli-linux-x64": "0.1.0",
-    "@onioncry/cli-win32-x64": "0.1.0"
+    "@onioncry/cli-darwin-arm64": "0.2.0",
+    "@onioncry/cli-darwin-x64": "0.2.0",
+    "@onioncry/cli-linux-arm64": "0.2.0",
+    "@onioncry/cli-linux-x64": "0.2.0",
+    "@onioncry/cli-win32-x64": "0.2.0"
   }
 }
