@@ -4,6 +4,30 @@ All notable changes to OnionCry are documented in this file. Entries are
 generated from Conventional Commit history with
 [cocogitto](https://github.com/cocogitto/cocogitto).
 
+## v0.2.0 - 2026-10-26
+
+The `frontend/feature-system-*` rules now honor per-file overrides, and the
+adapter contract proves named `Error` class exports through reexports.
+
+#### Features
+
+- follow second brain move to marcioaltoe/secondbrain (#9) - (7a84ed7) - Marcio Altoé
+- join Tabularium mirror sync (#8) - (7e0ab4a) - Marcio Altoé
+
+#### Bug Fixes
+
+- (**cli**) honor file overrides and resolve Error reexports (#12) - (bf8862f) - Marcio Altoé
+
+#### Documentation
+
+- authorize feature-system fixes and stable publication (#11) - (93c9e80) - Marcio Altoé
+
+#### Miscellaneous Chores
+
+- (**agents**) refresh managed baseline and required skills (#13) - (5a96e4e) - Marcio Altoé
+- (**repo**) update dependencies, baseline and tooling (#10) - (db73399) - Marcio Altoé
+- (**agents**) add canonical onioncry skill and pre-PR update rule - (b2bcfb7) - Marcio Altoe
+
 ## v0.1.0 - 2026-07-04
 
 First public release.
