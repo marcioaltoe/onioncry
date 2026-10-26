@@ -1,0 +1,21 @@
+{
+  "report": "qa-report-2026-10-26.md",
+  "verdict": "partial",
+  "rows": 11,
+  "pass": 10,
+  "rows_blocked_environment": 1,
+  "rows_blocked_finding": 0,
+  "rows_blocked_declared": 0,
+  "failed": 0,
+  "skipped": 0,
+  "pending": 0,
+  "cli_commands": 141,
+  "auditor_fields": "unchanged from seeded report",
+  "mechanical_sections": "preserved",
+  "typed_inputs": "all 11 rows; commit_range present on scope and PR rows",
+  "evidence_links": "all resolve",
+  "evidence_encoding": "UTF-8 text only",
+  "working_tree_scope": "only assigned qa/ directory untracked; no tracked delta",
+  "repository_verification": "Daemon make verify pass exit 0; not rerun",
+  "commands_still_running": 0
+}

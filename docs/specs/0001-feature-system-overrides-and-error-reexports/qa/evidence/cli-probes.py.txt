@@ -1,0 +1,410 @@
+"""Reproduce a QA row: python3 cli-probes.py.txt <Run binary> Q03 ... Q10.
+All projects are generic temporary fixtures; the analyzed TypeScript is never executed.
+"""
+import collections
+import hashlib
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+BINARY = Path(sys.argv[1]).resolve()
+OUT = Path(__file__).resolve().parent
+REPORT = OUT.parent / 'qa-report-2026-10-26.md'
+ROOT = 'packages/frontend/src'
+SYSTEM = ROOT + '/systems/billing'
+ADAPTER = SYSTEM + '/adapters/billing-api.ts'
+FAMILIES = ['layout', 'public-api', 'dependency-flow', 'adapter-contract', 'query-contract']
+RULE = 'frontend/feature-system-'
+records = []
+problems = []
+
+def require(condition, message):
+    if not condition:
+        problems.append(message)
+
+def config(family, setting='error', overrides=None):
+    return {'version': 1, 'project': {'root': '.', 'include': ['**/*.ts', '**/*.tsx'], 'exclude': []},
+            'rules': {RULE + family: setting}, 'overrides': overrides or []}
+
+def override(family, file, setting):
+    return {'files': [file], 'rules': {RULE + family: setting}}
+
+def write(root, file, source):
+    p = root / file
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(source)
+
+def fixture(root, cfg, files):
+    write(root, '.onioncryrc.jsonc', '// QA generic source fixture\n' + json.dumps(cfg))
+    for file, source in files.items():
+        write(root, file, source)
+
+def digest(root):
+    return {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(root.rglob('*')) if p.is_file()}
+
+def command(root, args, name, expected_exit):
+    before = digest(root)
+    try:
+        result = subprocess.run(['rtk', 'proxy', str(BINARY)] + args, cwd=root,
+                                capture_output=True, text=True, timeout=20)
+        code, stdout, stderr = result.returncode, result.stdout, result.stderr
+    except subprocess.TimeoutExpired:
+        code, stdout, stderr = -999, '', 'subprocess exceeded 20 seconds'
+    after = digest(root)
+    record = {'case': name, 'command': ['<RUN_BINARY>'] + args, 'exit': code,
+              'expected_exit': expected_exit, 'stdout': stdout, 'stderr': stderr,
+              'fixture': {str(p.relative_to(root)): p.read_text() for p in sorted(root.rglob('*')) if p.is_file()},
+              'sha256_before': before, 'sha256_after': after}
+    records.append(record)
+    require(code == expected_exit, name + ': exit ' + str(code) + ', expected ' + str(expected_exit))
+    require(before == after, name + ': command changed fixture files')
+    return record
+
+def relative(file, root):
+    p = Path(file)
+    return p.relative_to(root).as_posix() if p.is_absolute() and p.is_relative_to(root) else p.as_posix()
+
+def check(root, family, expected, name, strict=True):
+    errors = sum(sev == 'error' for _, sev in expected)
+    warnings = len(expected) - errors
+    fails = errors > 0 or (strict and warnings > 0)
+    args = ['check', '--format', 'json'] + (['--fail-on', 'warning'] if strict else [])
+    record = command(root, args, name, 1 if fails else 0)
+    require(record['stderr'] == '', name + ': unexpected stderr')
+    try:
+        report = json.loads(record['stdout'])
+    except json.JSONDecodeError:
+        require(False, name + ': stdout is not JSON')
+        return {}
+    require(report.get('status') == ('fail' if fails else 'pass'), name + ': status mismatch')
+    summary = report.get('summary', {})
+    require((summary.get('errorCount'), summary.get('warningCount'), summary.get('violationCount')) ==
+            (errors, warnings, len(expected)), name + ': summary mismatch')
+    actual = sorted((relative(v['file'], root), v['severity']) for v in report.get('violations', []))
+    require(actual == sorted(expected), name + ': diagnostic owner/severity mismatch: ' + repr(actual))
+    require(all(v['rule'] == RULE + family for v in report.get('violations', [])), name + ': rule mismatch')
+    return report
+
+def explain(root, file, name, expected_count):
+    record = command(root, ['explain', file, '--format', 'json'], name, 0)
+    require(record['stderr'] == '', name + ': explain stderr')
+    data = json.loads(record['stdout'])
+    require(len(data.get('violations', [])) == expected_count, name + ': explain violation count')
+    return data
+
+def case_file(files, family, name):
+    if family == 'layout':
+        file, source = ROOT + '/components/' + name + '/card.tsx', 'export const Card = () => null;'
+    elif family == 'public-api':
+        files[SYSTEM + '/lib/internal.ts'] = 'export const internal = 1;'
+        file, source = ROOT + '/routes/' + name + '.ts', "import { internal } from '../systems/billing/lib/internal'; export const route = internal;"
+    elif family == 'dependency-flow':
+        files[ADAPTER] = 'export const billingApi = {};'
+        file, source = SYSTEM + '/components/' + name + '.tsx', "import { billingApi } from '../adapters/billing-api'; export const Card = billingApi;"
+    elif family == 'adapter-contract':
+        file = ROOT + '/systems/' + name + '/adapters/' + name + '-api.ts'
+        source = 'export const ' + name + 'Api = {};'
+    else:
+        file = SYSTEM + '/hooks/' + name + '.ts'
+        source = "import { useMutation } from '@tanstack/react-query'; export const mutate = () => useMutation({ mutationFn: async () => undefined });"
+    files[file] = source
+    return file
+
+def Q03():
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-contract-') as folder:
+        root = Path(folder).resolve()
+        for args in [['--version'], ['--help'], ['check', '--help'], ['explain', '--help']]:
+            r = command(root, args, 'identity/help ' + ' '.join(args), 0)
+            require(r['stderr'] == '', 'help/version stderr')
+        fixture(root, config('adapter-contract', 'warn'), {ADAPTER: 'export const billingApi = {}; export class BillingApiError {}'})
+        report = check(root, 'adapter-contract', [(ADAPTER, 'warn')], 'warning default', False)
+        check(root, 'adapter-contract', [(ADAPTER, 'warn')], 'warning strict', True)
+        data = explain(root, ADAPTER, 'explain same warning', 1)
+        require(data['violations'][0]['rule'] == report['violations'][0]['rule'], 'explain rule disagrees')
+        require(data['violations'][0]['message'] == report['violations'][0]['message'], 'explain message disagrees')
+        for args, name in [(['check'], 'pretty'), (['check', '--format', 'sarif'], 'sarif'), (['check', '--llm-mode'], 'llm')]:
+            r = command(root, args, name, 0)
+            require(not r['stderr'], name + ': stderr')
+            if name == 'sarif':
+                doc = json.loads(r['stdout'])
+                require(doc['version'] == '2.1.0' and len(doc['runs'][0]['results']) == 1, 'SARIF envelope/count')
+            elif name == 'llm':
+                require('onioncry-llm-report v1 revision:' in r['stdout'].splitlines()[-1], 'LLM completeness footer')
+            else:
+                require('BillingApiError' in r['stdout'], 'pretty diagnostic absent')
+        bad = command(root, ['check', '--fail-on', 'invalid'], 'invalid threshold', 2)
+        require(not bad['stdout'] and 'error:' in bad['stderr'], 'bad usage stream separation')
+        write(root, '.onioncryrc.jsonc', '{ invalid jsonc')
+        bad = command(root, ['check', '--format', 'json'], 'invalid config', 2)
+        require(not bad['stdout'] and bool(bad['stderr']), 'config error stream separation')
+        write(root, '.onioncryrc.jsonc', json.dumps(config('adapter-contract')))
+        write(root, ADAPTER, 'export const billingApi = {}; export class BillingApiError extends Error {}')
+        check(root, 'adapter-contract', [], 'recover clean strict')
+        check(root, 'adapter-contract', [], 'fresh process clean replay')
+        explain(root, ADAPTER, 'explain clean recovery', 0)
+
+def Q04():
+    for family in FAMILIES:
+        with tempfile.TemporaryDirectory(prefix='onioncry-qa-policy-') as folder:
+            root = Path(folder).resolve()
+            files = {'aaa-unrelated.ts': 'export const unrelated = 1;'}
+            owners = {name: case_file(files, family, name) for name in ['off', 'warn', 'error', 'base']}
+            overrides = [override(family, 'aaa-unrelated.ts', 'warn')]
+            for name, first, last in [('off', 'error', 'off'), ('warn', 'off', 'warn'), ('error', 'warn', 'error')]:
+                overrides.extend([override(family, owners[name], first), override(family, owners[name], last)])
+            cfg = config(family, 'error', overrides)
+            fixture(root, cfg, files)
+            expected = [(owners['warn'], 'warn'), (owners['error'], 'error'), (owners['base'], 'error')]
+            check(root, family, expected, family + ' mixed default', False)
+            check(root, family, expected, family + ' mixed strict')
+            explain(root, owners['warn'], family + ' explain warning owner', 1)
+            cfg['rules'][RULE + family] = 'off'
+            cfg['overrides'].append(override(family, owners['error'], 'off'))
+            fixture(root, cfg, {})
+            check(root, family, [(owners['warn'], 'warn')], family + ' warning-only default', False)
+            check(root, family, [(owners['warn'], 'warn')], family + ' warning-only strict')
+
+def Q05():
+    options = {'public-api': {'routeRoots': []}, 'dependency-flow': {'adapterBridgeFiles': []},
+               'adapter-contract': {'httpClientNames': []}, 'query-contract': {'queryKeysFile': 'lib/custom-keys.ts'}}
+    for family in FAMILIES:
+        with tempfile.TemporaryDirectory(prefix='onioncry-qa-options-') as folder:
+            root = Path(folder).resolve()
+            files = {'aaa-unrelated.ts': 'export const unrelated = 1;'}
+            if family == 'layout':
+                owner = SYSTEM + '/index.ts'
+                files[owner] = 'export const billing = 1;'
+                opts = {'requiredDirectories': ['custom']}
+            else:
+                owner = case_file(files, family, 'custom')
+                opts = options[family]
+            case_file(files, family, 'sibling')
+            base = {'systemsRoots': ['absent']}
+            if family == 'layout': base['allowedSharedComponentRoots'] = [ROOT + '/components']
+            cfg = config(family, ['error', base], [override(family, owner, 'off'), override(family, owner, ['warn', opts])])
+            fixture(root, cfg, files)
+            check(root, family, [(owner, 'warn')], family + ' replaced options default', False)
+            check(root, family, [(owner, 'warn')], family + ' replaced options strict')
+            explain(root, owner, family + ' explain replaced options', 1)
+
+def Q06():
+    for family, owner, sibling, count in [
+        ('layout', SYSTEM + '/a.ts', SYSTEM + '/b.ts', 3),
+        ('adapter-contract', SYSTEM + '/adapters/a.ts', SYSTEM + '/adapters/b.ts', 1),
+        ('query-contract', SYSTEM + '/a.ts', SYSTEM + '/hooks/use-billing.ts', 2)]:
+        with tempfile.TemporaryDirectory(prefix='onioncry-qa-owners-') as folder:
+            root = Path(folder).resolve()
+            files = {'aaa-unrelated.ts': 'export const unrelated = 1;', owner: 'export const a = 1;', sibling: 'export const b = 1;'}
+            if family == 'query-contract': files[sibling] = "import { useQuery } from '@tanstack/react-query'; export const useBilling = () => useQuery({ queryKey: ['billing'], queryFn: () => [] });"
+            cfg = config(family, 'error', [override(family, owner, 'warn'), override(family, sibling, 'off' if family == 'query-contract' else 'error')])
+            fixture(root, cfg, files)
+            check(root, family, [(owner, 'warn')] * count, family + ' representative')
+            explain(root, owner, family + ' explain representative', count)
+            cfg['overrides'].append(override(family, owner, 'off'))
+            fixture(root, cfg, {})
+            check(root, family, [], family + ' off owner does not relocate')
+            explain(root, sibling, family + ' sibling does not inherit', 0)
+
+def Q07():
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-cross-file-') as folder:
+        root = Path(folder).resolve()
+        helper, keys, options, hook = [SYSTEM + x for x in ['/adapters/a-helper.ts', '/lib/query-keys.ts', '/lib/query-options.ts', '/hooks/use-billing.ts']]
+        files = {ADAPTER: 'export const billingApi = { list: () => [] }; export class BillingApiError extends Error {}', helper: 'export const helper = 1;',
+                 keys: "export const billingKeys = { list: () => ['billing'] };",
+                 options: "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; import { billingKeys } from './query-keys'; export const billingOptions = () => queryOptions({ queryKey: billingKeys.list(), queryFn: ({ signal }) => billingApi.list({ signal }) });",
+                 hook: "import { useQuery } from '@tanstack/react-query'; import { billingOptions } from '../lib/query-options'; export const useBilling = () => useQuery(billingOptions());"}
+        fixture(root, config('adapter-contract', 'off', [override('adapter-contract', helper, 'warn')]), files)
+        check(root, 'adapter-contract', [], 'off adapter still exists for enabled helper')
+        fixture(root, config('query-contract', 'off', [override('query-contract', hook, 'warn')]), {})
+        check(root, 'query-contract', [], 'off factories still satisfy hook')
+        write(root, options, "import { queryOptions } from '@tanstack/react-query'; import { billingApi } from '../adapters/billing-api'; export const billingOptions = () => queryOptions({ queryKey: ['billing'], queryFn: () => billingApi.list() });")
+        fixture(root, config('query-contract', 'off', [override('query-contract', options, 'warn')]), {})
+        report = check(root, 'query-contract', [(options, 'warn')], 'off adapter retains signal obligation')
+        require('query context signal' in report['violations'][0]['message'], 'signal finding absent')
+        explain(root, options, 'explain signal obligation', 1)
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-production-') as folder:
+        root = Path(folder).resolve()
+        exempt, production = SYSTEM + '/lib/export-hook.ts', SYSTEM + '/components/production.tsx'
+        source = "import { billingApi } from '../adapters/billing-api'; export const value = billingApi;"
+        cfg = config('dependency-flow', 'error', [override('dependency-flow', exempt, ['error', {'allowedImports': {'components': ['adapters']}, 'adapterBridgeFiles': ['lib/export-hook.ts']}])])
+        fixture(root, cfg, {ADAPTER: 'export const billingApi = {};', exempt: source, production: source})
+        check(root, 'dependency-flow', [(production, 'error')], 'exempt hook beside production negative')
+        explain(root, exempt, 'explain exempt hook', 0)
+        explain(root, production, 'explain protected production', 1)
+
+MODULES = {
+    'errors.ts': 'export class ActualError extends Error {} export class Ordinary {} export const value = 1;',
+    'hop.ts': "export { ActualError as Renamed } from './errors';",
+    'second.ts': "export { Renamed as FinalError } from './hop';",
+    'local.ts': 'class InternalError extends Error {} export { InternalError as ActualError };',
+    'imported.ts': "import { ActualError as Internal } from './local'; export { Internal as Forwarded };",
+    'pair-a.ts': "export { Intermediate as ActualError } from './pair-b'; export class BaseError extends Error {}",
+    'pair-b.ts': "export { BaseError as Intermediate } from './pair-a';",
+    'cycle-a.ts': "export { Loop as Again } from './cycle-b';",
+    'cycle-b.ts': "export { Again as Loop } from './cycle-a';",
+    'default.ts': 'export default class ActualError extends Error {}',
+    'types.ts': 'export declare class ActualError extends Error {}',
+    'ambient.d.ts': 'export class ActualError extends Error {}',
+    'type-export.ts': "export type { ActualError } from './errors';"}
+
+def error_fixture(root, source, cfg=None, modules=None):
+    files = dict(MODULES if modules is None else modules)
+    files[ADAPTER] = 'export const billingApi = {};\n' + source
+    fixture(root, cfg or config('adapter-contract'), files)
+
+def Q08():
+    valid = [
+        'export class BillingApiError extends Error {}',
+        'class BillingApiError extends Error {} export { BillingApiError };',
+        'class InternalError extends Error {} export { InternalError as BillingApiError };',
+        'export class BillingApiError\n extends\n Error {}',
+        "export { ActualError as BillingApiError } from '../../../../../../errors';",
+        "export {\n ActualError as\n BillingApiError,\n type value\n} from '../../../../../../errors';",
+        "export { FinalError as BillingApiError } from '../../../../../../second';",
+        "export { Forwarded as BillingApiError } from '../../../../../../imported';",
+        "import { ActualError as LocalError } from '../../../../../../errors'; export { LocalError as BillingApiError };",
+        "export { ActualError as BillingApiError } from '../../../../../../pair-a';"]
+    for i, source in enumerate(valid):
+        with tempfile.TemporaryDirectory(prefix='onioncry-qa-valid-') as folder:
+            root = Path(folder).resolve()
+            error_fixture(root, source)
+            check(root, 'adapter-contract', [], 'valid named export ' + str(i))
+            explain(root, ADAPTER, 'explain valid ' + str(i), 0)
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-alias-') as folder:
+        root = Path(folder).resolve()
+        cfg = config('adapter-contract'); cfg['aliases'] = {'@errors': 'lib'}
+        error_fixture(root, "import { ActualError as Local } from '@errors/runtime'; export { Local as BillingApiError };", cfg, {'lib/runtime.ts': 'export class ActualError extends Error {}'})
+        check(root, 'adapter-contract', [], 'configured alias imported then exported')
+        data = explain(root, ADAPTER, 'explain configured alias', 0)
+        require('lib/runtime.ts' in json.dumps(data), 'explain alias target absent')
+
+def Q09():
+    invalid = [
+        'export class BillingApiError {} class Decoy extends Error {}',
+        'class BillingApiError {} class Decoy extends Error {} export { BillingApiError };',
+        'export const BillingApiError = 1; class Decoy extends Error {}',
+        '// export class BillingApiError extends Error {}',
+        "const text = 'export class BillingApiError extends Error {}';",
+        'export class BillingApiErrorExtra extends Error {}',
+        'class Decoy extends Error {} export { Missing as BillingApiError };',
+        'class Base extends Error {} export class BillingApiError extends Base {}',
+        'class BillingApiError extends Error {} export type { BillingApiError };',
+        'class BillingApiError extends Error {} export { type BillingApiError };',
+        'export declare class BillingApiError extends Error {}',
+        "export { Ordinary as BillingApiError } from '../../../../../../errors';",
+        "export { value as BillingApiError } from '../../../../../../errors';",
+        "export { Missing as BillingApiError } from '../../../../../../errors';",
+        "export type { ActualError as BillingApiError } from '../../../../../../errors';",
+        "export { type ActualError as BillingApiError } from '../../../../../../errors';",
+        "import type { ActualError as BillingApiError } from '../../../../../../errors'; export { BillingApiError };",
+        "import { type ActualError as BillingApiError } from '../../../../../../errors'; export { BillingApiError };",
+        "export { ActualError as BillingApiError } from '../../../../../../type-export';",
+        "export { ActualError as BillingApiError } from '../../../../../../types';",
+        "export { ActualError as BillingApiError } from '../../../../../../ambient.d';",
+        "export { ActualError as BillingApiError } from 'external-errors';",
+        "export { ActualError as BillingApiError } from './missing';",
+        "export { Again as BillingApiError } from '../../../../../../cycle-a';",
+        "export { BillingApiError } from './billing-api';",
+        "export * from '../../../../../../errors';",
+        "export { default as BillingApiError } from '../../../../../../default';",
+        "import BillingApiError from '../../../../../../default'; export { BillingApiError };",
+        'class Error {} export class BillingApiError extends Error {}',
+        'const Error = class {}; export class BillingApiError extends Error {}',
+        "import { Ordinary as Error } from '../../../../../../errors'; export class BillingApiError extends Error {}"]
+    for i, source in enumerate(invalid):
+        with tempfile.TemporaryDirectory(prefix='onioncry-qa-invalid-') as folder:
+            root = Path(folder).resolve()
+            error_fixture(root, source)
+            report = check(root, 'adapter-contract', [(ADAPTER, 'error')], 'invalid proof ' + str(i))
+            require(report['violations'][0]['message'] == 'adapter file should export typed API error BillingApiError', 'invalid proof message ' + str(i))
+            if i in [0, 23, 24]: explain(root, ADAPTER, 'explain invalid/cyclic ' + str(i), 1)
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-excluded-') as folder:
+        root = Path(folder).resolve()
+        cfg = config('adapter-contract'); cfg['project']['exclude'] = ['excluded/**']
+        error_fixture(root, "export { ActualError as BillingApiError } from '../../../../../../excluded/errors';", cfg, {})
+        for i, source in enumerate(['export class ActualError extends Error {}', 'this is deliberately invalid TypeScript {']):
+            write(root, 'excluded/errors.ts', source)
+            check(root, 'adapter-contract', [(ADAPTER, 'error')], 'excluded target ' + str(i))
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-shared-') as folder:
+        root = Path(folder).resolve()
+        other = ROOT + '/systems/orders/adapters/orders-api.ts'
+        error_fixture(root, "export { ActualError as BillingApiError } from '../../../../../../errors';", modules={
+            'errors.ts': MODULES['errors.ts'], other: "export const ordersApi = {}; export { Ordinary as OrdersApiError } from '../../../../../../errors';"})
+        check(root, 'adapter-contract', [(other, 'error')], 'shared target exact binding identity')
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-adapter-boundary-') as folder:
+        root = Path(folder).resolve()
+        component = SYSTEM + '/components/card.tsx'
+        error_fixture(root, "export { ActualError as BillingApiError } from '../../../../../../errors'; import { Card } from '../components/card';", config('adapter-contract', 'warn'), {'errors.ts': MODULES['errors.ts'], component: 'export const Card = () => null;'})
+        for strict in [False, True]:
+            report = check(root, 'adapter-contract', [(ADAPTER, 'warn')], 'valid export forbidden component ' + str(strict), strict)
+            violation = report['violations'][0]
+            require('adapter files may not import components' in violation['message'], 'adapter boundary missing')
+            require(relative(violation['targetFile'], root) == component, 'adapter boundary target changed')
+        explain(root, ADAPTER, 'explain retained adapter boundary', 1)
+
+def Q10():
+    reference = OUT.parents[4] / 'references/2026-10-26-feature-system-contracts.md'
+    # Resolve from repository, independent of current working directory.
+    repo = BINARY.parents[2]
+    reference = repo / 'docs/references/2026-10-26-feature-system-contracts.md'
+    text = reference.read_text()
+    require(all(field in text for field in ['[[ExportName]]', '[[LocalName]]', '[[ModuleRequest]]', '[[ImportName]]']), 'outside reference fields missing')
+    records.append({'source': str(reference.relative_to(repo)), 'origin': 'https://tc39.es/ecma262/multipage/ecmascript-language-scripts-and-modules.html#sec-exports-static-semantics-exportentries',
+                    'consultation': 'Offline committed record of published normative ExportEntries; no live retrieval claimed.',
+                    'mapping': {'ExportName': 'BillingApiError', 'ModuleRequest': '../../../../../../hop', 'ImportName': 'Renamed'},
+                    'prediction': 'Renamed maps to ActualError: accept; replacing it by Ordinary: reject despite unrelated ActualError.'})
+    with tempfile.TemporaryDirectory(prefix='onioncry-qa-outside-') as folder:
+        root = Path(folder).resolve()
+        error_fixture(root, "export { Renamed as BillingApiError } from '../../../../../../hop';")
+        check(root, 'adapter-contract', [], 'outside named alias acceptance')
+        explain(root, ADAPTER, 'outside explain alias acceptance', 0)
+        write(root, 'hop.ts', "export { Ordinary as Renamed } from './errors';")
+        check(root, 'adapter-contract', [(ADAPTER, 'error')], 'outside exact target sabotage')
+        explain(root, ADAPTER, 'outside explain exact target rejection', 1)
+        write(root, 'hop.ts', MODULES['hop.ts'])
+        check(root, 'adapter-contract', [], 'outside recovery fresh process')
+
+DESCRIPTIONS = {
+    'Q03': 'Help/version, JSON, pretty, SARIF envelope, LLM footer, explain, warning thresholds, operational errors and clean recovery.',
+    'Q04': 'All five families emit exact owner/rule/severity/counts under mixed and warning-only policies; later overrides win.',
+    'Q05': 'All five option-bearing overrides replace the entire rule value; omitted systemsRoots reset to defaults and siblings retain their base options.',
+    'Q06': 'Missing directories/barrel (3), adapter (1) and query files (2) stay with the original representative; off owner suppresses without relocation.',
+    'Q07': 'Off adapter/query files remain facts for enabled owners; missing signal is detected, while a narrow hook exception preserves a production import error.',
+    'Q08': 'All promised direct/local/named reexport/import-export forms and configured aliases pass, including revisiting a file under a distinct binding.',
+    'Q09': 'All invalid/type-only/ambient/decoy/value/missing/unresolved/external/cyclic/unsupported/excluded proofs fail conservatively; valid exports preserve adapter boundaries.',
+    'Q10': 'Published ExportEntries field relationships predict alias acceptance and wrong-binding rejection; the CLI agrees and recovers after restoring the target.'}
+
+def run_row(rid):
+    global records, problems
+    records, problems = [], []
+    try:
+        globals()[rid]()
+    except Exception as error:
+        problems.append(type(error).__name__ + ': ' + str(error))
+    result = {'row': rid, 'binary': str(BINARY), 'observations': records, 'problems': problems,
+              'command_count': sum('command' in r for r in records), 'status': 'fail' if problems else 'pass'}
+    (OUT / (rid + '.json')).write_text(json.dumps(result, indent=2) + '\n')
+    text = REPORT.read_text()
+    text = text.replace('| ' + rid + ' | pending |', '| ' + rid + ' | ' + result['status'] + ' |')
+    start = text.index('### ' + rid + '\n')
+    end = text.find('\n### ', start + 1)
+    if end < 0: end = text.index('\n## Findings', start)
+    detail = DESCRIPTIONS[rid] + ' Observed ' + str(result['command_count']) + ' fresh CLI subprocesses. '
+    detail += 'Evidence: [' + rid + '.json](evidence/' + rid + '.json), with exact arguments, complete stdout/stderr, exits, fixture source/config and before/after SHA-256 maps. '
+    detail += 'Independent confirmation: fresh explain or threshold replay; fixture hashes show read-only persistence. Reproduction: `rtk proxy python3 evidence/cli-probes.py.txt <RUN_BINARY> ' + rid + '` from qa/. '
+    detail += ('All assertions passed.' if not problems else 'Failures: ' + '; '.join(problems))
+    old = 'Steps, expected observable, independent confirmation and evidence: pending execution. Each public CLI subprocess starts fresh; checks are read-only and fixture digests confirm persistence.'
+    text = text[:start] + text[start:end].replace(old, detail) + text[end:]
+    REPORT.write_text(text)
+    print(rid + ': ' + result['status'] + '; commands=' + str(result['command_count']) + '; problems=' + str(len(problems)), flush=True)
+    for problem in problems: print('  ' + problem, flush=True)
+    return not problems
+
+if __name__ == '__main__':
+    success = True
+    for rid in sys.argv[2:]:
+        success = run_row(rid) and success
+    raise SystemExit(0 if success else 1)

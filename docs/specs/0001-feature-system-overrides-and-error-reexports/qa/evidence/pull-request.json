@@ -1,0 +1,12 @@
+{
+  "row": "Q11",
+  "expected_head": "9881a54974476a16e1033b719d44ea974bd173a1",
+  "source": "Roundfix QA assignment: no open Pull Request; Run branch never pushed; target branch fix/feature-system-overrides-and-error-reexports",
+  "status": "blocked (environment: no open Pull Request)",
+  "approval": "No current-candidate approval was obtained in this gate. The committed maintainer authorization grants the correction scope; it is not final acceptance.",
+  "checks_and_status": "Daemon make verify passed, exit 0. No current-head PR CI exists yet; no CI success is inferred.",
+  "unresolved_review_threads": "No open PR exists, so it has no PR review threads to inspect. No claim that the later configured review is complete.",
+  "merge_ready_acceptance": "No Review Source acceptance evidence for the expected head was supplied or obtained.",
+  "review_artifact_ancestry": "Expected head is confirmed by scope.txt. No review artifact is available to prove ancestry at this head.",
+  "unblocking": "Supervisor obtains configured current-head review, PR checks, approval and Merge-Ready evidence on the Spec target branch after this gate."
+}

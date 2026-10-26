@@ -1,0 +1,63 @@
+$ <RUN_BINARY> --version
+exit: 0
+stdout:
+onioncry 0.1.0 revision: 9881a5497447
+stderr:
+
+$ <RUN_BINARY> --help
+exit: 0
+stdout:
+Check architectural boundaries in source projects
+
+Usage: onioncry <COMMAND>
+
+Commands:
+  check    Check the configured file universe against architecture rules
+  graph    Render the boundary dependency graph as Mermaid or JSON
+  init     Create a conservative .onioncryrc.jsonc configuration template
+  explain  Explain one file's classification, imports, and violations
+  rules    List built-in rules
+  schema   Print the .onioncryrc JSON Schema
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+stderr:
+
+$ <RUN_BINARY> check --help
+exit: 0
+stdout:
+Check the configured file universe against architecture rules
+
+Usage: onioncry check [OPTIONS]
+
+Options:
+      --config <CONFIG>    
+      --format <FORMAT>    [default: pretty] [possible values: pretty, json, sarif]
+      --fail-on <FAIL_ON>  [default: error] [possible values: error, warning]
+      --tips               Show remediation tips for diagnostics
+      --baseline <PATH>    Path to the violation baseline file
+      --write-baseline     Write current violations to the baseline file
+      --no-baseline        Disable violation baseline consumption for this run
+      --files <PATH>...    Scope the report to these files; analysis stays whole-project
+      --llm-mode           Show an LLM-optimized grouped diagnostic report
+  -h, --help               Print help
+stderr:
+
+$ <RUN_BINARY> explain --help
+exit: 0
+stdout:
+Explain one file's classification, imports, and violations
+
+Usage: onioncry explain [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  
+
+Options:
+      --config <CONFIG>  
+      --format <FORMAT>  [default: pretty] [possible values: pretty, json]
+      --tips             Show remediation tips for diagnostics
+  -h, --help             Print help
+stderr:

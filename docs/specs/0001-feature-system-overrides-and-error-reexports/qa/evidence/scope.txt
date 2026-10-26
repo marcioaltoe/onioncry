@@ -1,0 +1,123 @@
+$ git rev-parse HEAD
+exit: 0
+stdout:
+9881a54974476a16e1033b719d44ea974bd173a1
+stderr:
+
+$ git log --reverse --format=%H %s%n%b db73399b1922b5236c0b12d06d609edbfed9f3db..HEAD
+exit: 0
+stdout:
+633dec2da9582209d71c714bf0181faf271f57fa docs: authorize feature-system contract corrections
+
+6e885b7b22f3d9cb8907609adaeb1834a9a012b0 docs: keep verification and research references portable
+
+85a1ff10598dd8cafc7f96f57231f5ea1c8184aa feat: honor each diagnostic owner's effective rule
+Roundfix-Spec: 0001-feature-system-overrides-and-error-reexports
+Roundfix-Task: task_01
+
+93c9e80040c51dc895d50a52f7491589224ce827 docs: authorize feature-system fixes and stable publication (#11)
+
+653ee85891d4f5527c46549488cb05aeed921bf0 Merge remote-tracking branch 'origin/main' into fix/feature-system-overrides-and-error-reexports
+
+9881a54974476a16e1033b719d44ea974bd173a1 feat: prove named Error class exports with the parser
+Roundfix-Spec: 0001-feature-system-overrides-and-error-reexports
+Roundfix-Task: task_02
+
+stderr:
+
+$ git diff-tree --no-commit-id --name-only -r 85a1ff10598dd8cafc7f96f57231f5ea1c8184aa
+exit: 0
+stdout:
+docs/specs/0001-feature-system-overrides-and-error-reexports/task_01.md
+src/rules/feature_system/mod.rs
+tests/feature_system.rs
+stderr:
+
+$ git diff-tree --no-commit-id --name-only -r 9881a54974476a16e1033b719d44ea974bd173a1
+exit: 0
+stdout:
+.agents/skills/onioncry/SKILL.md
+docs/specs/0001-feature-system-overrides-and-error-reexports/task_02.md
+src/rules/feature_system/adapter_contract.rs
+src/rules/feature_system/error_exports.rs
+src/rules/feature_system/helpers.rs
+src/rules/feature_system/mod.rs
+tests/feature_system.rs
+stderr:
+
+$ git show 633dec2da9582209d71c714bf0181faf271f57fa:docs/specs/0001-feature-system-overrides-and-error-reexports/_authorization.md
+exit: 0
+stdout:
+---
+status: approved
+granted: 2026-10-26
+action: correct feature-system per-file overrides and genuine named Error class reexports, verify and deliver the fixes, then publish a stable release through the existing release process
+consuming:
+  - 0001-feature-system-overrides-and-error-reexports
+paths:
+  - src/rules/feature_system/mod.rs
+  - src/rules/feature_system/helpers.rs
+  - src/rules/feature_system/adapter_contract.rs
+  - src/rules/feature_system/error_exports.rs
+  - tests/feature_system.rs
+  - .agents/skills/onioncry/SKILL.md
+  - Cargo.toml
+  - Cargo.lock
+  - npm/package.json
+  - npm/platforms/darwin-arm64/package.json
+  - npm/platforms/darwin-x64/package.json
+  - npm/platforms/linux-arm64/package.json
+  - npm/platforms/linux-x64/package.json
+  - npm/platforms/win32-x64/package.json
+operations:
+  - implement
+  - commit
+  - push
+  - pull_request
+  - merge
+  - release
+---
+
+# Authorization
+
+The maintainer explicitly approved correcting and publishing OnionCry through the question tool on 2026-10-26, including tests, review, PR and merge with approved CI. Preserve the configured reviewer and all required checks. Source implementation and real CLI regression tests are authorized for the two defects only. The canonical shipped skill must describe the corrected behavior in the same PR.
+
+The exact release manifest paths above authorize the own-package version changes required by docs/release.md after a conclusive public release plan; dependency updates and unrelated configuration changes are outside this grant. Regenerate the own-package Cargo.lock entry through Cargo. Version selection follows the release plan; a required minor/major or version-zero breaking decision remains a maintainer decision rather than an inferred waiver. Do not publish a tag before the documented verification and publish dry-runs pass.
+
+Land this grant in main before the consuming delivery. No credential change, production data write, unrelated package removal or other repository's implementation is authorized by this record.
+stderr:
+
+$ git merge-base --is-ancestor 633dec2da9582209d71c714bf0181faf271f57fa 85a1ff10598dd8cafc7f96f57231f5ea1c8184aa
+exit: 0
+stdout:
+stderr:
+
+$ git merge-base --is-ancestor 93c9e80040c51dc895d50a52f7491589224ce827 9881a54974476a16e1033b719d44ea974bd173a1
+exit: 0
+stdout:
+stderr:
+
+$ git diff --name-status db73399b1922b5236c0b12d06d609edbfed9f3db..HEAD
+exit: 0
+stdout:
+M	.agents/skills/onioncry/SKILL.md
+A	docs/references/2026-10-26-feature-system-contracts.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/_authorization.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/_prd.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/_tasks.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/_techspec.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/task_01.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/task_02.md
+A	docs/specs/0001-feature-system-overrides-and-error-reexports/task_03.md
+M	src/rules/feature_system/adapter_contract.rs
+A	src/rules/feature_system/error_exports.rs
+M	src/rules/feature_system/helpers.rs
+M	src/rules/feature_system/mod.rs
+M	tests/feature_system.rs
+stderr:
+
+$ git status --short
+exit: 0
+stdout:
+?? docs/specs/0001-feature-system-overrides-and-error-reexports/qa/
+stderr:
