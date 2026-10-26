@@ -1761,6 +1761,136 @@ fn feature_system_error_exports_keep_shared_module_binding_identity() {
 }
 
 #[test]
+fn feature_system_error_exports_reject_runtime_error_namespaces() {
+    for adapter in [
+        "namespace Error { export const marker = 1; } export class BillingApiError extends Error {}",
+        "export namespace Error { export const marker = 1; } export class BillingApiError extends Error {}",
+        "namespace Error.Inner { export const marker = 1; } export class BillingApiError extends Error {}",
+        "export namespace Error.Inner { export const marker = 1; } export class BillingApiError extends Error {}",
+        "module Error { export const marker = 1; } export class BillingApiError extends Error {}",
+        "export module Error { export const marker = 1; } export class BillingApiError extends Error {}",
+        "export class BillingApiError extends Error {} namespace Error { export const marker = 1; }",
+        "namespace Error { export const marker = 1; } class LocalError extends Error {} export { LocalError as BillingApiError };",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_error_export_case(&workspace, adapter, &[]);
+
+        let report = assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+
+        assert_eq!(
+            report["violations"][0]["message"],
+            "adapter file should export typed API error BillingApiError",
+            "{adapter}"
+        );
+    }
+}
+
+#[test]
+fn feature_system_error_exports_reject_runtime_error_namespaces_through_reexports() {
+    for namespace in [
+        "namespace Error { export const marker = 1; }",
+        "export namespace Error { export const marker = 1; }",
+        "namespace Error.Inner { export const marker = 1; }",
+        "export namespace Error.Inner { export const marker = 1; }",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        let source = format!(
+            "{namespace} class InternalError extends Error {{}} export {{ InternalError as ActualError }};"
+        );
+        write_error_export_case(
+            &workspace,
+            "import { Renamed as LocalError } from '../../../../../../hop'; export { LocalError as BillingApiError };",
+            &[
+                ("errors.ts", &source),
+                (
+                    "hop.ts",
+                    "export { ActualError as Renamed } from './errors';",
+                ),
+            ],
+        );
+
+        let report = assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+
+        assert_eq!(
+            report["violations"][0]["message"],
+            "adapter file should export typed API error BillingApiError",
+            "{namespace}"
+        );
+    }
+}
+
+#[test]
+fn feature_system_error_exports_accept_namespaces_without_error_shadowing() {
+    for namespace in [
+        "namespace Other { export const marker = 1; }",
+        "export namespace Other { export const marker = 1; }",
+        "namespace Other.Error { export const marker = 1; }",
+        "namespace Other { export namespace Error { export const marker = 1; } }",
+        "namespace Other { export class Error {} }",
+        "declare namespace Other { const marker: number; }",
+        "namespace Other { export type Code = string; }",
+        "declare module 'Error' { export const marker: number; }",
+        "function nested() { const Error = class {}; }",
+        "{ const Error = class {}; }",
+        "interface Error { marker: string; }",
+        "type Error = { marker: string };",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        let source = format!("{namespace} export class ActualError extends Error {{}}");
+        write_error_export_case(
+            &workspace,
+            "export { ActualError as BillingApiError } from '../../../../../../errors';",
+            &[("errors.ts", &source)],
+        );
+
+        assert_feature_system_override_report(&workspace, "adapter-contract", &[], true);
+    }
+}
+
+#[test]
+fn feature_system_error_exports_keep_namespace_proof_conservative() {
+    // Namespace names alone cannot prove the intrinsic constructor, even when
+    // ambient or containing only types. This resolver does not infer TS emit.
+    for namespace in [
+        "declare namespace Error { const marker: number; }",
+        "export declare namespace Error { const marker: number; }",
+        "declare namespace Error.Inner { const marker: number; }",
+        "namespace Error { export type Code = string; }",
+        "namespace Error {}",
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_error_export_case(
+            &workspace,
+            &format!("{namespace} export class BillingApiError extends Error {{}}"),
+            &[],
+        );
+
+        let report = assert_feature_system_override_report(
+            &workspace,
+            "adapter-contract",
+            &[(ERROR_EXPORT_ADAPTER, "error")],
+            true,
+        );
+
+        assert_eq!(
+            report["violations"][0]["message"],
+            "adapter file should export typed API error BillingApiError",
+            "{namespace}"
+        );
+    }
+}
+
+#[test]
 fn feature_system_error_exports_reject_shadowed_error_superclasses() {
     for adapter in [
         "class Error {} export class BillingApiError extends Error {}",

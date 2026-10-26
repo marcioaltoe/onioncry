@@ -2,6 +2,7 @@ use crate::{ImportEdge, ImportKind, ImportResolution, OnionCryError, Result};
 use oxc_allocator::Allocator;
 use oxc_ast::ast::{
     Class, Declaration, Expression, ImportDeclarationSpecifier, ImportOrExportKind, Statement,
+    TSModuleDeclarationName,
 };
 use oxc_parser::Parser;
 use oxc_span::SourceType;
@@ -203,6 +204,11 @@ fn declares_error_binding(declaration: &Declaration<'_>) -> bool {
         }
         Declaration::TSEnumDeclaration(enumeration) => enumeration.id.name == "Error",
         Declaration::TSImportEqualsDeclaration(import) => import.id.name == "Error",
+        Declaration::TSModuleDeclaration(module) => {
+            // Only the identifier root binds here, including dotted namespaces.
+            // Keep ambient/type-only namespace bodies conservative without emit inference.
+            matches!(&module.id, TSModuleDeclarationName::Identifier(id) if id.name == "Error")
+        }
         _ => false,
     }
 }

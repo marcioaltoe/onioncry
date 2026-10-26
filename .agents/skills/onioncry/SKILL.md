@@ -117,6 +117,14 @@ do not prove the export. Wildcard/default exports and indirect inheritance are
 unsupported. A valid Error export still leaves adapter imports from upper
 frontend layers subject to the existing boundary checks.
 
+A top-level value binding named `Error` prevents proof that a local subclass
+extends the intrinsic constructor. This covers exported namespaces and
+identifier roots such as `namespace Error.Inner`.
+Namespace bindings remain conservative for ambient
+declarations and bodies containing only types; the resolver does not infer
+TypeScript emit. Unrelated namespaces and nested bindings do not shadow the
+class's top-level scope.
+
 ## Fix strategy
 
 - Fix the code boundary when the diagnostic points to a real architecture violation.
