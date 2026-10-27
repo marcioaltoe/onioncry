@@ -141,6 +141,10 @@ jobs:
       - build-npm-platforms
       - verify-npm-install
     runs-on: ubuntu-24.04
+    environment: release-crates
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
@@ -166,19 +170,24 @@ jobs:
       - name: Pack main npm package
         run: npm pack ./npm --pack-destination dist
 
+      - name: Install npm with trusted publishing support
+        run: npm install -g npm@11
+
       - name: Publish npm packages
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for package in ./dist/onioncry-cli-*.tgz; do
             npm publish "$package" --access public
           done
           npm publish "./dist/onioncry-${GITHUB_REF_NAME#v}.tgz"
 
+      - name: Authenticate with crates.io
+        id: crates-io-auth
+        uses: rust-lang/crates-io-auth-action@v1
+
       - name: Publish to crates.io
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish --locked --token "$CARGO_REGISTRY_TOKEN"
+          CARGO_REGISTRY_TOKEN: ${{ steps.crates-io-auth.outputs.token }}
+        run: cargo publish --locked
 
   verify-npm-release:
     name: Verify published npm release
