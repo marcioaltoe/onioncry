@@ -4,7 +4,7 @@ description: Run and interpret the OnionCry Rust CLI for architecture-boundary c
 metadata:
   category: architecture
   tags: [architecture, cli, rust, javascript, typescript, qa, code-review]
-  version: 0.2.0
+  version: 0.2.1
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/onioncry
 ---
@@ -13,7 +13,7 @@ metadata:
 
 Use OnionCry as an architecture-boundary checker for JavaScript and TypeScript repositories. Treat it like a deterministic verification tool: run it from the target repository, read its output, and make the smallest architecture or configuration change that resolves the reported boundary issue.
 
-This skill documents the published v0.2.0 command surface. The copy in `.agents/skills/onioncry/` of the OnionCry repo is canonical and must be updated whenever CLI behavior changes.
+This skill documents the published v0.2.1 command surface. The copy in `.agents/skills/onioncry/` of the OnionCry repo is canonical and must be updated whenever CLI behavior changes.
 
 ## Availability
 

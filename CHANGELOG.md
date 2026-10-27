@@ -4,6 +4,15 @@ All notable changes to OnionCry are documented in this file. Entries are
 generated from Conventional Commit history with
 [cocogitto](https://github.com/cocogitto/cocogitto).
 
+## v0.2.1 - 2026-10-26
+
+Releases now publish to npm and crates.io through OIDC trusted publishing; npm
+packages carry provenance. No CLI behavior change.
+
+#### Continuous Integration
+
+- (**release**) publish to npm and crates.io through trusted publishing (#15) - (f022fa2) - Marcio Altoé
+
 ## v0.2.0 - 2026-10-26
 
 The `frontend/feature-system-*` rules now honor per-file overrides, and the
