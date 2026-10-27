@@ -116,10 +116,11 @@ fn collect_file_suppressions(
     })?;
     let allocator = Allocator::default();
     let parsed = Parser::new(&allocator, &source, source_type).parse();
-    if parsed.panicked || !parsed.errors.is_empty() {
+    if parsed.fatal_error || parsed.diagnostics.has_errors() {
         let message = parsed
-            .errors
-            .first()
+            .diagnostics
+            .errors()
+            .next()
             .map_or_else(|| "parser panicked".to_string(), ToString::to_string);
         return Err(OnionCryError::ParseSource {
             path: file.to_path_buf(),
