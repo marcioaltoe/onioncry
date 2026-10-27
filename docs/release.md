@@ -4,17 +4,23 @@ OnionCry releases are tag-driven. Maintainers publish crates.io and npm packages
 by pushing a version tag that matches `Cargo.toml` and every npm package
 manifest under `npm/`.
 
-## Crates.io Setup
+## Trusted Publishing Setup
 
-Add a repository secret named `CARGO_REGISTRY_TOKEN` with a crates.io API token
-that can publish the `onioncry` crate. The release workflow exposes this token
-only to the final `cargo publish` step.
+The `publish` job authenticates to both registries through GitHub Actions OIDC
+trusted publishing; the repository stores no registry tokens. The job runs in
+the `release-crates` GitHub environment with `id-token: write`; that environment only accepts `v*` tags.
 
-## npm Setup
+- **crates.io**: the `onioncry` crate trusts `marcioaltoe/onioncry`, workflow
+  `release-crates.yml`, environment `release-crates`. The
+  `rust-lang/crates-io-auth-action` step exchanges the OIDC token for a
+  short-lived publish token used only by `cargo publish`.
+- **npm**: `onioncry` and every `@onioncry/cli-*` platform package trust
+  `marcioaltoe/onioncry`, workflow `release-crates.yml`, with direct publish
+  allowed. Trusted publishing requires npm 11.5.1 or later, so the job installs
+  npm 11 before publishing; npm attaches provenance automatically.
 
-Add a repository secret named `NPM_TOKEN` with permission to publish the
-`onioncry` package and the scoped `@onioncry/cli-*` platform packages. The
-release workflow exposes this token only to the npm publish step.
+Adding a new platform package requires configuring its trusted publisher on
+npmjs.com before the first release that publishes it.
 
 ## Release Steps
 
