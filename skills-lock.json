@@ -8,6 +8,20 @@
       "skillPath": "skills/03-engineering-design/agentic-cli-design/SKILL.md",
       "computedHash": "76efd87702573d94f0140801085893ca6d4e26af2ee104aaeccf96304e562e4b"
     },
+    "ai-memory-handoff": {
+      "source": "marcioaltoe/skills",
+      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
+      "sourceType": "github",
+      "skillPath": "skills/07-evidence-delivery/ai-memory-handoff/SKILL.md",
+      "computedHash": "94423b64ecb2a1c60950154b92a9260b634d35e0b2f45cf484daa3ae746ffc35"
+    },
+    "ai-memory-messaging": {
+      "source": "marcioaltoe/skills",
+      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
+      "sourceType": "github",
+      "skillPath": "skills/07-evidence-delivery/ai-memory-messaging/SKILL.md",
+      "computedHash": "7a3540d052be4f0839fb6f9927581c326524d381306992682693b2ffd2832be7"
+    },
     "archive-spec": {
       "source": "marcioaltoe/skills",
       "ref": "main",
@@ -188,7 +202,7 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/00-setup/setup-context-driven/SKILL.md",
-      "computedHash": "5b6432e62bfffc6ba5b5137e2e66015a77299a93b74f733a88cb4e3292aed3c2"
+      "computedHash": "5fd0d41002184c313a97df09a34beadad243de952b9dc33d74ebf1881677f894"
     },
     "solid": {
       "source": "marcioaltoe/skills",
@@ -235,14 +249,14 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/01-discovery/write-idea/SKILL.md",
-      "computedHash": "45cc03f95bfde3062cb272b38ad0b00c57c73e6e58e6330a506c66a965cfa740"
+      "computedHash": "fcbe90d67681deca422309da292c2e6481fa409c8abb189372bcde0d452f2387"
     },
     "write-prd": {
       "source": "marcioaltoe/skills",
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/02-planning/write-prd/SKILL.md",
-      "computedHash": "078a0f5c2896b6ff15e76b1728605175ec8850207e1e68bbec954ee574e94613"
+      "computedHash": "b7ccc4374fbea3b846554c47ef2dd025b7008d95f5581bf7b006a9798d5c5bf0"
     },
     "write-tasks": {
       "source": "marcioaltoe/skills",
@@ -256,21 +270,7 @@
       "ref": "main",
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/write-techspec/SKILL.md",
-      "computedHash": "e78ef4838d6f7fcb3f4b51d4ab15b84962dda8df6021c88bbd036eeb2fca7088"
-    },
-    "ai-memory-handoff": {
-      "source": "marcioaltoe/skills",
-      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
-      "sourceType": "github",
-      "skillPath": "skills/07-evidence-delivery/ai-memory-handoff/SKILL.md",
-      "computedHash": "94423b64ecb2a1c60950154b92a9260b634d35e0b2f45cf484daa3ae746ffc35"
-    },
-    "ai-memory-messaging": {
-      "source": "marcioaltoe/skills",
-      "ref": "65d5f365cace27c4b468db1723213723b10c870b",
-      "sourceType": "github",
-      "skillPath": "skills/07-evidence-delivery/ai-memory-messaging/SKILL.md",
-      "computedHash": "7a3540d052be4f0839fb6f9927581c326524d381306992682693b2ffd2832be7"
+      "computedHash": "d49a0f65a94b6d2e7069d4bcceb9b5adb6fb9806ae75c7b3499e12f37f1a3eb1"
     }
   }
 }
