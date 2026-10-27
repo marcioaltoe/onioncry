@@ -84,10 +84,11 @@ fn scan_imports(path: &Path, source: &str) -> Result<Vec<RawImport>> {
     })?;
     let allocator = Allocator::default();
     let parsed = Parser::new(&allocator, source, source_type).parse();
-    if parsed.panicked || !parsed.errors.is_empty() {
+    if parsed.fatal_error || parsed.diagnostics.has_errors() {
         let message = parsed
-            .errors
-            .first()
+            .diagnostics
+            .errors()
+            .next()
             .map_or_else(|| "parser panicked".to_string(), ToString::to_string);
         return Err(OnionCryError::ParseSource {
             path: path.to_path_buf(),
@@ -125,9 +126,12 @@ struct RuntimeImportVisitor {
 
 impl<'a> Visit<'a> for RuntimeImportVisitor {
     fn visit_import_expression(&mut self, import: &ImportExpression<'a>) {
-        if let Expression::StringLiteral(source) = &import.source {
+        // Like oxc's module record, skip specifiers that are not valid UTF-8.
+        if let Expression::StringLiteral(source) = &import.source
+            && let Some(specifier) = source.value.as_str()
+        {
             self.imports.push(RawImport {
-                specifier: source.value.to_string(),
+                specifier: specifier.to_string(),
                 kind: ImportKind::DynamicImport,
                 type_only: false,
                 span: source.span,
@@ -137,9 +141,11 @@ impl<'a> Visit<'a> for RuntimeImportVisitor {
     }
 
     fn visit_call_expression(&mut self, call: &CallExpression<'a>) {
-        if let Some(specifier) = string_literal_require_specifier(call) {
+        if let Some(specifier) = string_literal_require_specifier(call)
+            && let Some(value) = specifier.value.as_str()
+        {
             self.imports.push(RawImport {
-                specifier: specifier.value.to_string(),
+                specifier: value.to_string(),
                 kind: ImportKind::Require,
                 type_only: false,
                 span: specifier.span,

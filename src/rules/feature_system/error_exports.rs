@@ -1,8 +1,8 @@
 use crate::{ImportEdge, ImportKind, ImportResolution, OnionCryError, Result};
 use oxc_allocator::Allocator;
 use oxc_ast::ast::{
-    Class, Declaration, Expression, ImportDeclarationSpecifier, ImportOrExportKind, Statement,
-    TSModuleDeclarationName,
+    Class, Declaration, ExportSpecifier, Expression, ImportDeclarationSpecifier,
+    ImportOrExportKind, Statement,
 };
 use oxc_parser::Parser;
 use oxc_span::SourceType;
@@ -105,12 +105,13 @@ fn summarize_module(file: &Path) -> Result<ModuleSummary> {
     })?;
     let allocator = Allocator::default();
     let parsed = Parser::new(&allocator, &source, source_type).parse();
-    if parsed.panicked || !parsed.errors.is_empty() {
+    if parsed.fatal_error || parsed.diagnostics.has_errors() {
         return Err(OnionCryError::ParseSource {
             path: file.to_path_buf(),
             message: parsed
-                .errors
-                .first()
+                .diagnostics
+                .errors()
+                .next()
                 .map_or_else(|| "parser panicked".to_string(), ToString::to_string),
         });
     }
@@ -121,7 +122,7 @@ fn summarize_module(file: &Path) -> Result<ModuleSummary> {
     let mut shadows_error = false;
     for statement in &parsed.program.body {
         let declaration = match statement {
-            Statement::ExportNamedDeclaration(export) => export.declaration.as_ref(),
+            Statement::ExportDeclaration(export) => Some(&export.declaration),
             _ => statement.as_declaration(),
         };
         shadows_error |= declaration.is_some_and(declares_error_binding);
@@ -134,32 +135,33 @@ fn summarize_module(file: &Path) -> Result<ModuleSummary> {
         }
         match statement {
             Statement::ClassDeclaration(class) => summary.add_class(class, false),
+            Statement::ExportDeclaration(export) => {
+                if let Declaration::ClassDeclaration(class) = &export.declaration {
+                    summary.add_class(class, true);
+                }
+            }
             Statement::ExportNamedDeclaration(export)
                 if export.export_kind == ImportOrExportKind::Value =>
             {
-                if let Some(Declaration::ClassDeclaration(class)) = &export.declaration {
-                    summary.add_class(class, true);
-                }
-                for specifier in &export.specifiers {
-                    if specifier.export_kind == ImportOrExportKind::Type {
-                        continue;
-                    }
-                    let name = specifier.local.name().to_string();
-                    let binding = export.source.as_ref().map_or_else(
-                        || ExportBinding::Local(name.clone()),
-                        |source| ExportBinding::Remote {
-                            module: source.value.to_string(),
-                            name: name.clone(),
-                        },
-                    );
-                    summary
-                        .exports
-                        .insert(specifier.exported.name().to_string(), binding);
+                summary.add_exports(&export.specifiers, ExportBinding::Local);
+            }
+            Statement::ExportFromDeclaration(export)
+                if export.export_kind == ImportOrExportKind::Value =>
+            {
+                // Like oxc's module record, skip specifiers that are not valid UTF-8.
+                if let Some(module) = export.source.value.as_str() {
+                    summary.add_exports(&export.specifiers, |name| ExportBinding::Remote {
+                        module: module.to_string(),
+                        name,
+                    });
                 }
             }
             Statement::ImportDeclaration(import)
                 if import.import_kind == ImportOrExportKind::Value =>
             {
+                let Some(module) = import.source.value.as_str() else {
+                    continue;
+                };
                 for specifier in import.specifiers.iter().flatten() {
                     let ImportDeclarationSpecifier::ImportSpecifier(specifier) = specifier else {
                         continue;
@@ -170,7 +172,7 @@ fn summarize_module(file: &Path) -> Result<ModuleSummary> {
                     summary.imports.insert(
                         specifier.local.name.to_string(),
                         ExportBinding::Remote {
-                            module: import.source.value.to_string(),
+                            module: module.to_string(),
                             name: specifier.imported.name().to_string(),
                         },
                     );
@@ -204,10 +206,10 @@ fn declares_error_binding(declaration: &Declaration<'_>) -> bool {
         }
         Declaration::TSEnumDeclaration(enumeration) => enumeration.id.name == "Error",
         Declaration::TSImportEqualsDeclaration(import) => import.id.name == "Error",
-        Declaration::TSModuleDeclaration(module) => {
+        Declaration::TSNamespaceDeclaration(namespace) => {
             // Only the identifier root binds here, including dotted namespaces.
             // Keep ambient/type-only namespace bodies conservative without emit inference.
-            matches!(&module.id, TSModuleDeclarationName::Identifier(id) if id.name == "Error")
+            namespace.id.name == "Error"
         }
         _ => false,
     }
@@ -219,7 +221,10 @@ impl ModuleSummary {
             return;
         };
         if !class.declare
-            && matches!(&class.super_class, Some(Expression::Identifier(base)) if base.name == "Error")
+            && matches!(
+                class.heritage.as_ref().map(|heritage| &heritage.expression),
+                Some(Expression::Identifier(base)) if base.name == "Error"
+            )
         {
             self.error_classes.insert(id.name.to_string());
         }
@@ -227,6 +232,22 @@ impl ModuleSummary {
             self.exports.insert(
                 id.name.to_string(),
                 ExportBinding::Local(id.name.to_string()),
+            );
+        }
+    }
+
+    fn add_exports(
+        &mut self,
+        specifiers: &[ExportSpecifier<'_>],
+        binding: impl Fn(String) -> ExportBinding,
+    ) {
+        for specifier in specifiers {
+            if specifier.export_kind == ImportOrExportKind::Type {
+                continue;
+            }
+            self.exports.insert(
+                specifier.exported.name().to_string(),
+                binding(specifier.local.name().to_string()),
             );
         }
     }
