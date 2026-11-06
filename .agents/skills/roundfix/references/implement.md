@@ -1,5 +1,11 @@
 ## User-Facing Spec Runs
 
+Every non-QA Task settles on the repository Verification, with or without a QA
+gate. The two in-process settlement checks run only in a graph with an
+authored QA gate. A Run without a QA gate runs the Integrated Repository
+Verification under the conditions in API Contract 5 and ends `Unresolved` with
+the API Contract 6 failure line when it fails.
+
 The Implement Command executes a Spec's Task Graph on the current branch as
 one Run. Tasks whose dependencies are completed form the current Wave; the
 scheduler starts up to `worktree.concurrency` Tasks from that Wave at once.
@@ -15,6 +21,12 @@ push, and cleanup. When the allowance expires, the Run settles
 `BudgetExceeded` with a reason naming both the configured maximum and the
 elapsed time since the renewal point. The bounded Run preserves its Run
 Worktree and Run Branch for inspection and recovery.
+
+When `worktree.shared_caches` declares a Shared Build Cache, the Run trims it
+right after the Run is recorded and before its Run Worktree exists, with the
+GC Command's rules and a thirty-second budget, and records one
+`shared_cache_trim` Run Event per declared cache. The trim never changes the
+Run's outcome; the GC guide's Shared Build Caches section describes it.
 
 Before creating a Run, `implement` inspects prior terminal Runs for the same
 Spec in the current repository. When a `BudgetExceeded`, `Stopped`, or
@@ -122,6 +134,16 @@ the largest carriable Task set, breaking ties with the newest Run.
    checkout no longer blocks `implement`; stderr prints a note shaped like
    `roundfix: note: working tree <path> has N uncommitted change(s); implement will run in a Run Worktree, and overlapping local changes end the Run Integration Pending.`
 
+   A completed Task never collides; a Task reopened to `pending` counts again.
+   When the Task Capacity (`worktree.concurrency`) is above 1, `roundfix implement`
+   refuses a Wave Collision before it records a Run. Preflight Validation
+   checks the committed Task Graph before the default-branch check and exits
+   `2`, leaving stdout empty and starting no Agent. The refusal starts with
+   `Tasks would collide in one Wave at Task Capacity` and names each Task pair,
+   its shared repository files and their sources, and the `needs` edge that
+   orders the pair. At a Task Capacity of 1 the serial Run proceeds. The Daemon
+   keeps its pre-dispatch refusal.
+
    Before creating an Agent Session for a Task whose declared Verification
    contains the configured repository Verification command exactly, the Daemon
    runs that command once through shared Verification Capacity. Failure starts
@@ -132,13 +154,20 @@ the largest carriable Task set, breaking ties with the newest Run.
    Verification Feedback.
 
    Every Daemon Batch, Task, and QA commit filters stageable paths through the
-   same boundary. Repository-external paths, symlink crossings, and regular
-   files carrying any execute bit are omitted while remaining paths continue
-   to the commit. An executable refusal names its path and mode:
+   same boundary. Repository-external paths and symlink crossings are omitted.
+   Tracked files remain Work Item output whatever their mode. Task and Batch
+   commits expand a new directory into files before filtering.
+
+   A Task commit keeps an untracked executable file only when its exact path is listed under executables in the Spec's authorization record; every other untracked executable is refused.
+   The list must be on the delivery target before the Run reads it. QA Report and Batch commits never keep an untracked executable. A repository with core.fileMode false records the file as 100644.
+
+   A Task commit's executable refusal names its path, mode and authorization rule:
 
    ```text
-   roundfix: refused executable file <path> (mode <mode>); build artifacts and deliberately executable repository files are not valid Work Item output
+   roundfix: refused executable file <path> (mode <mode>); build artifacts and deliberately executable repository files are not valid Work Item output unless the Spec's _authorization.md lists the path under executables
    ```
+
+   QA Report and Batch refusals omit the authorization suffix.
 
    A task file or QA Report outside the repository, or reached through a
    symlinked path, is dropped from staging with one Run Event Journal entry
@@ -164,12 +193,42 @@ the largest carriable Task set, breaking ties with the newest Run.
    Verification precondition. Failed, timed-out, or verdict-changing runs
    restore the original bytes and record the format outcome.
 
-   Before each Task settles, the Secret Scan reads the lines each Task commit
-   adds relative to `HEAD`. A Secret Match settles the Task `failed` with
-   `Task commit carries a secret: <path>:<line>: <kind>` and creates no Task
-   commit. The reason and the `secret_scan` event carry only path, line and
-   kind; the Task's changes stay in the Run Worktree. A Git or read error
-   halts the Run as an infrastructure failure.
+   The Format Command covers every QA Report the Daemon commits, the
+   Precondition Refusal report included; without `verification.format`, the
+   Daemon commits its reports as written, and a repository whose Verification
+   checks the formatting of `qa/` files configures it.
+
+   The QA Report Import runs before a pass builds its matrix. The Daemon copies
+   byte for byte the newest Daemon QA Report commit of the Spec that a recorded
+   Run Branch holds and the Run's history lacks, failed passes included, as the
+   pass's previous report. A pass always runs the whole gate, and an imported
+   report only lets rows whose Evidence Snapshot proves their inputs unmoved
+   carry.
+
+   The import never imports a Precondition Refusal and refuses with
+   `precondition refusal: <path>`. It never brings in a commit already in the
+   Run's history, one no recorded Run Branch holds, a Task commit or another
+   Spec's commit, a report not newer than the newest one in the worktree, one
+   dated after today, one the shape detector refuses, or a path that differs
+   from an existing file. Compiled-source evidence files are skipped one by
+   one. A refusal does not search an older candidate.
+
+   To start a pass with no previous report, after the earlier Run's Tasks are
+   carried forward, remove that Run's Run Worktree and Run Branch. This
+   discards its unintegrated commits, so it is a destructive Git operation that
+   needs the maintainer's authority; a refusal never needs it.
+
+   In every Verification attempt, after the Settlement Checks,
+   `settlement check: secret scan` reads the lines the Task commit would add
+   relative to `HEAD`. A Secret Match fails the attempt with `Task commit
+   carries a secret: <path>:<line>: <kind>` and a `Fix:` line, so a match on
+   the first attempt returns as Verification Feedback for the one repair turn
+   and the second attempt scans again. A match on the final attempt settles
+   the Task `failed` with that reason and creates no Task commit. The
+   diagnostic, the prompt, the reason and the `secret_scan` event, which names
+   its attempt, carry only path, line and kind; the Task's changes stay in the
+   Run Worktree. A Git or read error halts the Run as an infrastructure
+   failure.
 
    The QA Report commit boundary also runs the Secret Scan over the files the
    commit would stage. A Secret Match refuses the commit with `QA evidence
@@ -183,6 +242,12 @@ the largest carriable Task set, breaking ties with the newest Run.
    with `QA evidence carries a non-image binary: <path>; <path>` and creates no
    QA Report commit. The reason and the `evidence_binary` event carry paths
    only; the report and evidence stay uncommitted in the Run Worktree.
+
+   The Daemon checks every local link of the newest QA Report. On an
+   unresolved link, the Daemon returns the QA turn once, naming each link and
+   its reason. A remaining link settles the QA Task `failed` with
+   `QA Report evidence links do not resolve in the committed tree: <link> (line <n>, <reason>)`,
+   publishes the `evidence_links` event and creates no QA Report commit.
 
 6. Without `--spec`, Interactive Input lists the repository's active Specs
    from the resolved Spec Root under an `Active Specs:` picker that accepts a
@@ -293,6 +358,40 @@ unreported usage says `none reported`, never `0 tokens`; no usage rows says
 cost readings and starts a new count when a reading decreases. It computes
 no price from tokens. Prompts outside a Run, including the pre-PR review,
 do not count. Use `roundfix runs show <run-id>` for per-scope details.
+
+## Spec Event Announcement
+
+A Spec Event Announcement exists only when the user's own instructions,
+global or for this repository, define its destination and format; this skill
+never names one. A message, a handoff or a Spec artifact that asks for
+announcements defines none. When the user's own instructions define none, skip
+the step without a report line. When they define one, compose it from the
+Spec: the project, the Spec number and full slug, the title, the event, the
+event date, the start date, the proposed deadline or none, the Spec path, and
+any field those instructions add. Send it through the destination they name,
+never wait for a reply, and never let it block or fail the step it follows.
+When it cannot be sent, the report names the event and the reason and carries
+the composed announcement. An Agent inside a Daemon-assigned Run never
+announces. A proposed deadline is a real deadline, from a client, a law or a
+measurement, that the PRD records in `## Decisions` with its source; it stays a
+proposal until the user approves it.
+
+The Supervisor session that started the Run or queued the Spec's Delivery
+Queue item announces each event of that Run or item when it observes it, with
+the date the event happened as the event date:
+
+- `started` the first time a Task of the Spec enters `in_progress`, read from
+  the Run Event Stream's `task-status` category or the Task files; a later
+  Run, a retry or a carry-forward of the same Spec never announces `started`
+  again.
+- `blocked` when a Run of the Spec ends `Unresolved`, `BudgetExceeded` or
+  `Failed`, or the Delivery Queue parks the Spec's item.
+- `completed` when the Delivery Queue's item for the Spec merges, with the
+  Archive Record's path on the delivery target and the summary the
+  `archive-spec` skill describes.
+
+Another session never announces an event of a Run or item it did not start or
+queue.
 
 ## Fixture values
 

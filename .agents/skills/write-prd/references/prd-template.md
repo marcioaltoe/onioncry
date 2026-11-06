@@ -8,6 +8,7 @@ spec: <NNNN-feature-slug> # numbered folder slug, e.g. 0001-implement-command
 status: active
 created: YYYY-MM-DD
 surfaces: [backend] # every surface touched: frontend | backend | cli | data | infra | docs
+type: feat # Delivery Type: feat | fix | perf | refactor; a feature Spec writes feat or perf
 ---
 
 # <Feature name, in glossary vocabulary>
@@ -28,6 +29,7 @@ surfaces: [backend] # every surface touched: frontend | backend | cli | data | i
 <!-- When a paragraph attributes behavior to a decision record, add a Claim Receipt in that paragraph: its source and a verbatim quote. -->
 
 <!-- With no protected tooling mutation, record: `applicable — no protected tooling mutation proposed or authorized`.
+     Still cite the Spec-contained authorization record and, when its `paths` is `[]`, end the row with `bounded files: none`.
      When protected tooling mutation is proposed, do not finish without
      `express maintainer authorization: <approval>; bounded files: <exact repository paths>`.
      citing the Spec-contained authorization record at
@@ -73,8 +75,11 @@ surfaces: [backend] # every surface touched: frontend | backend | cli | data | i
 
 ## Unreachable Acceptance
 
-<!-- Optional. Declare one unreachable criterion with these fields:
+<!-- Optional. One Unreachable Acceptance declaration may name several criteria, one criterion line each, and each criterion becomes its own QA row; acceptance matches every declared-blocked row to a declaration that names its criterion, by its text or its leading label.
+     A report whose declared-blocked rows do not exceed its declarations is accepted as before.
+     Declare unreachable criteria with these fields:
      - criterion: <criterion>
+       criterion: <another criterion>
        reason: <why it is unreachable>
        satisfied-by: <evidence or follow-up that satisfies it>
      Omit this section when every criterion is reachable. -->

@@ -5,10 +5,10 @@ metadata:
   category: code-review
   opencode/slash: "true"
   tags: [code-review, coderabbit, roundfix, doctor, gc, retention, github, qa, agents]
-  version: 0.1.142
+  version: 0.1.194
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/roundfix
-version: 0.1.142
+version: 0.1.194
 ---
 
 # Roundfix
@@ -24,11 +24,26 @@ Supervisor or script needs JSONL progress for one explicit Run.
 
 A request names a Skill Mode with the first word after the skill's name: `follow-up`, `status` or `unattended`, with or without a leading `--`, in every harness: `/roundfix follow-up` or `/roundfix --follow-up` in Claude Code, `$roundfix status` or `$roundfix --status` in Codex, and `@roundfix unattended`, `@roundfix --unattended` or `/roundfix unattended` in OpenCode. A Skill Mode is not the CLI command `roundfix follow-up`, which the follow-up mode runs as one of its steps. Read the mode from the request text; a request whose first word after the skill's name is anything else, such as `/roundfix watch 123`, uses the skill as the rest of this file describes.
 
-- `--follow-up`: inventory pending work, plan, gather decisions, author and deliver the resulting work.
-- `--status`: run a short read-only status report.
+- `--follow-up`: take the project's handoff, inventory pending work, plan, gather decisions, author and deliver the resulting work, and leave no handed-in message pending. The mode names where each listed Finding and Backlog Entry went.
+- `--status`: run a short read-only status report that accepts no handoff and consumes no message.
 - `--unattended`: gather every decision in calls of up to three questions.
 
 Read [Skill Modes](references/modes.md) before running a mode.
+
+## Release planning
+
+A generic release request authorizes only a conclusive patch plan.
+A Release Ceiling in the approved authorization record of every Spec the range
+delivers answers `approval_required` within every ceiling when each grants
+`release` and every impact-setting change is such a delivery. The decision
+becomes `ready` with the same proposed version.
+A Release Ceiling never answers a breaking plan or a manual classification.
+Text adds `Release authorization: answered` or
+`Release authorization: not answered — <reason>` and the records; JSON adds
+`releaseAuthorization`. Backlog Entries are planning evidence. A `refactor:`
+delivery changing released code is a commit to classify by hand.
+See the [release reference](references/release.md) for the read-only command,
+record paths, refusal reasons and checks.
 
 ## Archive Relink and History Citations
 
@@ -96,12 +111,15 @@ The same outcome settles the authored `qa` Task and determines what the archive 
 ### Rows the Spec's authorization keeps offline
 
 The qualifying declared `partial` above also accepts an outside-evidence row
-the gate did not look up because the Spec's own authorization forbids network
-access, recorded as `blocked (environment: network prohibited by Spec authorization)`
-with the outside-evidence row named in its provenance. Like the network-denied
-row, it never decides a qualifying partial and needs no Unreachable Acceptance
-declaration, and settlement, `roundfix qa-report accept` and `roundfix archive`
-read it through the same policy (ADR-0276).
+the gate did not look up because the Spec's own authorization forbids that
+lookup, recorded as `blocked (environment: <subject> prohibited by Spec authorization)`
+with the outside-evidence row named in its provenance. The subject names what
+the authorization forbids, in its words: `network` for a network lookup, or
+`another repository`; it is 1 to 80 characters and holds no parenthesis. Like
+the network-denied row, it never decides a qualifying partial and needs no
+Unreachable Acceptance declaration, a row counts toward one exempt kind at
+most, and settlement, `roundfix qa-report accept` and `roundfix archive` read
+it through the same policy (ADR-0276, ADR-0335).
 
 ## Context-Efficient Evidence Boundaries
 
@@ -128,8 +146,15 @@ Roundfix keeps lossless evidence while giving each reader a compact surface:
   Live Run View rendering never rewrites those payload bytes.
 - Spec Task prompts embed exactly one full assigned Task and one path-only Spec
   Context Bundle. The bundle includes standard Spec artifact paths, root
-  instructions, the canonical implement-task skill path, paths from the Task's
-  `## Context` section, and sorted files changed by prior integrated Tasks. It never
+  instructions, the canonical implement-task skill path, the skill dispatch guide
+  (`docs/agents/skill-dispatch.md`) when the repository has it, paths from the
+  Task's `## Context` section, and sorted files changed by prior integrated Tasks.
+  Before editing, the Agent reads the guide and loads only the skills whose
+  triggers and activation bundles match its Task's type, declared paths and
+  requested work, skipping skills only a person can start. It writes the Loaded
+  Skill List in `## Result` on one `Skills loaded:` line; the Daemon never checks
+  the list. The QA gate loads only the QA activation's and its declared surfaces'
+  matching skills before building its matrix, without a list. The bundle never
   embeds full PRDs, TechSpecs, Skill documents, source files, or prior diffs.
   Task-authored Context entries are capped at 50 unique repository-relative
   paths; the complete manifest is capped at 200 paths, reserving standard and
@@ -197,23 +222,26 @@ synchronization, or build failure blocks settlement.
 
 ### Settlement Checks
 
-Settlement Checks apply to every non-QA Task in a Task Graph that has an
-authored QA gate Task. They run in this order when the Daemon settles the Task:
+Settlement Checks apply to every non-QA Task in a Task Graph, with or without a
+QA gate: the repository Verification and the secret scan always, the two
+in-process checks only with an authored QA gate Task. A Run without a QA gate
+also runs the Integrated Repository Verification under API Contract 5 and ends
+`Unresolved` with the API Contract 6 failure line when it fails. Each attempt
+runs them after its commands, whatever their result, in this order:
 
-1. The repository Verification runs at settlement as the attempt's last
-   command when `verification.repository_at_settlement` is enabled.
-2. `settlement check: spec consistency` checks for new Spec Consistency
-   findings in the Task's tree.
-3. `settlement check: authorization` checks the prospective Task commit
-   against the frozen authorization record.
-
-Both in-process checks run after the attempt's commands, whatever their
-result, and before the attempt's verdict.
+1. The repository Verification, as the attempt's last command, when
+   `verification.repository_at_settlement` is enabled.
+2. `settlement check: spec consistency`: new Spec Consistency findings.
+3. `settlement check: authorization`: the prospective Task commit against the
+   frozen authorization record.
+4. `settlement check: secret scan`: the lines that commit would add.
 
 A failed check returns its diagnostics as Verification Feedback for the one
-repair turn. If the final attempt still fails, the Task settles `failed`. The
-`verification.repository_at_settlement` switch turns off only the repository
-Verification at settlement; it does not turn off either in-process check.
+repair turn; a Secret Match names path, line and kind, never the value. If the
+final attempt still fails, the Task settles `failed`, a final Secret Match with
+`Task commit carries a secret: <path>:<line>: <kind>`; a scan error halts the
+Run. The `verification.repository_at_settlement` switch turns off only the
+repository Verification at settlement.
 
 The checks inspect one Task's tree. In a parallel Wave, they do not include
 changes from sibling Tasks that have not been integrated into that tree. A

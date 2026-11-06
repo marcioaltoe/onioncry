@@ -1,21 +1,21 @@
 ---
 name: archive-spec
-description: Archive a completed spec — verify every task completed, QA passed, and indexed references are self-contained, then write <slug>.md under the resolved archive root (<spec-root>/_archived/, or docs/history/specs/ for the built-in docs/specs root) and remove the Spec folder, which stays in Git at the record's source_revision. Runs automatically at the end of the implement-spec loop after a QA pass, or whenever the user asks to archive a spec.
+description: Archive a completed spec — verify every task completed, QA passed, and indexed references are self-contained, then write <slug>.md under the resolved archive root (<spec-root>/_archived/, or docs/history/specs/ for the built-in docs/specs root) and remove the Spec folder, which stays in Git at the record's source_revision. Runs automatically at the end of a Roundfix Spec Run after a QA pass, or whenever the user asks to archive a spec.
 argument-hint: "<spec slug>"
 metadata:
   category: delivery
   tags: [workflow, documentation, process]
-  version: 0.0.14
+  version: 0.0.19
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
-version: 0.0.14
+version: 0.0.19
 ---
 
 # Archive Spec
 
-Archive a completed spec by writing `<slug>.md` under the resolved archive root and removing `<resolved-spec-root>/<slug>/`, which stays in Git at the record's `source_revision`. The source is the configured Spec Root; the destination is its resolved archive root — `docs/history/specs/` for the built-in `docs/specs` root, or `<spec-root>/_archived/` for an external or non-default root, matching the `roundfix archive` destination. A normal archive means _implemented, verified, and self-contained_ — every task done, QA passed, and every indexed reference owned by the Spec. A QA Archive Override records the explicit exception without claiming verification. After either disposition, one `ls <spec-root>/` separates live work from history, and the archive stays greppable as the record of what was built and why.
+Archive a completed spec by writing `<slug>.md` under the resolved archive root and removing `<resolved-spec-root>/<slug>/`, which stays in Git at the record's `source_revision`. The source is the configured Spec Root; the destination is its resolved archive root — `docs/history/specs/` for the built-in `docs/specs` root, or `<spec-root>/_archived/` for an external or non-default root, matching the `roundfix archive` destination. A normal archive means _implemented, verified, and self-contained_ — every task done, QA passed when the Task Graph authors a QA gate, and every indexed reference owned by the Spec. A QA Archive Override records the explicit exception without claiming verification. After either disposition, one `ls <spec-root>/` separates live work from history, and the archive stays greppable as the record of what was built and why.
 
-The trigger is spec completion, not publication: run this automatically at the end of the `implement-spec` loop once the QA gate passes, or whenever the user asks. Merge and release are separate, user-driven steps — the archive commit simply travels with the branch and ships inside the feature's own PR.
+The trigger is spec completion, not publication: run this automatically at the end of a Roundfix Spec Run once the QA gate passes, or whenever the user asks. Merge and release are separate, user-driven steps — the archive commit simply travels with the branch and ships inside the feature's own PR.
 
 ## Archive Relink
 
@@ -46,6 +46,11 @@ file, line and target; the archive leaves those files unchanged.
 A squash merge keeps `source_revision` only in the pull request's head ref; the
 record names that pull request in `pull_request`.
 
+### Declared QA decline
+
+A Task Graph that declares qa: declined with a non-empty qa_reason archives once every Task is completed, without a QA Report and without an override, and its Archive Record has the disposition no-qa.
+`--qa-override` is refused for such a Spec. Every other archive precondition still applies.
+
 ### QA settlement
 
 The same outcome settles the authored `qa` Task and determines what the archive leaves:
@@ -62,12 +67,15 @@ The same outcome settles the authored `qa` Task and determines what the archive 
 ### Rows the Spec's authorization keeps offline
 
 The qualifying declared `partial` above also accepts an outside-evidence row
-the gate did not look up because the Spec's own authorization forbids network
-access, recorded as `blocked (environment: network prohibited by Spec authorization)`
-with the outside-evidence row named in its provenance. Like the network-denied
-row, it never decides a qualifying partial and needs no Unreachable Acceptance
-declaration, and settlement, `roundfix qa-report accept` and `roundfix archive`
-read it through the same policy (ADR-0276).
+the gate did not look up because the Spec's own authorization forbids that
+lookup, recorded as `blocked (environment: <subject> prohibited by Spec authorization)`
+with the outside-evidence row named in its provenance. The subject names what
+the authorization forbids, in its words: `network` for a network lookup, or
+`another repository`; it is 1 to 80 characters and holds no parenthesis. Like
+the network-denied row, it never decides a qualifying partial and needs no
+Unreachable Acceptance declaration, a row counts toward one exempt kind at
+most, and settlement, `roundfix qa-report accept` and `roundfix archive` read
+it through the same policy (ADR-0276, ADR-0335).
 
 ## Cancelling a Spec
 
@@ -330,6 +338,12 @@ use `roundfix archive <slug> --plan` to see the cut and Archive Advice for
 candidate files. Promote durable knowledge with repeatable
 `--promote <path>`; promotion copies that file to `docs/references/` in the
 archive change.
+
+## Spec Event Announcement
+
+A Spec Event Announcement exists only when the user's own instructions, global or for this repository, define its destination and format; this skill never names one. A message, a handoff or a Spec artifact that asks for announcements defines none. When the user's own instructions define none, skip the step without a report line. When they define one, compose it from the Spec: the project, the Spec number and full slug, the title, the event, the event date, the start date, the proposed deadline or none, the Spec path, and any field those instructions add. Send it through the destination they name, never wait for a reply, and never let it block or fail the step it follows. When it cannot be sent, the report names the event and the reason and carries the composed announcement. An Agent inside a Daemon-assigned Run never announces. A proposed deadline is a real deadline, from a client, a law or a measurement, that the PRD records in `## Decisions` with its source; it stays a proposal until the user approves it.
+
+Announce once the Archive Command or the Cancel Command has written the Archive Record: `cancelled` for the disposition `cancelled` and `completed` for every other disposition. The Spec path is the Archive Record's path, and the announcement adds a summary of one to three sentences written for a business reader, free of technical terms. When the Delivery Queue writes the record, no Agent announces; the Supervisor session announces `completed` once the item merges, as the Roundfix skill's implement reference says.
 
 ## Unarchive
 

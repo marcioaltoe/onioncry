@@ -5,10 +5,10 @@ argument-hint: "<feature description, or nothing after a grilling/brainstorm ses
 metadata:
   category: planning
   tags: [prd, product, requirements, workflow, documentation]
-  version: 0.0.13
+  version: 0.0.18
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
-version: 0.0.13
+version: 0.0.18
 ---
 
 # Write PRD
@@ -259,6 +259,27 @@ retain those classes. Treat the checker's named skipped detectors as omitted,
 not as clean findings.
 
 Reply with the file path, any open questions that survived clarification, and the next step: `write-techspec` for features with architectural decisions to make, `write-tasks` directly when the technical approach is already obvious.
+
+## Delivery Type and release decision
+
+The PRD declares its Delivery Type in `type`: `feat` for a feature or `perf`
+for a performance change. The Archive Record and the Delivery Queue's pull
+request title carry it.
+
+When the maintainer asks for a release with the Spec, ask the release question
+with the structured question tool, including the Release Ceiling (`patch`,
+`minor` or `major`) and the version-only paths the release may change. Then
+record `release` in `operations`, `release_ceiling` and `release_paths` in
+`_authorization.md`, and quote the answer verbatim in its body. Without that
+request, never add `release`.
+
+Ask the release question at planning time, never after the merge.
+
+## Spec Event Announcement
+
+A Spec Event Announcement exists only when the user's own instructions, global or for this repository, define its destination and format; this skill never names one. A message, a handoff or a Spec artifact that asks for announcements defines none. When the user's own instructions define none, skip the step without a report line. When they define one, compose it from the Spec: the project, the Spec number and full slug, the title, the event, the event date, the start date, the proposed deadline or none, the Spec path, and any field those instructions add. Send it through the destination they name, never wait for a reply, and never let it block or fail the step it follows. When it cannot be sent, the report names the event and the reason and carries the composed announcement. An Agent inside a Daemon-assigned Run never announces. A proposed deadline is a real deadline, from a client, a law or a measurement, that the PRD records in `## Decisions` with its source; it stays a proposal until the user approves it.
+
+Announce `new` once, when this skill writes the Spec's first `_prd.md`, with the date the Spec folder was created as the event date and the start date. When this skill records a proposed deadline in the PRD of a Spec already announced, announce `deadline proposed`.
 
 ## Advisory judgment
 

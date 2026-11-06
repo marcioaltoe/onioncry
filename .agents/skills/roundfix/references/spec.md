@@ -8,6 +8,13 @@ emitting a QA verdict:
 roundfix spec check [<slug> ...] [--format <text|json>] [--strict]
 ```
 
+An absent Spec Root inside the repository reads as an empty one. A root is
+absent when its resolved path has no filesystem entry and its nearest existing ancestor, after symbolic links are evaluated, lies inside
+or at the evaluated repository root.
+`spec check` without slugs checks no Spec in that state.
+A named Spec, a dangling link, a file, an unreadable root or a missing
+external root is still refused (ADR-0348).
+
 With no slug, the command checks every active Spec in the Spec Root. Findings
 are `error` when the check locates both sides of a contradiction and `gap` when
 it surfaces a candidate it cannot settle; `--strict` promotes gaps to errors.
@@ -16,6 +23,13 @@ The authoring-honesty contract includes these stable identifiers:
 - `SC-QA-BYTES-PINNED` — a requirement of a pending QA Task names a byte
   invariant and a commit-shaped hexadecimal token together; compare with the
   Delivery Base instead. A gap that runs from the Tasks stage.
+
+- `SC-QA-VERIFICATION-AUTHORED` — a pending QA Task's `## Verification`
+  renders a command other than the one Roundfix derives. An error from the
+  Tasks stage. After its `fix:` line the text report prints `expected block:`
+  and the exact section as a fenced `markdown` block; JSON carries it in the
+  finding's `expected` field, present only on a finding that has one. Replace
+  the whole section with it, unchanged.
 
 These four gaps hold every active Spec, whatever its age. Before an active
 Spec's next Run, add the sections and lines each finding names; the fix of every
@@ -50,6 +64,11 @@ term, `SC-GLOSSARY-UNPLANNED` for a declared term without a binding Task or a
 changed term missing from the glossary, and `SC-GLOSSARY-MISSING` for a declared
 term still absent after its binding Tasks complete.
 
+A Glossary Definition is a line that starts with `**Term**:`, `**Term** —`,
+`- **Term**:` or `- **Term** —`, where the list marker may also be `*` or `+`.
+A heading, an indented or ordered list item and bold text inside a sentence
+define nothing.
+
 The optional Skills Declaration lives under the PRD's `## Skills` section.
 Each entry is `- unchanged: <surface id> — <reason>` with a known id and a
 non-blank reason. A non-QA Task changing a covered Behavior Surface's source
@@ -58,6 +77,9 @@ or `creates:`, or an unchanged entry plus a non-QA Task declaring the Skill
 Coverage Map to record the Coverage Review. Both detectors skip a repository
 without `docs/references/skill-coverage.json` and a PRD committed before the
 oldest commit that added it; an uncommitted PRD is held.
+A Go test file, whose name ends in `_test.go`, is never a Behavior Surface source,
+because no fingerprint reads it, so declaring one needs no skills Task even
+when a source pattern matches it.
 
 - `SC-SKILLS-MALFORMED` — a Skills Declaration line has another shape, names
   an unknown surface or gives a blank reason. Runs from the PRD stage.
@@ -101,6 +123,10 @@ oldest commit that added it; an uncommitted PRD is held.
   and executes no command. Name the selector alone and run its containing path
   in a separate command (ADR-0315).
 
+- `SC-PRD-TYPE` — the PRD's optional frontmatter `type` is not one of
+  `feat`, `fix`, `perf` or `refactor`. An error; remove
+  the key to deliver as `feat`.
+
 - `SC-DECISIONS-UNRECORDED` — a PRD's `## Decisions` section lacks both a
   dated answer and the autonomous-route line naming its decision source. A gap
   from the PRD stage that reads shape only. Its horizon is the oldest commit
@@ -138,15 +164,17 @@ oldest commit that added it; an uncommitted PRD is held.
 - `SC-CONSUMERS-UNPROVEN` — a pending non-QA Task lacks a valid Consumer
   Declaration, or names a suite no Verification or valid checkpoint runs.
   Runs from the Tasks stage.
-- `SC-WAVE-COLLISION` — two Tasks the current Task Graph lets run in one Wave
+- `SC-WAVE-COLLISION` — two Tasks that are not completed and that the current
+  Task Graph lets run in one Wave
   touch a common repository file: a Verification operand, a declared
   `creates:`, `interface:` or `deletes:` path the tree holds, or a path the
   Task's newest settlement commit on any branch changed. The summary ends
   with the one edge that orders the pair, ``add a `needs` edge from Task
-  <later> to Task <earlier>``. The QA gate's precondition, the settlement
-  checks and the pre-dispatch refusal read the same working-tree Task Graph
-  and settlement history, so a corrective Task given that edge passes all of
-  them.
+  <later> to Task <earlier>``. A completed Task never collides; a Task reopened
+  to `pending` counts again. The QA gate's precondition, the settlement checks
+  and the pre-dispatch refusal share this rule. When the Task Capacity is
+  above 1, `roundfix implement` refuses a Wave Collision before it records a Run,
+  using the committed Task Graph in Preflight Validation.
 
 The missing-receipt gap starts at the oldest commit that added
 `.agents/skills/write-techspec/references/concrete-contracts.md`. A PRD
@@ -264,7 +292,13 @@ A Task Context entry whose path under the Spec Root is missing resolves to
 the same relative path under the archive root when that file exists. The
 built-in `docs/specs` root resolves through `docs/history/specs`; other roots
 resolve through `<spec-root>/_archived`. Existing active paths keep resolving,
-and a path missing in both places still reports `SC-REF-UNRESOLVED`.
+and a path missing in both places still reports `SC-REF-UNRESOLVED`. An
+`interface:` or `instruction:` path missing from the checked tree also resolves
+when `HEAD` or the Delivery Base tracks it and the checked root is the top level
+of its Git work tree, so a Task that removes a file it lists settles and the QA
+gate accepts the committed removal; any other missing path reports
+`SC-REF-UNRESOLVED`, whose fix says to remove the Task Context entry or declare
+the path under `deletes:`.
 
 
 A non-completed Task reports one `SC-VERIFY-TRUNCATED` error for each
@@ -281,19 +315,22 @@ a command that passes remains `vacuous`. The Daemon refuses malformed commands
 before opening an Agent Session. If the parser cannot start, the existing
 command probe still runs.
 
-The probe runs only the commands of Tasks a Run would still execute: every
-Task whose status is not `completed`, the rule the Daemon uses to schedule
-Tasks and route its QA gate. A completed Task's commands are not run, because
+The probe runs only the commands of Tasks a Run would still execute, except
+its QA gate. A completed Task's commands are not run, because
 they pass once its work exists and may need preparation the disposable
 checkout lacks. Each is reported as
 `- <task>: not probed — "<command>" (Task completed)`, the clean verdict line
 adds `; not probed (completed Tasks): <n>`, and JSON lists them under
 `verification.notProbed` as `{task, command, reason}` objects with reason
-`completed`, a key present only when the list is not empty. A not-probed
-command never changes the exit code. A vacuous, unknown or malformed command
-of a pending, in-progress or failed Task, or of a pending QA gate, still makes
-the check exit `1`, and the uncommitted-source lines still name every Task
-file, completed ones included.
+`completed`, a key present only when the list is not empty. The QA gate is never probed, whatever its status,
+because the Daemon routes the Task of type `qa` to its QA step and Roundfix
+derives its Verification. A pending gate's command is reported as
+`- <task>: not probed — "<command>" (QA gate)`, the clean verdict line adds
+`; not probed (QA gate): <n>`, and JSON lists it with reason `qa_gate`;
+a completed gate keeps reason `completed`. A not-probed command never changes
+the exit code. A vacuous, unknown or malformed command of a pending,
+in-progress or failed non-QA Task still makes the check exit `1`, and the
+uncommitted-source lines still name every Task file, completed ones included.
 
 After `Verification tree: HEAD`, the text report names each Task Graph or Task
 file listed by Git status as an uncommitted Verification source:

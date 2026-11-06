@@ -53,9 +53,11 @@ row named in its provenance, and the outside-evidence row, recorded as
 `blocked (environment: network denied: <host>)` with the outside-evidence row
 named in its provenance, never decide a qualifying partial and need no
 Unreachable Acceptance declaration. So does an outside-evidence row the gate
-did not look up because the Spec's own authorization forbids network access,
-recorded as `blocked (environment: network prohibited by Spec authorization)`
-with the outside-evidence row named in its provenance (ADR-0276). Any other
+did not look up because the Spec's own authorization forbids that lookup,
+recorded as `blocked (environment: <subject> prohibited by Spec authorization)`
+with the outside-evidence row named in its provenance, where the subject names
+what the authorization forbids in 1 to 80 characters without parentheses
+(ADR-0276, ADR-0335). Any other
 blocked outside-evidence row still blocks Pull Request preparation. Settlement and archive both apply this
 same policy. A `fail`, an
 undeclared `partial`, a missing or unparseable
@@ -64,11 +66,14 @@ all refuse; an environment-blocked row remains acceptable under the existing
 policy. For a Spec without a Task Graph, a
 recorded supersession is accepted in place of those completed Tasks and the
 passing gate. Every other archive precondition still applies, and a Spec with
-a Task Graph keeps its existing evidence rules. The command is
+a Task Graph with an authored QA gate keeps its existing evidence rules. The command is
 non-interactive, creates no Run, and never pushes. Before touching the
 filesystem, it verifies every Task in the Spec's Task Graph has
-`status: completed` and that the newest QA Report meets that eligibility
-contract.
+`status: completed` and, when the graph authors a QA gate, that the newest QA
+Report meets that eligibility contract.
+
+A Task Graph that declares qa: declined with a non-empty qa_reason archives once every Task is completed, without a QA Report and without an override, and its Archive Record has the disposition no-qa.
+`--qa-override` is refused for such a Spec. Every other archive precondition still applies.
 
 For a passing verdict, archive writes `<slug>.md` under the resolved archive
 root and removes the Spec folder, which stays in Git at the record's
@@ -135,6 +140,10 @@ The command requires both approval and reason, keeps every non-QA Task
 completed, it also carries `qa_override_qa_task_status`. It does
 not change the QA Task or report verdict.
 ### Archive Record
+
+The record's optional `type` key is copied from the PRD's frontmatter `type`,
+the Spec's Delivery Type (`feat`, `fix`, `perf` or `refactor`). It is omitted
+when the PRD has no type.
 
 The summary is the QA Report's Outcome paragraph or the PRD's title paragraph.
 A summary paragraph that ends with a colon carries the list or paragraph that follows it, on the same line.
@@ -212,6 +221,15 @@ archives before Archive Records. It is a dry run unless invoked with
 `--apply --batch <n>`; `--advise` requests advisory classifications for the
 next batch's candidate files, and `--promote <path>` copies an explicitly
 selected file to `docs/references/` while applying a batch.
+
+An absent Spec Root inside the repository reads as an empty one. A root is
+absent when its resolved path has no filesystem entry and its nearest existing ancestor, after symbolic links are evaluated, lies inside
+or at the evaluated repository root.
+`history sanitize` plans and applies with the same Spec Root and archive
+root as for an empty root. Archive and Cancel still remove only the Spec
+folder and write no placeholder.
+A named Spec, a dangling link, a file, an unreadable root or a missing
+external root is still refused (ADR-0348).
 
 The command converts each Legacy Archive Folder into an Archive Record,
 removes retired Findings, Rollups, Backlog Entries, ADRs, Review Artifacts and
