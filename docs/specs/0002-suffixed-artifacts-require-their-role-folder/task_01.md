@@ -1,7 +1,7 @@
 ---
 task: task_01
 spec: 0002-suffixed-artifacts-require-their-role-folder
-status: pending
+status: completed
 type: backend
 complexity: medium
 ---
@@ -57,3 +57,28 @@ Under the Context-First Clean Architecture Layout, `cleanarch/artifact-placement
 - `_prd.md` → Goals 1 and 2; Core Features 1 and 2; Success Metrics 1 and 2.
 - `_techspec.md` → API Contract 1; System Architecture; Implementation Design; Testing Approach; Build Order 1.
 - ADR-0012; ADR-0008; ADR-0003.
+
+## Result
+
+Skills loaded: implement-task, coding-guidelines, rust-expert, rust-cli, testing-boss, systematic-debugging, no-workarounds, agentic-cli-design, onioncry, tech-writer, evidence-gate.
+
+The context-first policy now accepts an artifact in its expected layer only when classification found an artifact folder. Suffix-only artifacts fall through to the existing finding constructor and boundary renderer. The production diff changes one condition; the classifier, location policy, renderer, collector, configuration, schema and diagnostic text remain unchanged.
+
+Pre-change reproduction through the real binary:
+
+- `rtk proxy cargo test --test clean_architecture suffixed_context_artifacts -- --nocapture` exited 101 before the production edit. The positive regression ran `onioncry check --format json --fail-on warning` over the reported application probe, an infra repository, a domain entity and an application file inside `billing/`. The binary incorrectly exited 0 with `status: pass`, four analyzed files and an empty violations array. The negative control's later override-isolation phase also incorrectly accepted the remaining misplaced repository.
+
+Acceptance evidence from focused checks:
+
+- Suffix-only placement: `check_reports_suffixed_context_artifacts_outside_role_folder` asserts exactly four reported files, `cleanarch/artifact-placement`, severity `warn`, expected layer, and exact existing message and suggestion containing each role boundary. It covers `application/use-cases`, `infra/repositories`, `domain/entities`, and a suffix-only file nested under a non-artifact `application/billing` folder. It asserts exit 1 under `--fail-on warning` and exit 0 with identical findings under the default threshold.
+- Valid placement and overrides: `check_accepts_suffixed_context_artifacts_inside_role_folders` first asserts an empty violations array for six files directly inside role folders or nested capability folders. It then adds two misplaced files, one covered by a per-file `off` override, and asserts exactly one remaining repository finding at severity `error`. The fixtures cover both project-root `.` with `contextRoot: src/contexts` and project-root `src` with `contextRoot: contexts`.
+- Public contracts: the tests use the existing configuration shape and assert the existing rule, diagnostic wording, boundary rendering, severities and exit thresholds. Existing tests in `tests/clean_architecture.rs` were left byte-identical; only the two new tests were inserted. Inspection of `.agents/skills/onioncry/SKILL.md` found no artifact-placement description made untrue by this guard, so it remains unchanged with released-version metadata `0.2.1`.
+
+Focused check outcomes:
+
+- After the production edit, `rtk proxy cargo test --test clean_architecture suffixed_context_artifacts -- --nocapture`: exit 0, two tests passed.
+- After formatting, `rtk proxy cargo test --test clean_architecture artifact`: exit 0, eight tests passed (both new tests and six existing artifact contracts); thirteen unrelated tests filtered out.
+- `rtk proxy rustfmt --edition 2024 --check src/rules/clean_architecture/artifact_policy.rs tests/clean_architecture.rs`: exit 0 after applying the formatter's line wrap to a new assertion.
+- `rtk proxy git -c core.fsmonitor=false diff --check`: exit 0.
+
+The declared Task Verification, full clean-architecture suite, `make rust-verify` and `make verify` were not run; the Daemon owns them and the terminal verdict. Task status, Task Graph and sibling Tasks were not edited. No commit, push or pull request was created. No follow-up implementation was added.
