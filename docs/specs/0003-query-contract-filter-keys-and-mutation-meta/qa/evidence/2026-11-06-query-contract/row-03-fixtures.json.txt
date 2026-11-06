@@ -1,0 +1,152 @@
+[
+  {
+    "name": "comment and string are not keys or mutations",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "// queryKey: ['billing']; useMutation({})\nconst label = 'queryKey useMutation(';\nconst meta = { invalidates: [] };\nconst queryKey = ['billing'];\n",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": []
+  },
+  {
+    "name": "comment meta cannot contract actual mutation",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useMutation } from '@tanstack/react-query';\nexport const useExport = () => useMutation({ mutationFn: async () => new Blob(), /* meta: { invalidates: [] } */ });\n",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+      ]
+    ]
+  },
+  {
+    "name": "unrelated object cannot contract actual mutation",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useMutation } from '@tanstack/react-query';\nexport const useExport = () => useMutation({ mutationFn: async () => new Blob(),  });\n\nconst extra = { meta: { invalidates: [] } };",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+      ]
+    ]
+  },
+  {
+    "name": "quoted member mutation",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "query['useMutation']({ 'meta': { 'invalidates': [] } });",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": []
+  },
+  {
+    "name": "member mutation lacking meta",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "query.useMutation({});",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+      ]
+    ]
+  },
+  {
+    "name": "nonarray invalidates is declaration not proof",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useMutation } from '@tanstack/react-query';\nexport const useExport = () => useMutation({ mutationFn: async () => new Blob(), meta: { invalidates: null } });\n",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": []
+  },
+  {
+    "name": "nested invalidates does not contract mutation",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useMutation } from '@tanstack/react-query';\nexport const useExport = () => useMutation({ mutationFn: async () => new Blob(), meta: { nested: { invalidates: [] } } });\n",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+      ]
+    ]
+  },
+  {
+    "name": "nonfilter key remains ownership",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx": "client.other({ queryKey: keys.list() });",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "components should not own query keys"
+      ]
+    ]
+  },
+  {
+    "name": "later argument key remains ownership",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx": "client.invalidateQueries({}, { queryKey: keys.list() });",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "components should not own query keys"
+      ]
+    ]
+  },
+  {
+    "name": "nested filter key remains ownership",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx": "client.invalidateQueries({ queryKey: factory({ queryKey: ['billing'] }) });",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "components should not own query keys"
+      ]
+    ]
+  },
+  {
+    "name": "option factories remain outside cross-file analysis",
+    "files": {
+      "packages/frontend/src/systems/billing/lib/query-keys.ts": "export const keys = { list: () => ['billing'] as const };\n",
+      "packages/frontend/src/systems/billing/lib/query-options.ts": "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts": "import { useMutation } from '@tanstack/react-query';\nuseMutation(mutationOptions());",
+      ".onioncryrc.jsonc": "{\n  \"version\": 1,\n  \"project\": {\n    \"root\": \".\",\n    \"include\": [\n      \"packages/frontend/src/**/*\"\n    ],\n    \"exclude\": []\n  },\n  \"rules\": {\n    \"frontend/feature-system-query-contract\": \"warn\",\n    \"frontend/feature-system-dependency-flow\": \"warn\"\n  },\n  \"overrides\": []\n}"
+    },
+    "expected": [
+      [
+        "frontend/feature-system-query-contract",
+        "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+      ]
+    ]
+  }
+]

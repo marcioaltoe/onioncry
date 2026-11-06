@@ -1,0 +1,1232 @@
+[
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-z8ueyppr/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-smtriajq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-0zlthbu5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1r_w_0y5/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l8yyrdyd/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-3lgfyw1h/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-o23cjh06/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    },\n    {\n      \"specifier\": \"../lib/query-options\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 2,\n      \"column\": 25,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz/packages/frontend/src/systems/billing/lib/query-options.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-l7_2pgkz/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-awsbpmt_/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pep6p70i/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-j06ifq1x/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-twtovaz1/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lggcg_sg/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-pklw1v70/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hrhyphgh/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"components should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-6e6jv264/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"suggestion\": \"move the query key to lib/query-keys.ts and reuse a query option factory\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-m9exk8ew/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ffumrhnk/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-hp4oadk6/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-tfmr30y_/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-womot9uq/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-a2xcnt8o/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-1uryucpi/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/routes/billing.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz/packages/frontend/src/routes/billing.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"routes should not own query keys\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4099clz/packages/frontend/src/routes/billing.tsx\",\n      \"suggestion\": \"move the query key to a feature system lib/query-keys.ts file\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 26,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"query hooks should reuse factories from lib/query-options.ts\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-gmny3orb/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"import a factory from lib/query-options.ts instead of declaring queryKey or queryFn inline\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 29,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-ksz_y70x/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 29,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-lpl8jn4p/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 29,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"mutation hooks should invalidate relevant queries in onSuccess or onSettled\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-303p3emk/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"add an onSuccess or onSettled handler that calls invalidateQueries\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"optimistic cache updates should cancel, snapshot or rollback, and invalidate on settlement\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"include cancelQueries, a previous data snapshot or rollback, and settlement invalidation\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 3,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"optimistic cache updates should cancel, snapshot or rollback, and invalidate on settlement\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"include cancelQueries, a previous data snapshot or rollback, and settlement invalidation\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/hooks/use-billing.ts",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"@tanstack/react-query\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 29,\n      \"resolution\": \"external\",\n      \"packageName\": \"@tanstack/react-query\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-query-contract\",\n      \"severity\": \"warn\",\n      \"message\": \"optimistic cache updates should cancel, snapshot or rollback, and invalidate on settlement\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-5y6o25pq/packages/frontend/src/systems/billing/hooks/use-billing.ts\",\n      \"suggestion\": \"include cancelQueries, a previous data snapshot or rollback, and settlement invalidation\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 4,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-dependency-flow\",\n      \"severity\": \"warn\",\n      \"message\": \"components may not import adapters in the billing system through ../adapters/billing-api\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"importSpecifier\": \"../adapters/billing-api\",\n      \"line\": 1,\n      \"column\": 28,\n      \"fromLayer\": \"components\",\n      \"toLayer\": \"adapters\",\n      \"toContext\": \"billing\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"route this dependency through an allowed lower area or update allowedImports if the flow is intentional\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "check",
+      "--format",
+      "json",
+      "--fail-on",
+      "warning"
+    ],
+    "exit": 1,
+    "stdout": "{\n  \"status\": \"fail\",\n  \"summary\": {\n    \"fileCount\": 4,\n    \"warningCount\": 1,\n    \"errorCount\": 0,\n    \"violationCount\": 1\n  },\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-dependency-flow\",\n      \"severity\": \"warn\",\n      \"message\": \"components may not import adapters in the billing system through ../adapters/billing-api\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"importSpecifier\": \"../adapters/billing-api\",\n      \"line\": 1,\n      \"column\": 28,\n      \"fromLayer\": \"components\",\n      \"toLayer\": \"adapters\",\n      \"toContext\": \"billing\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"route this dependency through an allowed lower area or update allowedImports if the flow is intentional\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "cwd": "/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb",
+    "command": [
+      "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381-c498efba-df46a6d5/run_20261106T122755Z_bd5683eef1a0aa10/target/debug/onioncry",
+      "explain",
+      "packages/frontend/src/systems/billing/components/billing-card.tsx",
+      "--format",
+      "json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n  \"layer\": {\n    \"status\": \"unclassified\",\n    \"matchedPatterns\": []\n  },\n  \"context\": {\n    \"status\": \"contextless\",\n    \"matchedPatterns\": []\n  },\n  \"publicSurface\": false,\n  \"imports\": [\n    {\n      \"specifier\": \"../adapters/billing-api\",\n      \"kind\": \"staticImport\",\n      \"typeOnly\": false,\n      \"line\": 1,\n      \"column\": 28,\n      \"resolution\": \"local\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/adapters/billing-api.ts\"\n    }\n  ],\n  \"violations\": [\n    {\n      \"rule\": \"frontend/feature-system-dependency-flow\",\n      \"severity\": \"warn\",\n      \"message\": \"components may not import adapters in the billing system through ../adapters/billing-api\",\n      \"file\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/components/billing-card.tsx\",\n      \"importSpecifier\": \"../adapters/billing-api\",\n      \"line\": 1,\n      \"column\": 28,\n      \"fromLayer\": \"components\",\n      \"toLayer\": \"adapters\",\n      \"toContext\": \"billing\",\n      \"targetFile\": \"/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-mao4majb/packages/frontend/src/systems/billing/adapters/billing-api.ts\",\n      \"suggestion\": \"route this dependency through an allowed lower area or update allowedImports if the flow is intentional\"\n    }\n  ]\n}\n",
+    "stderr": ""
+  }
+]

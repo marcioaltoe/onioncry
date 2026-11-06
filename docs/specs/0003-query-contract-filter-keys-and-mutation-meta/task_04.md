@@ -1,7 +1,7 @@
 ---
 task: task_04
 spec: 0003-query-contract-filter-keys-and-mutation-meta
-status: pending
+status: completed
 type: qa
 complexity: high
 ---

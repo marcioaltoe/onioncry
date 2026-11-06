@@ -1,0 +1,10 @@
+Source: current Daemon QA assignment; Pull Request: none open.
+Target: roundfix/deliver-0003-query-contract-filter-keys-and-mutation-meta-f456731f5aba0381.
+Run branch is never pushed and has no PR of its own; no lookup against that branch was attempted.
+Approval: implementation/delivery grant is recorded in _authorization.md; no code-review acceptance at audited HEAD has been obtained or supplied.
+Checks/status: make verify passed (exit 0) per Daemon for audited HEAD; current-head hosted CI is unavailable before an open PR.
+Unresolved review threads: no PR thread surface exists to inspect; no assertion of a reviewed, thread-free PR is made.
+Merge-Ready acceptance: no current-head Review Source acceptance was supplied; not credited.
+Review-artifact ancestry: no final review-artifact commit was supplied; no ancestry or final approval is claimed.
+Unblocking: Supervisor obtains configured current-head review and opens the target-branch PR, then observes required CI, threads and acceptance before merge.
+Equivalent evidence is incomplete; this row stays blocked and the overall verdict is partial.
