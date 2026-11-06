@@ -1,7 +1,7 @@
 ---
 task: task_03
 spec: 0003-query-contract-filter-keys-and-mutation-meta
-status: pending
+status: completed
 type: docs
 complexity: low
 ---
@@ -48,3 +48,13 @@ None. Documentation only; no Shared Contract changes.
 
 - `_prd.md` → Core Feature 4; Glossary.
 - `_techspec.md` → Build Order 3; Risks & Considerations.
+
+## Result
+
+Skills loaded: implement-task, crafting-effective-readmes, domain-modeling, tech-writer, evidence-gate.
+
+- Acceptance criterion 1: the README rule summary and the glossary now describe key-factory keys in QueryClient filters as uses of existing keys, while inline array literals remain declarations. Both describe `meta.invalidates`, with `[]` for a mutation that writes nothing to the cache, and state that OnionCry does not prove the declaration or the central handler's invalidation. The glossary retains explicit invalidation and rollback and the assisted-review limit for cache scope.
+- Acceptance criterion 2: revised only the definition of **Feature System Query Contract**, preserving its name and `_Avoid_` line. Read the entire canonical OnionCry skill: its feature-system section covers effective settings, overrides and adapter checks, and makes no query-contract claim rendered untrue by this change. It therefore remains unchanged, including released-version metadata `0.2.1`.
+- Focused evidence: inspected the changed passages with `rtk rg -n -A 10` and compared their semantics with ADR-0013, ADR-0014 and `src/rules/feature_system/query_syntax.rs`. A read-only Python comparison against `HEAD` exited 0, confirming the glossary name, `_Avoid_` line and surrounding content are preserved, and the canonical skill is byte-identical with metadata `0.2.1`. `rtk git -c core.fsmonitor=false diff --check` exited 0.
+- Scope: initial status showed only this Task file modified. This slice changes `README.md`, `CONTEXT.md` and this Result; it does not alter implementation code, the Task Graph or another Task file.
+- Not run: the Task's declared Verification and `make verify`; both belong to Daemon settlement. Task status remains Daemon-owned. No commit, push or pull request was made. No follow-up work identified.

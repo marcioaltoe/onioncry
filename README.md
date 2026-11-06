@@ -495,7 +495,12 @@ The `frontend/feature-system-*` rules check frontend systems under
   layers.
 - `frontend/feature-system-query-contract` keeps TanStack Query keys and options
   in `lib`, makes hooks reuse option factories, and checks cache invalidation
-  ownership when it is observable.
+  ownership when it is observable. Key-factory keys in QueryClient filters are
+  uses of existing keys, not key ownership; inline array literals still count
+  as declarations. A mutation may declare `meta.invalidates` in its own options,
+  with `[]` for a mutation that writes nothing to the cache. OnionCry accepts
+  this declaration without proving that the mutation writes nothing or that a
+  central cache handler performs the declared invalidation.
 
 ## Output Formats
 
