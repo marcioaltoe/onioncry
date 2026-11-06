@@ -10,6 +10,7 @@ use std::path::Path;
 #[derive(Default)]
 pub(super) struct QuerySyntaxFacts {
     pub(super) declares_query_key: bool,
+    pub(super) has_uncontracted_mutation: bool,
 }
 
 pub(super) fn summarize_query_syntax(file: &Path, source: &str) -> Result<QuerySyntaxFacts> {
@@ -42,6 +43,18 @@ struct QuerySyntaxVisitor {
 
 impl<'a> Visit<'a> for QuerySyntaxVisitor {
     fn visit_call_expression(&mut self, call: &CallExpression<'a>) {
+        let is_mutation = matches!(
+            &call.callee,
+            Expression::Identifier(identifier) if identifier.name == "useMutation"
+        ) || call.callee.as_member_expression().is_some_and(|member| {
+            member
+                .static_property_name()
+                .is_some_and(|name| name.as_str() == Some("useMutation"))
+        });
+        if is_mutation && !mutation_has_invalidation_contract(call) {
+            self.facts.has_uncontracted_mutation = true;
+        }
+
         if call.callee.as_member_expression().is_some_and(|member| {
             member.static_property_name().is_some_and(|name| {
                 matches!(
@@ -83,6 +96,30 @@ impl<'a> Visit<'a> for QuerySyntaxVisitor {
     }
 }
 
+fn mutation_has_invalidation_contract(call: &CallExpression<'_>) -> bool {
+    let Some(Argument::ObjectExpression(options)) = call.arguments.first() else {
+        return false;
+    };
+    options.properties.iter().any(|property| {
+        let ObjectPropertyKind::ObjectProperty(property) = property else {
+            return false;
+        };
+        if !property.key.is_specific_static_name("meta") {
+            return false;
+        }
+        let Expression::ObjectExpression(meta) = &property.value else {
+            return false;
+        };
+        meta.properties.iter().any(|property| {
+            matches!(
+                property,
+                ObjectPropertyKind::ObjectProperty(property)
+                    if property.key.is_specific_static_name("invalidates")
+            )
+        })
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -117,6 +154,45 @@ mod tests {
                 !facts.declares_query_key,
                 "unexpected declaration: {source}"
             );
+        }
+    }
+
+    #[test]
+    fn mutation_invalidation_contract_belongs_to_each_calls_options() {
+        for source in [
+            "useMutation({ meta: { invalidates: [] } });",
+            "query.useMutation({ meta: { invalidates: [['billing']] } });",
+            "query['useMutation']({ 'meta': { 'invalidates': null } });",
+            "useMutation({ meta: { invalidates } });",
+            "useMutation({ meta: { invalidates: undefined } });",
+            "useMutation({ meta: { invalidates: [] } }); useMutation({ meta: { invalidates: keys() } });",
+            "// useMutation({})\nconst label = 'useMutation(';",
+            "other({ meta: {} });",
+        ] {
+            let facts = summarize_query_syntax(Path::new("hook.ts"), source).unwrap();
+            assert!(
+                !facts.has_uncontracted_mutation,
+                "unexpected mutation: {source}"
+            );
+        }
+        for source in [
+            "useMutation({});",
+            "query.useMutation ({});",
+            "query['useMutation']({});",
+            "useMutation();",
+            "useMutation(options());",
+            "useMutation({ meta: { toast: 'saved' } });",
+            "useMutation({ meta });",
+            "useMutation({ meta: { nested: { invalidates: [] } } });",
+            "useMutation({ nested: { meta: { invalidates: [] } } });",
+            "useMutation({}, { meta: { invalidates: [] } });",
+            "useMutation({}); const options = { meta: { invalidates: [] } };",
+            "useMutation({}); useMutation({ meta: { invalidates: [] } });",
+            "useMutation({ meta: { invalidates: [] } }); useMutation({});",
+            "useMutation({ /* meta: { invalidates: [] } */ });",
+        ] {
+            let facts = summarize_query_syntax(Path::new("hook.ts"), source).unwrap();
+            assert!(facts.has_uncontracted_mutation, "missed mutation: {source}");
         }
     }
 

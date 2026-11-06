@@ -1183,6 +1183,140 @@ export function useUpdateBilling() {
 }
 
 #[test]
+fn feature_system_query_contract_accepts_mutation_meta_invalidates() {
+    for invalidates in ["[]", "[[\"billing\"]]"] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_feature_system_query_contract_config(
+            &workspace.path().join(".onioncryrc.jsonc"),
+            r#""warn""#,
+        );
+        write_file(
+            &workspace
+                .path()
+                .join("packages/frontend/src/systems/billing/hooks/use-export-billing.ts"),
+            &format!(
+                r#"import {{ useMutation }} from '@tanstack/react-query';
+export function useExportBilling() {{
+  return useMutation({{
+    mutationFn: async () => new Blob(['billing export']),
+    meta: {{ invalidates: {invalidates} }}
+  }});
+}}
+"#
+            ),
+        );
+
+        let result = run_json_check(
+            &workspace,
+            &["check", "--format", "json", "--fail-on", "warning"],
+        );
+
+        assert_eq!(result["status"], "pass", "invalidates: {invalidates}");
+        assert_eq!(result["summary"]["violationCount"], 0);
+    }
+}
+
+#[test]
+fn feature_system_query_contract_reports_mutations_without_invalidation_contract() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    let config = serde_json::json!({
+        "version": 1,
+        "project": {
+            "root": ".",
+            "include": ["packages/frontend/src/**/*"],
+            "exclude": []
+        },
+        "rules": {
+            "frontend/feature-system-query-contract": "warn",
+            "frontend/feature-system-dependency-flow": "warn"
+        },
+        "overrides": []
+    });
+    write_file(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        &serde_json::to_string(&config).expect("config should serialize"),
+    );
+    for (name, source) in [
+        (
+            "use-no-meta.ts",
+            "export const useNoMeta = () => useMutation({ mutationFn: async () => undefined });",
+        ),
+        (
+            "use-toast-meta.ts",
+            "export const useToastMeta = () => useMutation({ mutationFn: async () => undefined, meta: { toast: 'saved' } });",
+        ),
+        (
+            "use-mixed.ts",
+            "export const useContracted = () => useMutation({ mutationFn: async () => undefined, meta: { invalidates: [] } });\nexport const useUncontracted = () => useMutation({ mutationFn: async () => undefined });",
+        ),
+        (
+            "use-optimistic.ts",
+            "export const useOptimistic = () => useMutation({ mutationFn: async () => undefined, meta: { invalidates: [] }, onMutate: () => client.setQueryData(['billing'], []) });",
+        ),
+    ] {
+        write_file(
+            &workspace.path().join(format!(
+                "packages/frontend/src/systems/billing/hooks/{name}"
+            )),
+            &format!("import {{ useMutation }} from '@tanstack/react-query';\n{source}\n"),
+        );
+    }
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/adapters/billing-api.ts"),
+        "export const billingApi = { export: async () => new Blob() };\n",
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/components/billing-card.tsx"),
+        "import { billingApi } from '../adapters/billing-api';\nexport const BillingCard = billingApi;\n",
+    );
+
+    let output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--format", "json", "--fail-on", "warning"])
+        .assert()
+        .code(1)
+        .get_output()
+        .stdout
+        .clone();
+    let result: Value = serde_json::from_slice(&output).expect("check should emit valid JSON");
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(violations.len(), 5);
+    for name in ["use-no-meta.ts", "use-toast-meta.ts", "use-mixed.ts"] {
+        assert!(violations.iter().any(|violation| {
+            violation["rule"] == "frontend/feature-system-query-contract"
+                && violation["severity"] == "warn"
+                && violation["file"].as_str().is_some_and(|file| file.ends_with(name))
+                && violation["message"]
+                    == "mutation hooks should invalidate relevant queries in onSuccess or onSettled"
+                && violation["suggestion"]
+                    == "add an onSuccess or onSettled handler that calls invalidateQueries"
+        }), "missing invalidation diagnostic for {name}: {result}");
+    }
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-query-contract"
+            && violation["file"].as_str().is_some_and(|file| file.ends_with("use-optimistic.ts"))
+            && violation["message"]
+                == "optimistic cache updates should cancel, snapshot or rollback, and invalidate on settlement"
+    }));
+    assert!(violations.iter().any(|violation| {
+        violation["rule"] == "frontend/feature-system-dependency-flow"
+            && violation["file"]
+                .as_str()
+                .is_some_and(|file| file.ends_with("billing-card.tsx"))
+            && violation["message"]
+                == "components may not import adapters in the billing system through ../adapters/billing-api"
+    }));
+}
+
+#[test]
 fn check_accepts_custom_feature_system_query_contract_options() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_feature_system_query_contract_config(

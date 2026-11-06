@@ -163,7 +163,7 @@ impl FeatureSystemQueryContractPolicy {
             ));
         }
 
-        if source.contains("useMutation(") && !source_has_mutation_invalidation(source) {
+        if syntax.has_uncontracted_mutation && !source_has_mutation_invalidation(source) {
             violations.push(Violation::feature_system_query_contract(
                 file,
                 severity,

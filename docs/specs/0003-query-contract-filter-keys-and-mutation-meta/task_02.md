@@ -1,7 +1,7 @@
 ---
 task: task_02
 spec: 0003-query-contract-filter-keys-and-mutation-meta
-status: pending
+status: completed
 type: backend
 complexity: medium
 ---
@@ -53,3 +53,38 @@ Every `useMutation` must currently call `invalidateQueries` in `onSuccess` or `o
 - `_prd.md` → Goals 2 and 3; User Stories 3 and 4; Core Features 2 and 3; Success Metrics 1 and 2.
 - `_techspec.md` → API Contract 1; System Architecture; Interfaces; Testing Approach; Build Order 2.
 - ADR-0014; ADR-0004.
+
+## Result
+
+Skills loaded: implement-task, coding-guidelines, rust-expert, rust-cli, testing-boss, systematic-debugging, no-workarounds, evidence-gate, tech-writer, brainstorming, agentic-cli-design, onioncry, review.
+
+Implemented only the mutation-meta slice. `QuerySyntaxFacts` now records whether any identifier or member `useMutation` call lacks a first-argument options object declaring `meta.invalidates`. The declaration accepts any value, including an empty list. Each call is examined independently; a contracted mutation cannot hide an uncontracted sibling. The hook diagnostic uses `syntax.has_uncontracted_mutation && !source_has_mutation_invalidation(source)` and retains its existing message, suggestion and severity. The invalidation helper, optimistic-update check and other query-contract checks are unchanged.
+
+### Reproduction before production edits
+
+`rtk proxy cargo test --test feature_system feature_system_query_contract_accepts_mutation_meta_invalidates -- --exact --nocapture` exited 101 before the production change. Its real CLI child analyzed one export hook with `meta: { invalidates: [] }`, no invalidation, and returned exit 1 under `--fail-on warning`. JSON contained exactly one warning: `mutation hooks should invalidate relevant queries in onSuccess or onSettled`. The same focused command exited 0 after the production change, covering both `[]` and `[["billing"]]`.
+
+### Acceptance evidence
+
+1. Declared invalidation: the new positive real-binary regression accepts both required lists with zero violations under `--fail-on warning`. The syntax unit test also covers identifier/member callees, quoted properties, shorthand `invalidates`, non-array values, comments, strings, unrelated calls, nonliteral options and declaration placement.
+2. Existing valid mutations and missing contracts: the unchanged default query-contract regression passes, including explicit `onSuccess` and `onSettled` invalidation. The new negative real-binary regression asserts CLI exit 1 and five findings: missing `meta`, `meta` without `invalidates`, mixed contracted/uncontracted mutations, optimistic `onMutate` without rollback despite declared invalidation, and a production component importing an adapter. Mutation message, suggestion and warning severity are asserted. The existing mutation-cache regression also passes unchanged.
+3. Compatibility: all existing tests remain byte-identical; the selected existing query-contract and mutation-cache tests pass. No configuration, schema, diagnostic constructor, rule identifier or exit-code implementation changed. The complete feature-system suite and repository gates remain for Daemon Verification; focused results do not establish their outcome. The documentation/skill wording belongs to Task 03 and is untouched.
+
+### Focused checks
+
+- `rtk proxy cargo test --test feature_system query_contract -- --nocapture` — exit 0; six tests passed, 35 filtered out, including both new real-binary regressions and existing default/custom and filter-key tests.
+- `rtk proxy cargo test --test feature_system check_reports_feature_system_mutation_cache_handling_violations -- --exact --nocapture` — exit 0; one existing real-binary test passed, 40 filtered out.
+- `rtk proxy cargo test --lib rules::feature_system::query_syntax::tests -- --nocapture` — exit 0; three unit tests passed.
+- `rtk proxy cargo clippy --lib --test feature_system -- -D warnings` — exit 0.
+- `rtk proxy rustfmt --edition 2024 --check src/rules/feature_system/query_syntax.rs src/rules/feature_system/query_contract.rs tests/feature_system.rs` — exit 0.
+- Separate read-only Standards and Spec reviews of the implementation diff returned `No findings.`
+
+The negative regression's initial assertion abbreviated the dependency-flow message; it was corrected to assert the existing complete diagnostic. No production change was needed for that assertion.
+
+Task status remains Daemon-owned. The declared Verification, `make verify`, `make rust-verify` and full suite were not run. No commits, pushes, PRs, Task Graph edits or sibling Task edits were made.
+
+## Recorded paths
+
+The Daemon recorded these paths, which this Task changed without declaring them in `## Context`.
+
+- `src/rules/feature_system/query_syntax.rs`
