@@ -1,1 +1,0 @@
-Report structural check: pass. 10 typed rows, 9 pass, 1 no-PR environment block. 18 report links resolve and are not ignored. All retained JSON parses; evidence scripts parse. 72 fixture cases independently reconciled from retained outputs; row 04 has 12 CLI invocations. No production or Task delta.

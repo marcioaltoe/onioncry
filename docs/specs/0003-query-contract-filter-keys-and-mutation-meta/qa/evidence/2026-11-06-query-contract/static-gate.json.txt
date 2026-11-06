@@ -1,9 +1,0 @@
-{
-  "source": "Daemon-supplied Repository Verification in current QA assignment",
-  "command": "make verify",
-  "verdict": "pass",
-  "exit": 0,
-  "build": "2c2bc4a7705c94f405dc75d8aea07f38b6c687f3",
-  "diagnostics": "removed on success",
-  "agent_rerun": false
-}
