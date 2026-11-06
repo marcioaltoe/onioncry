@@ -96,92 +96,88 @@ fn find_canonical_cycles(graph: &BTreeMap<PathBuf, Vec<PathBuf>>) -> Vec<Vec<Pat
     cycles
 }
 
+// Node state lives in vectors indexed by node id, so a visited node always has
+// an index and a lowlink and the algorithm has no unreachable lookup branches.
 struct TarjanState<'a> {
-    graph: &'a BTreeMap<PathBuf, Vec<PathBuf>>,
+    nodes: Vec<&'a PathBuf>,
+    successors: Vec<Vec<usize>>,
     next_index: usize,
-    indexes: BTreeMap<PathBuf, usize>,
-    lowlinks: BTreeMap<PathBuf, usize>,
-    stack: Vec<PathBuf>,
-    on_stack: HashSet<PathBuf>,
+    indexes: Vec<Option<usize>>,
+    lowlinks: Vec<usize>,
+    stack: Vec<usize>,
+    on_stack: Vec<bool>,
     components: Vec<Vec<PathBuf>>,
 }
 
 impl<'a> TarjanState<'a> {
     fn new(graph: &'a BTreeMap<PathBuf, Vec<PathBuf>>) -> Self {
+        let nodes = graph.keys().collect::<Vec<_>>();
+        let ids = nodes
+            .iter()
+            .enumerate()
+            .map(|(id, node)| (*node, id))
+            .collect::<BTreeMap<_, _>>();
+        // Targets that are not graph keys cannot be visited and are dropped here.
+        let successors = graph
+            .values()
+            .map(|targets| {
+                targets
+                    .iter()
+                    .filter_map(|target| ids.get(target).copied())
+                    .collect()
+            })
+            .collect();
+        let node_count = nodes.len();
         Self {
-            graph,
+            nodes,
+            successors,
             next_index: 0,
-            indexes: BTreeMap::new(),
-            lowlinks: BTreeMap::new(),
+            indexes: vec![None; node_count],
+            lowlinks: vec![0; node_count],
             stack: Vec::new(),
-            on_stack: HashSet::new(),
+            on_stack: vec![false; node_count],
             components: Vec::new(),
         }
     }
 
     fn strongly_connected_components(mut self) -> Vec<Vec<PathBuf>> {
-        for node in self.graph.keys() {
-            if !self.indexes.contains_key(node) {
-                self.visit(node.clone());
+        for node in 0..self.nodes.len() {
+            if self.indexes[node].is_none() {
+                self.visit(node);
             }
         }
         self.components
     }
 
-    fn visit(&mut self, node: PathBuf) {
+    fn visit(&mut self, node: usize) {
         let index = self.next_index;
         self.next_index += 1;
-        self.indexes.insert(node.clone(), index);
-        self.lowlinks.insert(node.clone(), index);
-        self.stack.push(node.clone());
-        self.on_stack.insert(node.clone());
+        self.indexes[node] = Some(index);
+        self.lowlinks[node] = index;
+        self.stack.push(node);
+        self.on_stack[node] = true;
 
-        if let Some(targets) = self.graph.get(&node) {
-            for target in targets {
-                if !self.graph.contains_key(target) {
-                    continue;
+        for target in self.successors[node].clone() {
+            match self.indexes[target] {
+                None => {
+                    self.visit(target);
+                    self.lowlinks[node] = self.lowlinks[node].min(self.lowlinks[target]);
                 }
-                if !self.indexes.contains_key(target) {
-                    self.visit(target.clone());
-                    let (Some(target_lowlink), Some(node_lowlink)) = (
-                        self.lowlinks.get(target).copied(),
-                        self.lowlinks.get(&node).copied(),
-                    ) else {
-                        debug_assert!(false, "visited nodes should have lowlinks");
-                        continue;
-                    };
-                    self.lowlinks
-                        .insert(node.clone(), node_lowlink.min(target_lowlink));
-                } else if self.on_stack.contains(target) {
-                    let (Some(target_index), Some(node_lowlink)) = (
-                        self.indexes.get(target).copied(),
-                        self.lowlinks.get(&node).copied(),
-                    ) else {
-                        debug_assert!(false, "indexed target and visited node should be tracked");
-                        continue;
-                    };
-                    self.lowlinks
-                        .insert(node.clone(), node_lowlink.min(target_index));
+                Some(target_index) if self.on_stack[target] => {
+                    self.lowlinks[node] = self.lowlinks[node].min(target_index);
                 }
+                Some(_) => {}
             }
         }
 
-        let Some(node_lowlink) = self.lowlinks.get(&node).copied() else {
-            debug_assert!(false, "visited node should have a lowlink");
-            return;
-        };
-        if node_lowlink != index {
+        if self.lowlinks[node] != index {
             return;
         }
 
         let mut component = Vec::new();
-        loop {
-            let Some(member) = self.stack.pop() else {
-                debug_assert!(false, "root component should have stack members");
-                break;
-            };
-            self.on_stack.remove(&member);
-            component.push(member.clone());
+        while let Some(member) = self.stack.pop() {
+            self.on_stack[member] = false;
+            component.push(self.nodes[member].clone());
             if member == node {
                 break;
             }
@@ -267,4 +263,95 @@ fn close_cycle(
     }
 
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn graph(edges: &[(&str, &[&str])]) -> BTreeMap<PathBuf, Vec<PathBuf>> {
+        edges
+            .iter()
+            .map(|(source, targets)| {
+                (
+                    PathBuf::from(source),
+                    targets.iter().map(PathBuf::from).collect(),
+                )
+            })
+            .collect()
+    }
+
+    fn cycles(edges: &[(&str, &[&str])]) -> Vec<Vec<String>> {
+        find_canonical_cycles(&graph(edges))
+            .into_iter()
+            .map(|cycle| {
+                cycle
+                    .iter()
+                    .map(|node| node.display().to_string())
+                    .collect()
+            })
+            .collect()
+    }
+
+    #[test]
+    fn acyclic_graphs_have_no_cycles() {
+        assert!(cycles(&[]).is_empty());
+        assert!(cycles(&[("a", &["b"]), ("b", &["c"]), ("c", &[])]).is_empty());
+        assert!(cycles(&[("a", &["b", "c"]), ("b", &["c"]), ("c", &[])]).is_empty());
+    }
+
+    #[test]
+    fn self_references_are_single_node_cycles() {
+        assert_eq!(cycles(&[("a", &["a"])]), vec![vec!["a", "a"]]);
+    }
+
+    #[test]
+    fn each_strongly_connected_component_yields_its_smallest_closed_cycle() {
+        assert_eq!(
+            cycles(&[("a", &["b"]), ("b", &["a"])]),
+            vec![vec!["a", "b", "a"]]
+        );
+        assert_eq!(
+            cycles(&[("c", &["a"]), ("a", &["b"]), ("b", &["c"])]),
+            vec![vec!["a", "b", "c", "a"]]
+        );
+        assert_eq!(
+            cycles(&[
+                ("a", &["b"]),
+                ("b", &["a", "c"]),
+                ("c", &["d"]),
+                ("d", &["c", "e"]),
+                ("e", &[]),
+            ]),
+            vec![vec!["a", "b", "a"], vec!["c", "d", "c"]]
+        );
+    }
+
+    #[test]
+    fn targets_outside_the_graph_are_ignored() {
+        assert!(cycles(&[("a", &["missing"])]).is_empty());
+        assert_eq!(
+            cycles(&[("a", &["b", "missing"]), ("b", &["a"])]),
+            vec![vec!["a", "b", "a"]]
+        );
+    }
+
+    #[test]
+    fn deep_chains_closing_on_the_first_node_form_one_cycle() {
+        let names = (0..50)
+            .map(|index| format!("n{index:02}"))
+            .collect::<Vec<_>>();
+        let graph = names
+            .iter()
+            .enumerate()
+            .map(|(index, name)| {
+                let next = &names[(index + 1) % names.len()];
+                (PathBuf::from(name), vec![PathBuf::from(next)])
+            })
+            .collect::<BTreeMap<_, _>>();
+        let found = find_canonical_cycles(&graph);
+        assert_eq!(found.len(), 1);
+        assert_eq!(found[0].len(), 51);
+        assert_eq!(found[0].first(), found[0].last());
+    }
 }
