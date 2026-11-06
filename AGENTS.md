@@ -71,8 +71,9 @@ Before editing, identify the task domain and **activate every matching skill**:
 - **PRD, tech spec, or task breakdown**: Use `write-prd`, `write-techspec`,
   `write-tasks` (with `grill-with-docs`/`grilling` + `domain-modeling` for
   glossary and ADR capture)
-- **Executing spec tasks**: Use `implement-task` (one task) or `implement-spec`
-  (the whole graph in dependency order)
+- **Executing spec tasks**: Use `implement-task` (one task), or
+  `roundfix implement` / `roundfix deliver` (the whole graph in dependency
+  order)
 - **Final QA of a completed spec**: Use `qa-gate`; archive after release with
   `archive-spec`
 - **MANDATORY** for CLI behavior, flags, stdout/stderr, exit codes, JSON
