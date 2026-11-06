@@ -225,7 +225,7 @@ The observable shape of a feature system API adapter: a domain-named adapter fil
 _Avoid_: raw HTTP calls in components, adapter importing UI
 
 **Feature System Query Contract**:
-The observable TanStack Query ownership rules inside a feature system: query keys and query options live under `lib`, query hooks reuse option factories, query functions pass cancellation signals to adapters, routes and components do not own duplicate query keys, and mutations invalidate or roll back cache changes explicitly. Cache scope sufficiency remains an assisted review unless the project encodes it as rule options.
+The observable TanStack Query ownership rules inside a feature system: query keys and query options live under `lib`, query hooks reuse option factories, query functions pass cancellation signals to adapters, routes and components do not own duplicate query keys, and mutations explicitly invalidate or roll back cache changes or declare `meta.invalidates` (`[]` for a mutation that writes nothing to the cache). Key-factory keys in QueryClient filters are uses of existing keys rather than ownership (inline array literals still declare keys); OnionCry accepts `meta.invalidates` without proving that the mutation writes nothing or that a central cache handler performs the declared invalidation, and cache scope sufficiency remains an assisted review unless the project encodes it as rule options.
 _Avoid_: scattered query keys, inline query behavior in components
 
 **Automatic Rule Check**:

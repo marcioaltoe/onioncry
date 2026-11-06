@@ -102,10 +102,6 @@ pub(super) fn source_imports_and_uses_query_options(source: &str) -> bool {
         && source.contains("queryOptions(")
 }
 
-pub(super) fn source_declares_query_key(source: &str) -> bool {
-    source.contains("queryKey")
-}
-
 pub(super) fn source_passes_query_signal(source: &str) -> bool {
     source.contains("queryFn") && source.matches("signal").count() >= 2
 }

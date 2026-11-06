@@ -6,6 +6,7 @@ mod layout;
 mod location;
 mod public_api;
 mod query_contract;
+mod query_syntax;
 
 use adapter_contract::FeatureSystemAdapterContractPolicy;
 use dependency_flow::FeatureSystemDependencyFlowPolicy;

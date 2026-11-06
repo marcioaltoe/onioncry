@@ -1,10 +1,10 @@
 use super::helpers::{
-    read_source_files, source_declares_query_key, source_has_mutation_invalidation,
-    source_has_optimistic_update_contract, source_has_query_hook_read, source_has_query_ownership,
-    source_imports_and_uses_query_options, source_passes_query_signal,
-    source_uses_query_options_surface,
+    read_source_files, source_has_mutation_invalidation, source_has_optimistic_update_contract,
+    source_has_query_hook_read, source_has_query_ownership, source_imports_and_uses_query_options,
+    source_passes_query_signal, source_uses_query_options_surface,
 };
 use super::location::{is_file_in_area, is_route_file, system_location};
+use super::query_syntax::{QuerySyntaxFacts, summarize_query_syntax};
 use super::{FeatureSystemDependencyArea, FeatureSystemLocation};
 use crate::rules::catalog::RULE_FEATURE_SYSTEM_QUERY_CONTRACT;
 use crate::{
@@ -39,6 +39,7 @@ struct QueryContractAnalysis<'a> {
     edges: &'a [ImportEdge],
     policy: &'a FeatureSystemQueryContractPolicy,
     source_by_file: BTreeMap<PathBuf, String>,
+    syntax_by_file: BTreeMap<PathBuf, QuerySyntaxFacts>,
     query_states: BTreeMap<String, FeatureSystemQueryState>,
     file_set: HashSet<PathBuf>,
 }
@@ -142,16 +143,14 @@ impl FeatureSystemQueryContractPolicy {
         &self,
         file: &Path,
         source: &str,
-        project_root: &Path,
-        edges: &[ImportEdge],
+        syntax: &QuerySyntaxFacts,
+        imports_query_options: bool,
         severity: Severity,
     ) -> Vec<Violation> {
         let mut violations = Vec::new();
 
         if source_has_query_hook_read(source)
-            && (source_declares_query_key(source)
-                || source.contains("queryFn")
-                || !self.imports_query_options(project_root, file, edges))
+            && (syntax.declares_query_key || source.contains("queryFn") || !imports_query_options)
         {
             violations.push(Violation::feature_system_query_contract(
                 file,
@@ -164,7 +163,7 @@ impl FeatureSystemQueryContractPolicy {
             ));
         }
 
-        if source.contains("useMutation(") && !source_has_mutation_invalidation(source) {
+        if syntax.has_uncontracted_mutation && !source_has_mutation_invalidation(source) {
             violations.push(Violation::feature_system_query_contract(
                 file,
                 severity,
@@ -241,6 +240,20 @@ impl<'a> QueryContractAnalysis<'a> {
         policy: &'a FeatureSystemQueryContractPolicy,
     ) -> Result<Self> {
         let source_by_file = read_source_files(files)?;
+        let mut syntax_by_file = BTreeMap::new();
+        for (file, source) in &source_by_file {
+            let is_hook_or_component = system_location(project_root, file, &policy.systems_roots)
+                .is_some_and(|location| {
+                    matches!(
+                        FeatureSystemDependencyArea::from_relative_file(&location.relative_file),
+                        FeatureSystemDependencyArea::Hooks
+                            | FeatureSystemDependencyArea::Components
+                    )
+                });
+            if is_hook_or_component || is_route_file(project_root, file, &policy.route_roots) {
+                syntax_by_file.insert(file.clone(), summarize_query_syntax(file, source)?);
+            }
+        }
         let query_states = Self::query_states(policy, project_root, files, &source_by_file);
         let file_set = files.iter().cloned().collect::<HashSet<_>>();
         let mut analysis = Self {
@@ -249,6 +262,7 @@ impl<'a> QueryContractAnalysis<'a> {
             edges,
             policy,
             source_by_file,
+            syntax_by_file,
             query_states,
             file_set,
         };
@@ -319,18 +333,22 @@ impl<'a> QueryContractAnalysis<'a> {
                     continue;
                 };
                 let area = FeatureSystemDependencyArea::from_relative_file(&location.relative_file);
+                let Some(syntax) = self.syntax_by_file.get(file) else {
+                    continue;
+                };
                 if area == FeatureSystemDependencyArea::Hooks {
-                    violations.extend(self.policy.hook_violations(
-                        file,
-                        source,
-                        self.project_root,
-                        self.edges,
-                        severity,
-                    ));
+                    violations.extend(
+                        self.policy.hook_violations(
+                            file,
+                            source,
+                            syntax,
+                            self.policy
+                                .imports_query_options(self.project_root, file, self.edges),
+                            severity,
+                        ),
+                    );
                 }
-                if area == FeatureSystemDependencyArea::Components
-                    && source_declares_query_key(source)
-                {
+                if area == FeatureSystemDependencyArea::Components && syntax.declares_query_key {
                     violations.push(Violation::feature_system_query_contract(
                         file,
                         severity,
@@ -348,10 +366,10 @@ impl<'a> QueryContractAnalysis<'a> {
             if !is_route_file(self.project_root, file, &self.policy.route_roots) {
                 continue;
             }
-            let Some(source) = self.source_by_file.get(file) else {
+            let Some(syntax) = self.syntax_by_file.get(file) else {
                 continue;
             };
-            if source_declares_query_key(source) {
+            if syntax.declares_query_key {
                 violations.push(Violation::feature_system_query_contract(
                     file,
                     severity,
