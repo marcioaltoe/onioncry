@@ -856,6 +856,190 @@ export function useOptimisticBilling() {
 }
 
 #[test]
+fn feature_system_query_contract_accepts_factory_keys_in_query_filters() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    let system = workspace
+        .path()
+        .join("packages/frontend/src/systems/billing");
+    write_file(
+        &system.join("lib/query-keys.ts"),
+        "export const keys = { list: () => ['billing'] as const };\n",
+    );
+    write_file(
+        &system.join("lib/query-options.ts"),
+        "import { queryOptions } from '@tanstack/react-query';\nimport { keys } from './query-keys';\nexport const options = () => queryOptions({ queryKey: keys.list(), queryFn: async () => [] });\n",
+    );
+    write_file(
+        &system.join("hooks/use-billing.ts"),
+        r#"import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { options } from '../lib/query-options';
+import { keys } from '../lib/query-keys';
+export function useBilling() {
+  const client = useQueryClient();
+  const result = useQuery(options());
+  const update = useMutation({
+    mutationFn: async () => undefined,
+    onSuccess: () => client.invalidateQueries({ queryKey: keys.list() })
+  });
+  return { result, update };
+}
+"#,
+    );
+    for (index, method) in [
+        "invalidateQueries",
+        "refetchQueries",
+        "cancelQueries",
+        "resetQueries",
+        "removeQueries",
+        "isFetching",
+        "getQueriesData",
+        "setQueriesData",
+    ]
+    .iter()
+    .enumerate()
+    {
+        let source = format!(
+            "import {{ keys }} from '../lib/query-keys';\nexport function reload(client: any) {{\n  const queryKey = keys.list();\n  client.{method}({{ queryKey: keys.list() }});\n  client.{method}({{ queryKey }});\n  client['{method}']({{ 'queryKey': queryKey }});\n}}\n"
+        );
+        write_file(
+            &system.join(format!("components/reload-{index}.tsx")),
+            &source,
+        );
+        write_file(
+            &system.join(format!("hooks/use-reload-{index}.ts")),
+            &format!(
+                "import {{ useQuery }} from '@tanstack/react-query';\nimport {{ options }} from '../lib/query-options';\n{source}\nexport const useReload = () => useQuery(options());\n"
+            ),
+        );
+        write_file(
+            &workspace
+                .path()
+                .join(format!("packages/frontend/src/routes/reload-{index}.tsx")),
+            &source.replace("../lib/query-keys", "../systems/billing/lib/query-keys"),
+        );
+    }
+
+    let result = run_json_check(&workspace, &["check", "--format", "json"]);
+
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+}
+
+#[test]
+fn feature_system_query_contract_reports_inline_query_key_declarations() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""error""#,
+    );
+    let system = workspace
+        .path()
+        .join("packages/frontend/src/systems/billing");
+    write_file(
+        &system.join("lib/query-keys.ts"),
+        "export const key = ['billing'];\n",
+    );
+    write_file(
+        &system.join("lib/query-options.ts"),
+        "import { queryOptions } from '@tanstack/react-query';\nexport const options = () => queryOptions({ queryKey: ['billing'], queryFn: async () => [] });\n",
+    );
+    let hook_message = "query hooks should reuse factories from lib/query-options.ts";
+    let component_message = "components should not own query keys";
+    let route_message = "routes should not own query keys";
+    let mut expected = vec![
+        ("hooks/use-inline.ts".to_string(), hook_message),
+        ("routes/inline.tsx".to_string(), route_message),
+    ];
+    write_file(
+        &system.join("hooks/use-inline.ts"),
+        "import { useQuery } from '@tanstack/react-query';\nimport { options } from '../lib/query-options';\nexport const useInline = () => useQuery({ ...options(), queryKey: ['billing'] });\n",
+    );
+    for (index, method) in [
+        "invalidateQueries",
+        "refetchQueries",
+        "cancelQueries",
+        "resetQueries",
+        "removeQueries",
+        "isFetching",
+        "getQueriesData",
+        "setQueriesData",
+    ]
+    .iter()
+    .enumerate()
+    {
+        let path = format!("components/inline-{index}.tsx");
+        let source = format!(
+            "export const reload = (client: any) => client.{method}({{ queryKey: ['billing'] }});\n"
+        );
+        write_file(&system.join(&path), &source);
+        expected.push((path, component_message));
+        let path = format!("hooks/use-inline-filter-{index}.ts");
+        write_file(
+            &system.join(&path),
+            &format!(
+                "import {{ useQuery }} from '@tanstack/react-query';\nimport {{ options }} from '../lib/query-options';\n{source}\nexport const useInlineFilter = () => useQuery(options());\n"
+            ),
+        );
+        expected.push((path, hook_message));
+        let path = format!("routes/inline-filter-{index}.tsx");
+        write_file(
+            &workspace.path().join("packages/frontend/src").join(&path),
+            &source,
+        );
+        expected.push((path, route_message));
+    }
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/inline.tsx"),
+        "export const options = { 'queryKey': ['billing'] };\n",
+    );
+    for (path, source) in [
+        (
+            "hooks/use-comment.ts",
+            "import { useQuery } from '@tanstack/react-query';\nimport { options } from '../lib/query-options';\n// queryKey: ['billing']\nexport const useBilling = () => useQuery(options());\n",
+        ),
+        (
+            "components/comment.tsx",
+            "// queryKey: ['billing']\nexport const label = 'queryKey';\n",
+        ),
+    ] {
+        write_file(&system.join(path), source);
+    }
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/routes/comment.tsx"),
+        "// queryKey\nexport const label = 'queryKey: [billing]';\n",
+    );
+
+    let result = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(violations.len(), expected.len());
+    for (path, message) in expected {
+        assert!(
+            violations.iter().any(|violation| {
+                violation["file"]
+                    .as_str()
+                    .is_some_and(|file| file.ends_with(&path))
+                    && violation["message"] == message
+                    && violation["rule"] == "frontend/feature-system-query-contract"
+                    && violation["severity"] == "error"
+            }),
+            "missing {message} for {path}: {violations:?}"
+        );
+    }
+}
+
+#[test]
 fn check_reports_missing_feature_system_query_files_and_inline_hooks() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_feature_system_query_contract_config(
