@@ -125,10 +125,11 @@ Before editing, identify the task domain and **activate every matching skill**:
   the CLI, `jsonc-parser` + `serde` for the `.onioncryrc.jsonc` config
   (comments are a public contract — ADR-0002), `schemars` for the published
   config JSON Schema, `oxc_parser`/`oxc_ast` for JS/TS parsing (ADR-0004),
-  `globset` + `walkdir` for file selection, `miette` for terminal
-  diagnostics, `thiserror` for typed errors.
+  `globset` + `walkdir` for file selection, `thiserror` for typed errors
+  rendered by the CLI's own output renderers (ADR-0015).
 - **NEVER** `unwrap`/`expect`/`panic!` on user-facing paths. Return typed
-  errors and render diagnostics through `miette`.
+  errors and render them through the existing pretty, JSON, SARIF and LLM
+  renderers or the `error:` line on stderr.
 - **MUST** build structured output with `serde`/`serde_json`. Hand-built
   JSON is rejected. Schema-validate SARIF output against the bundled 2.1.0
   fixture.
