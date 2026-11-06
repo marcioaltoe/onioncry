@@ -19,3 +19,7 @@ The Roundfix project validated its Rust Baseline rules (its Spec 0206) by readin
 - Symptom / evidence: `src/rules/clean_boundaries/cycle.rs:150`, `:160`, `:170` and `:180`, inside the Tarjan strongly connected component walk, guard states the algorithm should never reach. Release builds skip the branch and continue, while debug and test builds panic.
 - Root cause: these are defensive invariant checks. No input that reaches them is known, so they are not a defect today.
 - Action / suggestion: when the Spec for item 1 runs, decide whether to keep them as documented invariants or to make the walk unable to reach those states by construction, for example by tracking lowlinks in the same structure that marks a node visited. No user-facing failure is known.
+
+## Addendum — 2026-11-06 — item 1 resolved
+
+The maintainer chose to remove `miette`. ADR-0015 records the decision, `cargo remove miette` dropped the dependency, and `AGENTS.md` no longer names it. Item 2 stays pending.
