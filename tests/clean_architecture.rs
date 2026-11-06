@@ -249,6 +249,165 @@ fn check_accepts_context_first_clean_architecture_artifact_placement() {
 }
 
 #[test]
+fn check_reports_suffixed_context_artifacts_outside_role_folder() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        ".",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": { "contextRoot": "src/contexts" }
+  }"#,
+        r#"{ "cleanarch/artifact-placement": "warn" }"#,
+        r#"[]"#,
+    );
+    let cases = [
+        (
+            "src/contexts/tax/application/qa-placement-probe.use-case.ts",
+            "application",
+            "use-cases",
+        ),
+        (
+            "src/contexts/tax/infra/audit.repository.ts",
+            "infra",
+            "repositories",
+        ),
+        (
+            "src/contexts/tax/domain/money.entity.ts",
+            "domain",
+            "entities",
+        ),
+        (
+            "src/contexts/tax/application/billing/create-invoice.use-case.ts",
+            "application",
+            "use-cases",
+        ),
+    ];
+    for (file, _, _) in cases {
+        write_file(&workspace.path().join(file), "export const value = 1;\n");
+    }
+
+    let output = onioncry()
+        .current_dir(workspace.path())
+        .args(["check", "--format", "json", "--fail-on", "warning"])
+        .assert()
+        .code(1)
+        .get_output()
+        .stdout
+        .clone();
+    let result: Value = serde_json::from_slice(&output).expect("check should emit valid JSON");
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert_eq!(result["summary"]["errorCount"], 0);
+    assert_eq!(result["summary"]["warningCount"], cases.len());
+    assert_eq!(violations.len(), cases.len());
+    for (file, layer, role) in cases {
+        let file = workspace
+            .path()
+            .join(file)
+            .canonicalize()
+            .expect("fixture file should exist");
+        let violation = violations
+            .iter()
+            .find(|violation| violation["file"] == file.to_string_lossy().as_ref())
+            .expect("each misplaced file should be reported");
+        let boundary = format!("src/contexts/tax/{layer}/{role}");
+        assert_eq!(violation["rule"], "cleanarch/artifact-placement");
+        assert_eq!(violation["severity"], "warn");
+        assert_eq!(violation["toLayer"], layer);
+        assert_eq!(
+            violation["message"],
+            format!(
+                "cleanArchitecture artifact {role:?} should live in the {layer} boundary {boundary}"
+            )
+        );
+        assert_eq!(
+            violation["suggestion"],
+            format!(
+                "move this {role} artifact to {boundary} or turn cleanarch/artifact-placement off with an override while migrating"
+            )
+        );
+    }
+
+    let default_threshold = run_json_check(&workspace, &["check", "--format", "json"]);
+    assert_eq!(default_threshold["status"], "pass");
+    assert_eq!(default_threshold["violations"], result["violations"]);
+}
+
+#[test]
+fn check_accepts_suffixed_context_artifacts_inside_role_folders() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_architecture_mode_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        "src",
+        r#"{
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": { "contextRoot": "contexts" }
+  }"#,
+        r#"{ "cleanarch/artifact-placement": "error" }"#,
+        r#"[{
+    "files": ["contexts/tax/application/qa-placement-probe.use-case.ts"],
+    "rules": { "cleanarch/artifact-placement": "off" }
+  }]"#,
+    );
+    for file in [
+        "application/use-cases/qa-placement-probe.use-case.ts",
+        "application/use-cases/billing/create-invoice.use-case.ts",
+        "infra/repositories/audit.repository.ts",
+        "infra/repositories/billing/audit.repository.ts",
+        "domain/entities/money.entity.ts",
+        "domain/entities/billing/money.entity.ts",
+    ] {
+        write_file(
+            &workspace.path().join("src/contexts/tax").join(file),
+            "export const value = 1;\n",
+        );
+    }
+
+    let result = run_json_check(
+        &workspace,
+        &["check", "--format", "json", "--fail-on", "warning"],
+    );
+    assert_eq!(result["status"], "pass");
+    assert_eq!(result["summary"]["violationCount"], 0);
+    assert_eq!(result["violations"], serde_json::json!([]));
+
+    for file in [
+        "src/contexts/tax/application/qa-placement-probe.use-case.ts",
+        "src/contexts/tax/infra/audit.repository.ts",
+    ] {
+        write_file(&workspace.path().join(file), "export const value = 1;\n");
+    }
+
+    let overridden = run_json_check_failure(&workspace, &["check", "--format", "json"]);
+    let violations = overridden["violations"]
+        .as_array()
+        .expect("violations should be an array");
+    assert_eq!(overridden["status"], "fail");
+    assert_eq!(overridden["summary"]["errorCount"], 1);
+    assert_eq!(overridden["summary"]["warningCount"], 0);
+    assert_eq!(violations.len(), 1);
+    assert_eq!(violations[0]["rule"], "cleanarch/artifact-placement");
+    assert_eq!(violations[0]["severity"], "error");
+    let reported_file = workspace
+        .path()
+        .join("src/contexts/tax/infra/audit.repository.ts")
+        .canonicalize()
+        .expect("fixture file should exist");
+    assert_eq!(
+        violations[0]["file"],
+        reported_file.to_string_lossy().as_ref()
+    );
+    assert_eq!(
+        violations[0]["message"],
+        "cleanArchitecture artifact \"repositories\" should live in the infra boundary contexts/tax/infra/repositories"
+    );
+}
+
+#[test]
 fn check_accepts_clean_architecture_artifacts_with_source_prefix() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     write_architecture_mode_config(

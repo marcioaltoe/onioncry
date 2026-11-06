@@ -94,7 +94,7 @@ impl CleanArtifactPlacementPolicy {
         let expected_layer = self.expected_layer(&artifact.role, current_layer.as_deref())?;
 
         if let Some((context, layer)) = self.location.context_first_location(&components) {
-            if layer == expected_layer {
+            if layer == expected_layer && artifact.folder_index.is_some() {
                 return None;
             }
             return Some(CleanArtifactFinding {
