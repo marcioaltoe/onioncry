@@ -4,6 +4,35 @@ All notable changes to OnionCry are documented in this file. Entries are
 generated from Conventional Commit history with
 [cocogitto](https://github.com/cocogitto/cocogitto).
 
+## v0.3.0 - 2026-11-06
+
+`cleanarch/artifact-placement` now reports a file classified only by its
+artifact suffix, such as `application/x.use-case.ts`, when it sits outside its
+role folder under the context-first layout. Projects that raised the rule to
+`error` may see new diagnostics; a per-file override relaxes it during a
+migration. `frontend/feature-system-query-contract` treats key-factory keys in
+QueryClient filters as uses of existing keys and accepts a mutation's
+`meta.invalidates` (with `[]` for a mutation that writes nothing) as its
+invalidation contract. The minimum supported Rust version is now 1.97.
+
+#### Features
+
+- deliver 0003-query-contract-filter-keys-and-mutation-meta (#22) - (e562392) - Marcio Altoé
+- deliver 0002-suffixed-artifacts-require-their-role-folder (#21) - (fbc0dbc) - Marcio Altoé
+
+#### Documentation
+
+- archive Spec 0001 and plan Specs 0002 and 0003 (#19) - (03df5cd) - Marcio Altoé
+
+#### Build system
+
+- raise MSRV to 1.97 to update oxc to 0.155 (#18) - (887bc93) - Marcio Altoé
+
+#### Miscellaneous Chores
+
+- (**agents**) refresh the managed Baseline and Roundfix skills (#20) - (9c251d6) - Marcio Altoé
+- (**repo**) update dependencies, skills, baseline and tooling (#17) - (a528df8) - Marcio Altoé
+
 ## v0.2.1 - 2026-10-26
 
 Releases now publish to npm and crates.io through OIDC trusted publishing; npm
