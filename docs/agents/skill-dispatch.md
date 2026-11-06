@@ -58,12 +58,9 @@ Individual skill triggers:
 - `github-pr-workflow`:
   - `trigger.core.github-pr-workflow`: Preparing, opening, updating, or handing off a pull request.
 - `grill-with-docs`:
-  - `trigger.context-workflow.grill-with-docs`: Stress-testing a plan or decision against repository documents.
+  - `trigger.context-workflow.grill-with-docs`: When the person asks to stress-test a plan or decision against repository documents.
 - `grilling`:
   - `trigger.context-workflow.grilling`: Stress-testing an idea or plan through direct questions.
-- `implement-spec`:
-  - `trigger.autonomous-work.implement-spec`: Delegating a complete autonomous Spec Task Graph.
-  - `trigger.context-workflow.implement-spec`: Executing every pending Task in a Spec Task Graph.
 - `implement-task`:
   - `trigger.autonomous-work.implement-task`: Delegating one autonomous Task to an ACP Runtime.
   - `trigger.context-workflow.implement-task`: Executing exactly one assigned Spec Task.

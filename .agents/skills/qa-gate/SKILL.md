@@ -4,10 +4,10 @@ description: Execute the self-contained final QA gate as a Spec's authored termi
 metadata:
   category: qa
   tags: [qa, testing, browser, workflow]
-  version: 0.0.20
+  version: 0.0.24
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
-version: 0.0.20
+version: 0.0.24
 ---
 
 # QA Gate
@@ -60,6 +60,27 @@ a secret-shaped sample into evidence. Record a Secret Match by path, line and
 kind only, and never reload a shell profile to obtain a key. The Daemon
 refuses to commit a QA Report whose files match a Secret Pattern.
 
+### Evidence links resolve in the committed tree
+
+Save evidence under names the repository does not ignore. Use a `.txt`
+extension for logs and command output, and check a new name with
+`git check-ignore` before linking it. Never cite a file you did not keep.
+
+Every local link of the QA Report must resolve in the committed tree. An
+ignored or missing target gets one repair turn; after that, the QA Task settles
+`failed` with the link as written, its line and the reason `ignored` or
+`missing`. `roundfix qa-report accept` and the Settle Command refuse the same
+report. Keep every verdict and row status the evidence supports; never change
+one to hide lost evidence.
+
+### Declared rows name their criterion
+
+One Unreachable Acceptance declaration may name several criteria, one criterion line each, and each criterion becomes its own QA row; acceptance matches every declared-blocked row to a declaration that names its criterion, by its text or its leading label.
+A report whose declared-blocked rows do not exceed its declarations is accepted as before.
+
+Write each row as `blocked (declared: <criterion>)`, using the criterion or
+its leading label, never a paraphrase.
+
 ### QA settlement
 
 The same outcome settles the authored `qa` Task and determines what the archive leaves:
@@ -76,12 +97,23 @@ The same outcome settles the authored `qa` Task and determines what the archive 
 ### Rows the Spec's authorization keeps offline
 
 The qualifying declared `partial` above also accepts an outside-evidence row
-the gate did not look up because the Spec's own authorization forbids network
-access, recorded as `blocked (environment: network prohibited by Spec authorization)`
-with the outside-evidence row named in its provenance. Like the network-denied
-row, it never decides a qualifying partial and needs no Unreachable Acceptance
-declaration, and settlement, `roundfix qa-report accept` and `roundfix archive`
-read it through the same policy (ADR-0276).
+the gate did not look up because the Spec's own authorization forbids that
+lookup, recorded as `blocked (environment: <subject> prohibited by Spec authorization)`
+with the outside-evidence row named in its provenance. The subject names what
+the authorization forbids, in its words: `network` for a network lookup, or
+`another repository`; it is 1 to 80 characters and holds no parenthesis. Like
+the network-denied row, it never decides a qualifying partial and needs no
+Unreachable Acceptance declaration, a row counts toward one exempt kind at
+most, and settlement, `roundfix qa-report accept` and `roundfix archive` read
+it through the same policy (ADR-0276, ADR-0335).
+
+### Skills the gate loads
+
+Before building the matrix, read `docs/agents/skill-dispatch.md` when the
+repository has it. Load the skills of its QA activation and of each trigger
+the Spec's declared surfaces match, and only those. Do not load a skill only
+a person can start; name it as skipped instead of blocking a Run. The gate's
+evidence stays its matrix; the QA Report needs no Loaded Skill List.
 
 ## 1. Resolve scope and preconditions
 
@@ -313,7 +345,7 @@ Every matrix, declared or default, covers these non-waivable sources:
 - the outside-evidence row;
 - the Pull Request row, on its equivalent-evidence path;
 - the repository Verification;
-- each declaration under the PRD's `## Unreachable Acceptance` section;
+- each criterion a PRD Unreachable Acceptance declaration names;
 - the frontend sweep, when `frontend` is declared.
 
 A `qa` Task without a declared verification Requirement gets the bounded default.
@@ -413,12 +445,15 @@ the Spec's own premise. When the Run sandbox denies network access to the
 lookup, record the row as `blocked (environment: network denied: <host>)`, naming
 the host the lookup tried, and keep an `outside-evidence row` item in its
 provenance. This records that the source was not reached and never decides a
-qualifying partial. When the Spec's own `_authorization.md` forbids network
-access, do not attempt the lookup: record the row exactly as
-`blocked (environment: network prohibited by Spec authorization)`, keep an
-`outside-evidence row` item in its provenance, and name in the report the
-authorization text that forbids it. It never decides a qualifying partial
-either (ADR-0276). A source the row can check offline, such as a passage the
+qualifying partial. When the Spec's own `_authorization.md` forbids that
+lookup, do not attempt it: record the row as
+`blocked (environment: <subject> prohibited by Spec authorization)`, where
+`<subject>` names what the authorization forbids in its words, such as
+`network` for a network lookup, is 1 to 80 characters, and holds no
+parenthesis. Keep an `outside-evidence row` item in its provenance and name in
+the report the authorization text that forbids it. It never decides a
+qualifying partial either (ADR-0276, ADR-0335). A source the row can check
+offline, such as a passage the
 PRD quotes or a document under `docs/references/`, is checked, never
 blocked. Any other blocked outside-evidence row still blocks Pull
 Request preparation. Count every blocked outside-evidence row in
@@ -648,9 +683,12 @@ The gate permits Pull Request preparation on `pass`, or on a qualifying declared
   record `blocked (environment: network denied: <host>)` with the attempted
   host and an `outside-evidence row` provenance item when the Run sandbox denied
   network access; this records that the source was not reached and never decides
-  a qualifying partial. When the Spec's own authorization forbids network access,
-  record `blocked (environment: network prohibited by Spec authorization)` with
-  the same provenance item instead; it never decides a qualifying partial either.
+  a qualifying partial. When the Spec's own authorization forbids that lookup,
+  record `blocked (environment: <subject> prohibited by Spec authorization)`;
+  `<subject>` names what the authorization forbids in its words, such as
+  `network` for a network lookup, is 1 to 80 characters, and holds no
+  parenthesis. Keep the same provenance item and name the authorization text in
+  the report; it never decides a qualifying partial either.
   Any other blocked outside-evidence row still blocks Pull
   Request preparation. Count it in `rows_blocked_environment` — never substitute
   a rehearsal the Spec authored.

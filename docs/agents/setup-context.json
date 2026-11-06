@@ -8,7 +8,7 @@
   },
   "profile": "rust-cli",
   "profileDigest": "sha256:fc75ffb927a1294d65e7f7267771e9edfccf2fdda5da086c43ff27f3b04d52d4",
-  "catalogDigest": "sha256:2563009bc376f6ed80df8a8261e5ed236614a6c6c9dc4a1f15f2423e40245f13",
+  "catalogDigest": "sha256:a143bea7ff2eaf009fea9059ea9c0b7b8d8e1193d3c4e01fa176f4138a09c934",
   "modules": [
     "core",
     "context-workflow",
@@ -58,7 +58,7 @@
       "module": "core",
       "template": "template.guide.skill-dispatch",
       "version": "0.0.1",
-      "digest": "4405bc8506e6a34d7770196538be7214abce056193044f82a6d6e0edcc637b5b"
+      "digest": "c4e17e87baa1338f1736335967c2d0b980ab0164887ac64d40fdc1ed670eb9b3"
     },
     {
       "id": "root.core",
@@ -76,7 +76,7 @@
       "module": "context-workflow",
       "template": "template.guide.docs-layout",
       "version": "0.0.1",
-      "digest": "0223842b6ba56cba723b0bee64719ddc662f06b1d93452d823bf409a559c87a2"
+      "digest": "64b394052ea39d7a3859ce6d695f7e98686a25920d6596a01e6aea4cb4a32b88"
     },
     {
       "id": "root.context-workflow",
@@ -130,7 +130,7 @@
       "module": "core",
       "template": "template.guide.agent-instructions",
       "version": "0.0.1",
-      "digest": "f1ca19ac21560edd36579a928089a2526d7a5f70f755f44c240f0c7902be65a9"
+      "digest": "34bd108f263f2af5a8f69ad92b4d52030600d55ab06b89972a0157ee076d819f"
     },
     {
       "id": "root.cli-surface",
@@ -148,7 +148,7 @@
       "module": "spec-workflow",
       "template": "template.guide.spec-routing",
       "version": "0.0.1",
-      "digest": "1711166034c6e9ccc1424e12c7cf94ed4e9dbe79d169b38ee5c1bed1c1c646b7"
+      "digest": "61bae84e0f1538028319ede84ac7d3175583fedc157d1b15413a300b75f19b34"
     },
     {
       "id": "guide.issue-tracker",

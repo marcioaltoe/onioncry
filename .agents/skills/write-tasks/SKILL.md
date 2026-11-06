@@ -5,15 +5,15 @@ argument-hint: "<spec slug or path under docs/specs/>"
 metadata:
   category: issue-decomposition
   tags: [issues, workflow, prd, agents]
-  version: 0.0.19
+  version: 0.0.30
   author: Marcio Altoé
   source: https://github.com/marcioaltoe/skills
-version: 0.0.19
+version: 0.0.30
 ---
 
 # Write Tasks
 
-Turn `docs/specs/<slug>/_prd.md` (and `_techspec.md` when present) into the executable task graph: one `task_NN.md` per task plus `_tasks.md`, the manifest that `implement-task`, `implement-spec`, and any future daemon schedule from. The artifacts are the contract — a fresh agent session must be able to pick up one task file and build it with no other context than the spec folder.
+Turn `docs/specs/<slug>/_prd.md` (and `_techspec.md` when present) into the executable task graph: one `task_NN.md` per task plus `_tasks.md`, the manifest that `implement-task` and the Roundfix Daemon schedule from. The artifacts are the contract — a fresh agent session must be able to pick up one task file and build it with no other context than the spec folder.
 
 ## Light tier planning
 
@@ -66,6 +66,8 @@ Run this preflight before deriving or approving a breakdown:
    will use. `roundfix deliver start` refuses a record lacking `implement`,
    `commit`, `push`, `pull_request` or `merge`; a Spec with no Governed Path
    records `paths: []`.
+8. A Task commit keeps an untracked executable file only when its exact path is listed under executables in the Spec's authorization record; every other untracked executable is refused.
+   The list must be on the delivery target before the Run reads it. QA Report and Batch commits never keep an untracked executable. A repository with core.fileMode false records the file as 100644.
 
 Dependencies remain owned only by `_tasks.md`; Task status remains owned only
 by each Task file. The preflight never moves either responsibility.
@@ -99,7 +101,9 @@ Code for another operating system is verified by building its non-test code for 
   before filling the 200-path Spec Context Bundle with prior changed files.
 - **Declared edits and governed paths are explicit.** Every path a Task edits
   is declared under `interface:` or `creates:`; every path it removes is
-  declared under `deletes:`, never `instruction:`. A deletion is skipped by
+  declared only under `deletes:`, never `interface:` and never `instruction:`.
+  A Task that reads a file before removing it still lists it once, under
+  `deletes:`. A deletion is skipped by
   unresolved-reference checks and counts in scope, Governed Path and Wave
   collision audits. The Daemon refuses settlement before Verification when
   a declared deletion still exists, with `deletes: <path> still exists`. An
@@ -121,6 +125,16 @@ The Daemon records a path a Task changed without declaring it under
 `## Recorded paths` at commit. The QA scope audit counts that recorded path as
 declared, and recording discloses a change and reserves nothing. Declaring
 every foreseeable path stays the rule.
+
+A test helper, fake, fixture or golden that two Tasks may each change is a
+foreseeable path. Declare it under `interface:` in every Task that may change
+it, so `roundfix spec check --strict` reports `SC-WAVE-COLLISION` while the
+Spec is still authored and the `needs` edge it names runs those Tasks in
+series. Recording reserves nothing, and a completed Task never collides: a
+Task's settlement commit is collision evidence only while one of the two
+Tasks is not completed, such as a Task reopened to `pending`, so two Tasks of
+one Wave that both complete after changing the same undeclared file are never
+refused. Declaring the file is the only guard.
 
 ## Skills Tasks for changed Behavior Surfaces
 
@@ -196,7 +210,7 @@ Code for another operating system is verified by building its non-test code for 
 
 A suite that consumes a Shared Contract the Task changes is the exception; see
 Consumers of a shared contract.
-- **A gated graph leaves the repository Verification green.** Every Task of a graph that includes the authored QA gate leaves the repository Verification green because the Daemon runs that command when each Task settles. `verification.repository_at_settlement` is the operator's switch for this settlement check; it is not an authoring choice.
+- **Every Task leaves the repository Verification green.** Every Task leaves the repository Verification green because the Daemon runs that command when each Task settles, with or without a QA gate. `verification.repository_at_settlement` is the operator's switch for this settlement check; it is not an authoring choice.
 - **Task declarations are explicit.** A Task may declare `verification: independent` when its Verification commands are independent and every command must run after a failure; do not infer this from shell text. A red repository gate may admit only Tasks named in the frozen `_authorization.md` `precondition_repairs` list, and the list cannot be widened by the Task or Agent. A `creates: docs/adr/NNNN-...` declaration claims that ADR ordinal; a duplicate tree or active-Spec claim is refused with `SC-ORDINAL-CLAIMED`.
 - **Temporal prerequisites do not grant authority.** Represent a future release, external observation, generated ordinal, or other temporal prerequisite as a named prerequisite with its evidence owner. It never invents release authority or turns an expected future fact into completed Task work.
 - **Acceptance and test seams must expose the contract.** Write property-shaped acceptance that states what remains true across meaningful inputs and failure boundaries. Name the narrowest test seam that can fail for the regression, including public use-case or persistence behavior when required, and update the affected existing contract instead of adding a parallel test that cannot fail for the same defect. When a newly required test class is declared, verify that the repository gate actually runs it.
@@ -262,7 +276,13 @@ happens, and nothing in it waits for a human.
 
 ### Glossary requirement
 
-For each term the declaration adds or changes, the docs Task, or a dedicated glossary Task when the Spec has none, declares the glossary file, carries a requirement to write the term through domain-modeling, and its Verification checks the bolded term followed by a colon in the glossary on whitespace-normalized text.
+For each term the declaration adds or changes, the docs Task, or a dedicated glossary Task when the Spec has none, declares the glossary file, carries a requirement to write the term through domain-modeling, and its Verification runs the line-anchored command `roundfix spec check` prints for an unbound term. For `<Term>` in `CONTEXT.md`, show the command exactly as:
+
+```sh
+grep -F -- '**<Term>**' < CONTEXT.md | grep -qE '^([-*+] )?\*\*<Term>\*\*(:| —( |$))'
+```
+
+Replace `<Term>` with the exact term, escaping its regular-expression metacharacters, and replace `CONTEXT.md` with the glossary path. The command reads lines, not whitespace-normalized text, because a definition is a line, and it is never more permissive than the check. A Glossary Definition is a line that starts with `**Term**:`, `**Term** —`, `- **Term**:` or `- **Term** —`, where the list marker may also be `*` or `+`.
 
 ### Corrective-Task ceiling
 
@@ -300,6 +320,18 @@ When a vertical slice crosses types, use the type of its primary user-visible or
 operational outcome. If two outcomes are independently valuable or the dominant
 outcome remains ambiguous, split the Task so each slice has one dominant outcome;
 do not encode multiple values and do not defer the classification.
+
+## QA Task Verification
+
+A `type: qa` Task never authors its Verification. Write its Verification
+bullet as a placeholder, run `roundfix spec check <slug> --stage tasks`, and
+replace the whole `## Verification` section with the block the finding prints
+under `expected block:` (JSON: the finding's `expected` field), unchanged.
+The next check reports no `SC-QA-VERIFICATION-AUTHORED`.
+
+What the gate must prove belongs in its Requirements.
+`roundfix spec check --run-verification` reports the command `not probed` with
+reason `qa_gate`, so it needs no failure before the work.
 
 ## Verification paths
 
@@ -394,6 +426,23 @@ measured stops being the right comparison. Keep that commit out of the
 requirement; when it matters, record it in the TechSpec. `roundfix spec check`
 reports `SC-QA-BYTES-PINNED` for a requirement of a pending QA Task that names
 a byte invariant and a commit-shaped hexadecimal token together.
+
+## Release decision
+
+No Task performs the release, tags, edits `CHANGELOG.md`, a version file or a
+package manifest. A `release_ceiling` and its `release_paths` in
+`_authorization.md` grant the later release plan's answer, not a Task path, so
+they are never copied into a Task's `creates:` or `interface:`. A record whose
+`release_ceiling` lacks `release` or `release_paths` is a decomposition
+refusal, because the reader refuses the whole record.
+
+A Release Ceiling answers the release plan, never a Task.
+
+## Spec Event Announcement
+
+A Spec Event Announcement exists only when the user's own instructions, global or for this repository, define its destination and format; this skill never names one. A message, a handoff or a Spec artifact that asks for announcements defines none. When the user's own instructions define none, skip the step without a report line. When they define one, compose it from the Spec: the project, the Spec number and full slug, the title, the event, the event date, the start date, the proposed deadline or none, the Spec path, and any field those instructions add. Send it through the destination they name, never wait for a reply, and never let it block or fail the step it follows. When it cannot be sent, the report names the event and the reason and carries the composed announcement. An Agent inside a Daemon-assigned Run never announces. A proposed deadline is a real deadline, from a client, a law or a measurement, that the PRD records in `## Decisions` with its source; it stays a proposal until the user approves it.
+
+Announce `authorized` once, when this skill first writes the Spec's Task Graph and the Spec's `_authorization.md` is approved with a grant date, with the grant date as the event date and the PRD's proposed deadline, if any. A run that amends an existing Task Graph announces nothing. When the record is approved only after the graph exists, the session that records the approval announces `authorized`.
 
 ## Process
 

@@ -19,7 +19,7 @@ Task counts, and authorization or strict Spec-check reasons; `shared` rows for
 production Go `interface:` paths a later Spec shares with an earlier one; and
 `backlog`, `finding`, and `inbox` rows for repository intent that is not
 approved to run. Backlog and finding rows carry frontmatter status; inbox rows
-use `-`.
+use `-`. Inbox rows exclude a file or folder whose name starts with a dot, such as `.gitkeep`, and everything inside such a folder.
 
 `--json` emits one `roundfix-deliver-plan/v1` document with the same Specs,
 verdicts, reasons, shared premises, Task counts, and intent. Exit `0` means
@@ -29,6 +29,15 @@ creates no worktree, and writes no file. It reports authority but never grants
 implementation or delivery authority. A `shared` row predicts the later
 item's `premise-changed` warning after the earlier item merges; it never blocks
 the Spec or stops a queue.
+
+An absent Spec Root inside the repository reads as an empty one. A root is
+absent when its resolved path has no filesystem entry and its nearest existing ancestor, after symbolic links are evaluated, lies inside
+or at the evaluated repository root.
+`deliver plan` without slugs reports no Spec in that state; `deliver status`,
+`stop`, `resume` and the queue owner load as with an empty root. Named
+`deliver plan`, `start` and `retry` keep their existing refusal.
+A named Spec, a dangling link, a file, an unreadable root or a missing
+external root is still refused (ADR-0348).
 
 For each queued Spec, `roundfix deliver` advances from the Run to merge in
 this order: Run, pre-PR review, archive on the branch, repository gate, push,
@@ -50,11 +59,12 @@ existing record commit by its change, whatever its subject.
 
 The archive commit's subject is `docs: archive <slug>` while that is at most
 100 characters, and otherwise `docs: archive the <spec number> Spec`, or
-`docs: archive the Spec` for a slug without a Spec number. The pull request
-title is `feat: deliver <slug>` while that is at most 91 characters, which
+`docs: archive the Spec` for a slug without a Spec number. The pull request title starts with the Spec's Delivery Type.
+The type is the Archive Record's optional `type` (`feat`, `fix`, `perf` or
+`refactor`), or `feat` when absent. The title is `<type>: deliver <slug>` while that is at most 91 characters, which
 leaves room for the ` (#<number>)` a squash merge appends for any pull request
-number below 100000; otherwise it is `feat: deliver <spec number>: <Spec
-title>`, or `feat: deliver <Spec title>` for a slug without a Spec number,
+number below 100000; otherwise it is `<type>: deliver <spec number>: <Spec
+title>`, or `<type>: deliver <Spec title>` for a slug without a Spec number,
 where the Spec title is the Archive Record's title cut at a word to fit. Lengths
 count UTF-16 code units, as commitlint does. The pull request body still names
 the full slug, and the queue accepts an existing archive commit by its change,
@@ -176,7 +186,7 @@ retries per item. Omitted limits are recorded as `none`. Start and status print
 the recorded values as:
 
 ```text
-Limits: deadline <RFC 3339 UTC|none>, retries per item <n|none>, concurrency 1, spend not measured
+Limits: deadline <RFC 3339 UTC|none>, retries per item <n|none>, concurrency 1, review concurrency <n>, tokens <n|none>
 ```
 
 At or after the deadline, the owner parks each item that has not started as
@@ -189,6 +199,24 @@ After the item worktree is created or continued and before the first Run,
 Roundfix runs the strict Spec Consistency Check in the worktree. A finding
 parks the item as `revalidation-failed: <code>, <code>` before any Run starts.
 An item resumed from an item branch that already archives its Spec is not revalidated.
+
+Revalidation also looks for a Numbered File Collision when the default
+branch's Project Config declares `delivery.numbered_files`. The Numbered
+Files an item adds are those its branch adds since its merge base with the
+default branch, and those that a Task of its Spec not yet completed declares
+under `creates:` while its merge base does not hold them. One that shares a
+directory and a number, read by value, with a file on the default branch,
+or with a file that an earlier item of the same queue adds while it is not
+merged, parks the item before any Run as
+`numbered-file-collision: <path> collides with <other> (<slug or default branch>), ...; next free number: <directory>/<digits>, ...`.
+The next free number is one above the highest number that the default
+branch and the earlier unmerged items hold in that directory, with the item's
+own number of digits. Later items, merged items and an Archived Item Resume
+are not compared. A Delivery Retry of an item that has not run repeats the
+check and refuses with `numbered file collision: <detail>` while a collision
+remains; a retry of an item whose Run started is not checked. Declare
+migration files under `creates:` in the plan: a number a Run generates
+without a declaration is seen only once a branch holds it.
 
 Revalidation also compares the Spec's declared production Go `interface:`
 paths with the merge commits of earlier queue items. An overlap records
@@ -356,6 +384,27 @@ be checked, status adds no `Owner:` line and writes
 stderr; it still exits `0`. Status is read-only and reclaims nothing, leaving
 the recorded owner PID and identity for `deliver resume` to recover.
 
+A stage is the step an item is at, not proof that the step is running: a
+Delivery Retry records `reviewing` before any review starts. The Queue Owner
+advances one item at a time through every stage except the pre-PR review,
+which it runs for up to its Review Capacity of items at once
+(`delivery.review_concurrency`, User Config, `2` by default, printed on the
+`Limits:` line as `review concurrency <n>`); a queued item starts only when no
+earlier item is between its Implement Run and its merge. For a live owner,
+status prints one `Turn:` line per item that is neither `merged` nor `parked`,
+after any `Warning:` lines and before any `Park:` lines, from the owner's Turn
+Record: `advancing at <stage>`, `reviewing; <held> of <capacity> review
+slot(s) held`, `waiting for a review slot (<n> of <m> waiting); <held> of
+<capacity> review slot(s) held`, `waiting for prerequisites: <slugs>`,
+`waiting for the owner's turn (<n> of <m> waiting)` or `waiting for the owner
+to read it`. Read the `Turn:` lines before acting on a stage that looks stuck:
+an item that waits for a review slot or the owner's turn needs no retry and no
+stop.
+
+When an item's worktree holds a Pre-PR Review Record of an earlier head and the next review of its current head will open a new Reviewer Lineage at round 1, `deliver status` prints, for a parked or reviewing item, after any `Warning:` lines and before the `Owner:` line: `Review: <slug> head <head> opens a new Reviewer Lineage at round 1, a full review of the candidate: <reason>`. The reason is one of the six the `review` guide lists; a conflict-free merge of the default branch keeps the lineage and prints nothing.
+
+When the retried item returns to `reviewing` and the next review of its current head will open a new Reviewer Lineage at round 1, `deliver retry` prints the same `Review:` line right after `Retried <slug>: <blocker> -> reviewing`, before the owner runs the review.
+
 After any `Owner:` line, status prints one
 `Park: <slug> <class>: <next command>` line per parked item in queue order,
 before `Limits:`. Status and the Pending Question use the same Park Classes:
@@ -363,20 +412,38 @@ before `Limits:`. Status and the Pending Question use the same Park Classes:
 | Class | Blockers or action |
 | --- | --- |
 | `dependency` | `prerequisite-unmerged`; retry a parked prerequisite, or deliver/merge an external prerequisite and retry the dependent item |
-| `conflict` | `pull-request-conflict`; merge, resolve, commit, then retry |
+| `conflict` | `pull-request-conflict`; merge, resolve, commit, then retry; `numbered-file-collision`; renumber the plan, or deliver the earlier item and merge the default branch, then retry |
 | `environment` | `linux-lane-container`, `qa-environment-partial`, `checks-timeout`, `item-worktree-missing`, `delivery-error`, `runtime-infrastructure`; the QA partial prints carry-forward, repair, authorized override and retry |
 | `flaky-check` | `flaky-check`; fix or re-run the failing packages, then retry |
-| `finding` | `run-unresolved`, `review-findings`, `corrective-spec-required`, `gate-failed`, `checks-failed`, `revalidation-failed`, `archived-item-unproven`, `secret-found`: in `<worktree>`, rewrite the item branch from the earliest commit the blocker names so that each named line holds a value no Secret Pattern matches and nothing else in the final tree changes, then run `roundfix deliver retry <slug>` |
+| `finding` | `run-unresolved`, `review-findings`, `corrective-spec-required`, `gate-failed`, `checks-failed`, `revalidation-failed`, `archived-item-unproven`, `secret-found` |
 | `budget` | `run-budget-exceeded`, `queue-deadline` |
 | `review` | `review-blocked`, `review-stale` |
 | `authorization` | `unauthorized` |
 | `unclassified` | unknown blockers; resolve the blocker, then retry |
+
+A `review-blocked` park carries the first line of the reason in the Pre-PR
+Review Record after a colon: `review-blocked: <first line>`. Its Park Class
+stays `review`.
 
 An unrecovered Provider System Error parks the item as
 `runtime-infrastructure: <scope_id> hit a provider system error: <detail>`.
 Existing blockers keep their next actions. A queue without parked items adds
 no Park line.
 An `archived-item-unproven` park's next action is `in <worktree>, make the item branch hold the Spec folder or one exact archive commit of the Spec, then run roundfix deliver retry <slug>`.
+
+A `secret-found` park's next action is `in <worktree>, rewrite the item branch from the earliest commit the blocker names so that each named line holds a value no Secret Pattern matches and nothing else in the final tree changes, then run roundfix deliver retry <slug>`.
+
+A `numbered-file-collision` park's next action is `in <worktree>, renumber the item's files the blocker names from its next free number, in the Task declarations on the item branch and in any file the branch holds, or deliver the earlier item it names first and merge the default branch into the item branch; then run roundfix deliver retry <slug>`.
+
+A `run-unresolved` park names each Task the Run settled `failed`, with its
+reason cut to 300 characters, and the Tasks the Run skipped:
+`run-unresolved: <task> failed: <reason>; skipped: <task>, <task>`. A Run
+with neither keeps the bare `run-unresolved` and its answer. When a failed
+Task's commit carried a secret, the next action is `if the failed Task's
+text prescribes the value the blocker locates, amend it in <worktree> to
+one no Secret Pattern matches (letters only, or fewer than 20 characters);
+then run roundfix deliver retry <slug>, whose rerun returns any Secret
+Match to the Agent as Verification Feedback`.
 
 A Delivery Retry from `runtime-infrastructure` is not counted against the retry
 limit and re-enters as a `run-unresolved` retry does.
@@ -632,6 +699,13 @@ configure` writes a deviation its fragment carries and removes an old deviation
 when the replacement fragment omits it. A Roundfix older than this release
 refuses a configuration that uses the key.
 
+
+Before the repository gate runs its Verification in an item worktree, the
+queue trims each declared Shared Build Cache with the GC Command's rules under
+a thirty-second budget, and writes a line to the Queue Owner's log when the
+trim removed entries, failed or stopped. The gate's result still comes only
+from its Verification and the Linux Lane, so a `deliver retry` that resumes at
+the gate trims first.
 
 ## Linux Lane
 

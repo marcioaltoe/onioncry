@@ -1,5 +1,10 @@
 ## Context-Driven Baseline
 
+Profile-change output carries valid recorded decisions as `Carried decisions:`.
+Apply names each Root Backup with `baseline.preservation.backup.written`;
+reconcile names the Setup Snapshot revision. Restoration uses `create-link`
+and never moves an installed skill.
+
 Use the Baseline Command for Context-Driven Baseline adoption, update, profile
 management, recovery, Repository Skill Set restoration, and canonical asset
 synchronization. The CLI is the runtime authority; the
@@ -30,19 +35,18 @@ The same preview lists, under `skills.outdated`, each installed
 Roundfix-owned skill older than the version the binary carries. With
 unchanged guidance it then reports `plan_ready` instead of `current`, and
 `--yes` refreshes the Repository Skill Set.
-Doctor reports `DR-SKILL-DIFFERS-FROM-SNAPSHOT` when a required upstream skill
-is present and matches its lock but differs from the embedded Setup Snapshot.
-Newer or older is unknown, so the `skills` line keeps its readiness status and
-gains no next action. The managed refresh lists such a skill under
-`skills.differing`, keeps it, and never restores it unasked; restore one
-deliberately with `roundfix baseline skills restore --profile <id> --skill <name>`.
-A missing skill, or one that no longer matches its lock, is still restored under
-`skills.drifted`.
+Roundfix checks a required external skill only for presence: an entry in
+`skills-lock.json` and a folder under `.agents/skills`. It reads neither the
+folder's files nor the entry's `computedHash`, never compares the skill with
+its Setup Snapshot, and never replaces a present copy unasked;
+`roundfix baseline skills restore --profile <id> --skill <name>` replaces one
+deliberately.
+The managed refresh restores only a missing skill, under `skills.drifted`.
 
 The preview without `--yes` or `--confirm-plan` lists, under `skills.missing`
 (`Skills missing` in text), each external skill the adopted modules require and
-dispatch that is absent from `.agents/skills` or `skills-lock.json`, or no
-longer matches its lock entry: a Missing Required Skill. Each entry names the
+dispatch that is absent from `.agents/skills` or `skills-lock.json`: a Missing
+Required Skill. Each entry names the
 skill and the command that restores it,
 `roundfix baseline skills restore --profile <id> --skill <name>`.
 `skills.status` reads `missing`; with unchanged guidance the state is
@@ -69,6 +73,12 @@ writes nothing. A declared decision also answers a new decision without
 `roundfix baseline update --decision auth.base_path=/auth`.
 
 `--no-skills` skips the Repository Skill Set refresh.
+After the bundle install, an existing `skills-lock.json` entry naming an owned
+skill receives the installed folder's `computedHash` and loses its `ref`; every
+other field is kept. No entry or lock is created when none exists. The result
+reports `skills.lockUpdated` and `skills.lockUnpinned` and prints `Skills lock
+updated: <count>` followed by one `- lock updated <name>` line for each name,
+then one `- lock ref removed <name>` line for each name whose `ref` was removed.
 `--skills-source-dir <path>` selects an offline Git checkout or bare object store for external skill restoration. `--repo`
 defaults to the current directory, and `--format` accepts `text` or `json`.
 
@@ -84,9 +94,22 @@ optional `unrecordedManagedRegions` field only when at least one exists. The
 same report remains in the applied result. Managed refresh never invokes
 semantic classification and preserves every non-managed byte exactly.
 
-`baseline update` lists each Retired Skill the repository still holds under
-`Skills retired` (`skills.retired` in JSON) with the paths to delete; it never
-deletes the copy and never changes the update's state.
+An approved update deletes each Retired Skill it proves unedited. It deletes
+the `.agents/skills/<skill>` folder, the `.claude/skills/<skill>` entry and the
+`skills-lock.json` entry, with every planned deletion bound by the Plan Digest.
+The preview reports `plan_ready` when a deletion is the only pending change. It
+keeps and lists copies it cannot prove unedited with one of the `edited`,
+`unrecorded` or `unsafe` reasons, and reports deletions under `Skills deleted`
+(`skills.deleted` in JSON). Nothing outside the Retired Skills set is deleted.
+
+The Retired Skills are `council` and `the-fool` since 0.52.0, and
+`design-patterns`, `diagnosing-bugs`, `fixing-metadata`,
+`game-changing-features`, `refactoring-analysis`, `tdd` and `to-prompt`
+since 0.127.0, which the catalog removed; and the Roundfix-owned
+`implement-spec` since 0.127.0. The TypeScript setup's
+`ui-ux-pro-max` searches need Python 3; the standard library is enough.
+Without Python, the skill still applies its `SKILL.md` rules and quick
+reference. No Baseline command checks for Python.
 
 When a plan includes History Relocations, it will report each tracked file whose
 citations its History Relocations would break. These warnings use
@@ -95,6 +118,14 @@ citations its History Relocations would break. These warnings use
 lists, and `baseline.history.citation.unscanned` when a tracked file could not
 be scanned. The Plan Digest covers these warnings. Planning never rewrites a
 citation, and apply writes the same files.
+
+An absent Spec Root inside the repository reads as an empty one. A root is
+absent when its resolved path has no filesystem entry and its nearest existing ancestor, after symbolic links are evaluated, lies inside
+or at the evaluated repository root.
+The history plan of `baseline update` uses the same Spec Root and archive
+root as for an empty root.
+A named Spec, a dangling link, a file, an unreadable root or a missing
+external root is still refused (ADR-0348).
 
 The history plan names every file it will remove before approval. Each pending
 unit carries sorted repository-relative `paths` in JSON: the files a removal

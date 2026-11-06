@@ -31,18 +31,29 @@ from its head or an intermediate segment head. A base without Project Config
 omits no generated files. An unreadable base configuration blocks with
 `review scope: read derived paths: <error>` before a provider call.
 
+A file matched by an entry in `pre_pr_review.omit_paths` in the Project Config
+at the candidate's base commit is omitted as `omit-path`. Entries use the same
+grammar as `delivery.derived_paths[].paths`; a directory entry ending in `/`
+omits every file beneath it. The key is read from the base commit and never
+from the candidate's head or an intermediate segment head.
+
 Omission precedence is `archived-spec-source`, `qa-evidence`, `upstream-skill`,
-`retired-history`, then `generated`. These rules apply to round one's
+`retired-history`, `generated`, then `omit-path`. These rules apply to round one's
 candidate, round two's delta and the Correction Review delta.
+
+A changed file matched by `pre_pr_review.data_paths` in the Project Config at the candidate's base commit, and by no omission above, is a Review Data Path with reason `data-path`. It leaves every code diff, in every round, and is reviewed apart: after the omission list the code prompt adds `Reviewed apart, after this diff, in Data Review Segments: <n> path(s) of pre_pr_review.data_paths.` and one `<path> (data-path)` line each. The record's `omittedPaths` never lists it.
+
+The diff of the Review Data Paths, from the start of the round's code diff to the head, is sent after the code prompts, in the same session, as at most four Data Review Segments. Whole files are packed in path order while a segment fits the provider's bound, the 917504-byte diff bound for `codex` or the token budget for `claude`; a file that does not fit alone is cut at its hunks, and a hunk at its lines, each piece keeping the file header and a recomputed hunk header. Each prompt starts with `Data Review Segment <i> of <d>: pre_pr_review.data_paths changes <from>..<head> of the candidate; answer for this segment only.` The record lists `dataSegments` with their `paths`, `diffBytes` and, for `claude`, `estimatedPromptTokens`; a finding from one carries `dataSegment` and is anchored against that segment's diff; the answer file joins the answers under `--- Data Review Segment <i> of <d> ---`, after the code answer under `--- Review ---` or its Review Segment headers. A fifth segment blocks with `review data too large: <bytes> bytes of pre_pr_review.data_paths needs <d> data review segments; a review allows at most 4`, and a line that fits no segment with `review data too large: line <n> of <path> does not fit one data review segment`, each with the size suffix.
 
 After the diff block, the prompt lists the sorted omitted paths and their
 reasons, introduced by `Omitted from this diff (not reviewed): <q> path(s) of
 QA evidence, <u> of upstream-managed skills, <a> of archived Spec sources, <r>
-of retired history, <g> of generated files.` The record's `omittedPaths`
-is the same sorted array of `{path, reason}`, always present as `[]` when
-empty. `diffBytes` measures the diff text sent in that round, or the measured
-diff when the bound blocks it. Older records without these fields remain
-readable.
+of retired history, <g> of generated files`; only when `<o>` is not zero does
+the summary gain `, <o> of pre_pr_review.omit_paths.` The record's
+`omittedPaths` is the same sorted array of `{path, reason}`, always present as
+`[]` when empty. `diffBytes` measures the diff text sent in that round, or the
+measured diff when the bound blocks it. Older records without these fields
+remain readable.
 
 For `codex` round 1, a scoped candidate diff above 917504 bytes is reviewed
 in at most four Review Segments. A Review Segment is a consecutive
@@ -67,6 +78,8 @@ both `segments` and the finding's `segment` field. Verdict reuse,
 dispositions, convention validation and round accounting remain per candidate
 head: all segments are one round.
 
+Each diff the segment plan measures starts from the Effective Base of the commit it ends at, the merge base of that commit with the review's merge base. A commit cut from an older default branch is measured from that older commit, and a merge of the default branch from the earlier commit's change carried onto the merged base with `git merge-tree --write-tree`, so no segment shows the default branch's own work. A segment whose diff starts elsewhere than its base records `measuredFrom`, the commit or tree it starts from, and its prompt adds a second header line: `This segment's diff starts from <measuredFrom> instead of <segment base>, so it leaves out what the default branch changed.` A carry that conflicts measures the segment from its base.
+
 A single commit above the bound, or an oversized round-2 or Correction Review
 delta, still blocks with exit `2` before any provider call, readiness probe or
 session preparation:
@@ -75,8 +88,23 @@ review bound of 917504 bytes`. A candidate needing more than four segments
 blocks at the same boundary with `review diff too large: <bytes> bytes after
 omitting <n> path(s) needs <k> review segments; a review allows at most 4`.
 Round 2 and the Correction Review are never segmented. A Correction Review
-applies the byte bound with either provider. Claude also retains its token
-budget below and is never segmented. On a runtime failure carrying
+applies the byte bound with either provider. A Claude round-1 prompt above its
+budget is reviewed in at most four Review Segments, each prompt as sent
+estimated within the budget. Each Claude segment records
+`estimatedPromptTokens`; a segmented record's estimate is the sum of its
+segments, and each estimate covers the header, instructions, segment diff,
+omissions and, for the first segment, the Spec contexts. A single commit whose
+segment prompt does not fit keeps the unchanged Claude refusal, and a fifth
+segment refuses with `review prompt too large: <n> estimated tokens after
+omitting <k> path(s) needs <s> review segments; a review allows at most 4`.
+Round-2 and Correction Review Claude prompts above the budget keep their
+unchanged refusal; Correction Review still uses the byte bound. Every size
+refusal keeps its existing text and appends the API Contract 6 suffix,
+containing `; largest files in the diff: <path> (<bytes> bytes)` and
+`; pre_pr_review.omit_paths in the base commit's Project Config leaves
+generated files out of the review`. The suffix ranks the measured diff's file
+sections by bytes descending, with ties by path ascending, and names up to
+three files. On a runtime failure carrying
 `agent.BatchFailureError` stderr, `runtimeStderrTail` records its last 10 lines
 capped at the last 1,024 bytes. The reason text is unchanged; the tail field
 is omitted when empty.
@@ -270,17 +298,25 @@ standing finding identity without a disposition. A `fixed` disposition never
 clears that head; the fix belongs to a changed candidate. The `none` and
 `coderabbit` policies keep their behavior above.
 
-Reviews in one checkout form a **Reviewer Lineage** when the provider and
-merge base stay the same and each reviewed head descends from the last.
+Reviews in one checkout form a **Reviewer Lineage** when the provider stays the same,
+each reviewed head descends from the last, and the merge base stays the same or
+moves only by a conflict-free merge of the default branch.
 Round 1 reviews the full candidate diff. Round 2 reviews only the delta from
 the round-1 head to the current head; its prompt always includes every round-1
 finding with its validation and operator disposition. A fixed or dismissed
 finding is raised again only if the delta reintroduces it. For a segmented round 1, anchors are validated against their own segment
 diff; otherwise they are validated against the full merge-base candidate
 diff in either round.
-A rebase, changed provider or merge base, or a head that does not descend
-starts a new lineage at round 1. A blocked review retries its own round with
-its recorded previous data.
+A merge of the default branch keeps the lineage when every merge the head gained since the reviewed head brings in only commits the new merge base contains and the reviewed head merges onto the new merge base without conflict. The round-2 or Correction Review delta then starts from the reviewed head carried onto the new merge base, recorded as `lineage.deltaBase`, and the prompt adds: `The candidate merged the default branch since then; the diff starts from tree <deltaBase>, the reviewed head with the default branch's changes applied, so it holds only the candidate's own change.` A rebase, a changed provider, a head that does not descend, or any other move of the merge base starts a new lineage at round 1, and `roundfix deliver status` and `roundfix deliver retry` name the reason before the review runs. A blocked review retries its own round with its recorded previous data.
+
+A restart names one of these reasons:
+
+- `the review provider changed from <prior provider> to <provider>`
+- `the head does not descend from the reviewed head <prior head>`
+- `the merge base moved from <prior base> to <base> at the reviewed head`
+- `the merge base moved from <prior base> to <base>, which does not descend from it`
+- `the merge base moved from <prior base> to <base> through merge <merge> of <parent>, which the default branch does not contain`
+- `the merge base moved from <prior base> to <base> and the reviewed head <prior head> conflicts with it`
 
 When round 2 ends with `findings`, a **Correction Review** reviews the fix once
 if the head moved and descends from the round-2 head, and every standing
