@@ -1,7 +1,7 @@
 ---
 task: task_02
 spec: 0002-suffixed-artifacts-require-their-role-folder
-status: pending
+status: completed
 type: qa
 complexity: high
 ---

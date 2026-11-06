@@ -1,0 +1,801 @@
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry --version
+exit: 0
+stdout:
+onioncry 0.2.1 revision: dcf0984cba5b
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry --help
+exit: 0
+stdout:
+Check architectural boundaries in source projects
+
+Usage: onioncry <COMMAND>
+
+Commands:
+  check    Check the configured file universe against architecture rules
+  graph    Render the boundary dependency graph as Mermaid or JSON
+  init     Create a conservative .onioncryrc.jsonc configuration template
+  explain  Explain one file's classification, imports, and violations
+  rules    List built-in rules
+  schema   Print the .onioncryrc JSON Schema
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --help
+exit: 0
+stdout:
+Check the configured file universe against architecture rules
+
+Usage: onioncry check [OPTIONS]
+
+Options:
+      --config <CONFIG>    
+      --format <FORMAT>    [default: pretty] [possible values: pretty, json, sarif]
+      --fail-on <FAIL_ON>  [default: error] [possible values: error, warning]
+      --tips               Show remediation tips for diagnostics
+      --baseline <PATH>    Path to the violation baseline file
+      --write-baseline     Write current violations to the baseline file
+      --no-baseline        Disable violation baseline consumption for this run
+      --files <PATH>...    Scope the report to these files; analysis stays whole-project
+      --llm-mode           Show an LLM-optimized grouped diagnostic report
+  -h, --help               Print help
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry explain --help
+exit: 0
+stdout:
+Explain one file's classification, imports, and violations
+
+Usage: onioncry explain [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  
+
+Options:
+      --config <CONFIG>  
+      --format <FORMAT>  [default: pretty] [possible values: pretty, json]
+      --tips             Show remediation tips for diagnostics
+  -h, --help             Print help
+
+stderr:
+
+
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": "src",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/artifact-placement": "error"
+  },
+  "overrides": []
+}
+
+
+fixture src/contexts/tax/application/probe.use-case.ts:
+export const value = 1;
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 1,
+    "warningCount": 0,
+    "errorCount": 1,
+    "violationCount": 1
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary contexts/tax/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to contexts/tax/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry explain src/contexts/tax/application/probe.use-case.ts --format json
+exit: 0
+stdout:
+{
+  "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts",
+  "layer": {
+    "status": "unclassified",
+    "matchedPatterns": []
+  },
+  "context": {
+    "status": "contextless",
+    "matchedPatterns": []
+  },
+  "publicSurface": false,
+  "imports": [],
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary contexts/tax/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to contexts/tax/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format sarif
+exit: 1
+stdout:
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "OnionCry",
+          "semanticVersion": "0.2.1",
+          "rules": [
+            {
+              "id": "cleanarch/no-layer-leak",
+              "name": "cleanarch/no-layer-leak",
+              "shortDescription": {
+                "text": "cleanarch/no-layer-leak"
+              },
+              "fullDescription": {
+                "text": "Layer rules only allow imports declared in the importing layer's mayImport policy."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "cleanarch/no-forbidden-imports",
+              "name": "cleanarch/no-forbidden-imports",
+              "shortDescription": {
+                "text": "cleanarch/no-forbidden-imports"
+              },
+              "fullDescription": {
+                "text": "External packages are closed by default in sensitive layers unless explicitly allowed."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "cleanarch/no-cross-context-internal-import",
+              "name": "cleanarch/no-cross-context-internal-import",
+              "shortDescription": {
+                "text": "cleanarch/no-cross-context-internal-import"
+              },
+              "fullDescription": {
+                "text": "Cross-context imports must target the imported context's configured public surface."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "cleanarch/no-framework-in-core",
+              "name": "cleanarch/no-framework-in-core",
+              "shortDescription": {
+                "text": "cleanarch/no-framework-in-core"
+              },
+              "fullDescription": {
+                "text": "Core layers should depend on ports, not framework packages."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/no-outer-data-format-in-core",
+              "name": "cleanarch/no-outer-data-format-in-core",
+              "shortDescription": {
+                "text": "cleanarch/no-outer-data-format-in-core"
+              },
+              "fullDescription": {
+                "text": "Core layers should not mention data formats owned by outer details."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/no-public-surface-internal-reexport",
+              "name": "cleanarch/no-public-surface-internal-reexport",
+              "shortDescription": {
+                "text": "cleanarch/no-public-surface-internal-reexport"
+              },
+              "fullDescription": {
+                "text": "A public surface should expose intentional contracts, not internal implementation files."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/no-context-cycle",
+              "name": "cleanarch/no-context-cycle",
+              "shortDescription": {
+                "text": "cleanarch/no-context-cycle"
+              },
+              "fullDescription": {
+                "text": "Context dependencies should form a directed acyclic ownership graph."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/no-unowned-schema-import",
+              "name": "cleanarch/no-unowned-schema-import",
+              "shortDescription": {
+                "text": "cleanarch/no-unowned-schema-import"
+              },
+              "fullDescription": {
+                "text": "A context should not depend directly on another context's storage schema."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/artifact-placement",
+              "name": "cleanarch/artifact-placement",
+              "shortDescription": {
+                "text": "cleanarch/artifact-placement"
+              },
+              "fullDescription": {
+                "text": "Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "cleanarch/unclassified-file",
+              "name": "cleanarch/unclassified-file",
+              "shortDescription": {
+                "text": "cleanarch/unclassified-file"
+              },
+              "fullDescription": {
+                "text": "Layer checks need each analyzed file to match exactly one configured architectural layer."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "cleanarch/ambiguous-layer",
+              "name": "cleanarch/ambiguous-layer",
+              "shortDescription": {
+                "text": "cleanarch/ambiguous-layer"
+              },
+              "fullDescription": {
+                "text": "Overlapping layer patterns make it unclear which dependency policy applies to this file."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "cleanarch/ambiguous-context",
+              "name": "cleanarch/ambiguous-context",
+              "shortDescription": {
+                "text": "cleanarch/ambiguous-context"
+              },
+              "fullDescription": {
+                "text": "Overlapping context patterns make it unclear which ownership boundary applies to this file."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "verticalslice/no-cross-slice-internal-import",
+              "name": "verticalslice/no-cross-slice-internal-import",
+              "shortDescription": {
+                "text": "verticalslice/no-cross-slice-internal-import"
+              },
+              "fullDescription": {
+                "text": "Cross-slice imports should target the imported slice's configured public surface."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "verticalslice/no-global-slice-artifacts",
+              "name": "verticalslice/no-global-slice-artifacts",
+              "shortDescription": {
+                "text": "verticalslice/no-global-slice-artifacts"
+              },
+              "fullDescription": {
+                "text": "Vertical Slice artifacts should live under the configured slice root unless their global folder is explicitly allowed."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "verticalslice/slice-entry-point",
+              "name": "verticalslice/slice-entry-point",
+              "shortDescription": {
+                "text": "verticalslice/slice-entry-point"
+              },
+              "fullDescription": {
+                "text": "Each Vertical Slice should expose a small configured entry point so routes, jobs, or composition code depend on the slice boundary."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "verticalslice/no-shared-layer-artifacts",
+              "name": "verticalslice/no-shared-layer-artifacts",
+              "shortDescription": {
+                "text": "verticalslice/no-shared-layer-artifacts"
+              },
+              "fullDescription": {
+                "text": "Vertical Slice projects should not rebuild shared technical layers such as global services, repositories, handlers, or use cases."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "solid/no-concrete-dependency",
+              "name": "solid/no-concrete-dependency",
+              "shortDescription": {
+                "text": "solid/no-concrete-dependency"
+              },
+              "fullDescription": {
+                "text": "Core layers should depend on abstractions rather than concrete details."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "codesmells/feature-envy",
+              "name": "codesmells/feature-envy",
+              "shortDescription": {
+                "text": "codesmells/feature-envy"
+              },
+              "fullDescription": {
+                "text": "A file that mostly imports another context may contain behavior owned by that context."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "codesmells/shotgun-surgery",
+              "name": "codesmells/shotgun-surgery",
+              "shortDescription": {
+                "text": "codesmells/shotgun-surgery"
+              },
+              "fullDescription": {
+                "text": "Files that repeatedly change with many companions may hide scattered responsibilities."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "repo/test-placement",
+              "name": "repo/test-placement",
+              "shortDescription": {
+                "text": "repo/test-placement"
+              },
+              "fullDescription": {
+                "text": "Source-level unit tests should live in colocated test directories, while integration and e2e tests should live under their dedicated workspace roots."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "repo/path-naming",
+              "name": "repo/path-naming",
+              "shortDescription": {
+                "text": "repo/path-naming"
+              },
+              "fullDescription": {
+                "text": "Path naming checks observable file and directory names, not code symbols."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "repo/invalid-suppression",
+              "name": "repo/invalid-suppression",
+              "shortDescription": {
+                "text": "repo/invalid-suppression"
+              },
+              "fullDescription": {
+                "text": "Inline suppression comments must name known rules and include a non-empty reason."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            },
+            {
+              "id": "repo/unused-suppression",
+              "name": "repo/unused-suppression",
+              "shortDescription": {
+                "text": "repo/unused-suppression"
+              },
+              "fullDescription": {
+                "text": "Inline suppression comments should match at least one current violation on the next line."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              }
+            },
+            {
+              "id": "frontend/feature-system-layout",
+              "name": "frontend/feature-system-layout",
+              "shortDescription": {
+                "text": "frontend/feature-system-layout"
+              },
+              "fullDescription": {
+                "text": "Feature system layout checks observable systems/<domain> folders, shared UI roots, and surface CSS placement."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "frontend/feature-system-public-api",
+              "name": "frontend/feature-system-public-api",
+              "shortDescription": {
+                "text": "frontend/feature-system-public-api"
+              },
+              "fullDescription": {
+                "text": "Feature system public APIs should be explicit barrels, and callers outside a system should depend on those barrels instead of internals."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "frontend/feature-system-dependency-flow",
+              "name": "frontend/feature-system-dependency-flow",
+              "shortDescription": {
+                "text": "frontend/feature-system-dependency-flow"
+              },
+              "fullDescription": {
+                "text": "Feature system dependency flow keeps upper UI layers from shortcutting into adapters and keeps routes on public barrels."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "frontend/feature-system-adapter-contract",
+              "name": "frontend/feature-system-adapter-contract",
+              "shortDescription": {
+                "text": "frontend/feature-system-adapter-contract"
+              },
+              "fullDescription": {
+                "text": "Feature system adapter contracts check domain-named API adapters, typed API errors, cancellable reads, and adapter import boundaries."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            },
+            {
+              "id": "frontend/feature-system-query-contract",
+              "name": "frontend/feature-system-query-contract",
+              "shortDescription": {
+                "text": "frontend/feature-system-query-contract"
+              },
+              "fullDescription": {
+                "text": "Feature system query contracts keep TanStack Query keys, options, hooks, and cache mutations owned by the system lib layer."
+              },
+              "defaultConfiguration": {
+                "level": "none"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "cleanarch/artifact-placement",
+          "ruleIndex": 8,
+          "level": "error",
+          "message": {
+            "text": "cleanArchitecture artifact \"use-cases\" should live in the application boundary contexts/tax/application/use-cases"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "contexts/tax/application/probe.use-case.ts"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --llm-mode
+exit: 1
+stdout:
+status: fail
+filesChecked: 1
+problemCount: 1
+errorCount: 1
+warningCount: 0
+groupCount: 1
+
+group 1
+state: active
+actionable: true
+count: 1
+severity: error
+rule: cleanarch/artifact-placement
+message: cleanArchitecture artifact "use-cases" should live in the application boundary contexts/tax/application/use-cases
+why: Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer.
+tip: move this use-cases artifact to contexts/tax/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating
+locations:
+- /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts:1:1
+
+---------------------------------------------------------------------------------------
+onioncry-llm-report v1 revision: dcf0984cba5b
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --tips
+exit: 1
+stdout:
+/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts
+  1:1  error   cleanArchitecture artifact "use-cases" should live in the application boundary contexts/tax/application/use-cases  cleanarch/artifact-placement
+    why: Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer.
+    tip: move this use-cases artifact to contexts/tax/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating
+
+1 problem (1 error, 0 warnings)
+1 file checked
+status: fail
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry explain src/contexts/tax/application/probe.use-case.ts --tips
+exit: 0
+stdout:
+file: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio/src/contexts/tax/application/probe.use-case.ts
+layer: unclassified
+context: contextless
+publicSurface: false
+imports:
+violations:
+  1:1  error   cleanArchitecture artifact "use-cases" should live in the application boundary contexts/tax/application/use-cases  cleanarch/artifact-placement
+    why: Clean Architecture artifacts should live under a context-first layer boundary or a contextless base layer.
+    tip: move this use-cases artifact to contexts/tax/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q4-7t_8bsio
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format unsupported
+exit: 2
+stdout:
+
+stderr:
+error: invalid value 'unsupported' for '--format <FORMAT>'
+  [possible values: pretty, json, sarif]
+
+For more information, try '--help'.
+
+
+cwd: /var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-noconfig-ec8hx9ja
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 2
+stdout:
+
+stderr:
+error: could not find .onioncryrc.jsonc or .onioncryrc.json; pass --config <path> to use a different file
+
+
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": "src",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/artifact-placement": "error"
+  },
+  "overrides": []
+}
+
+
+fixture src/contexts/tax/application/plain.ts:
+export class InvoiceUseCase {}
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-unsuffixed-gi9jvy8w
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 1,
+    "warningCount": 0,
+    "errorCount": 1,
+    "violationCount": 1
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"application\" should live in the application boundary contexts/tax/application/<artifact-folder>",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-unsuffixed-gi9jvy8w/src/contexts/tax/application/plain.ts",
+      "toLayer": "application",
+      "suggestion": "move this application artifact to contexts/tax/application/<artifact-folder> or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-unsuffixed-gi9jvy8w
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 1,
+    "warningCount": 0,
+    "errorCount": 1,
+    "violationCount": 1
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"application\" should live in the application boundary contexts/tax/application/<artifact-folder>",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-unsuffixed-gi9jvy8w/src/contexts/tax/application/plain.ts",
+      "toLayer": "application",
+      "suggestion": "move this application artifact to contexts/tax/application/<artifact-folder> or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+Independent confirmation: fresh process JSON identical; all fixture SHA-256 values unchanged.
+{
+  ".onioncryrc.jsonc": "b965793fc3693176f2e775b93b7499f976cffa6e9cfffbf4cb2bddab491e4313",
+  "src/contexts/tax/application/plain.ts": "d8f2345c14ef2c4d2505ae9b088f92c76d8e04c48519bdffa4a767bbc33333ad"
+}
+
+fixture src/tools/plain.ts:
+export const value = 1;
+
+
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": "src",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/unclassified-file": "error"
+  },
+  "overrides": []
+}
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-unsuffixed-gi9jvy8w
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 0
+stdout:
+{
+  "status": "pass",
+  "summary": {
+    "fileCount": 2,
+    "warningCount": 0,
+    "errorCount": 0,
+    "violationCount": 0
+  },
+  "violations": []
+}
+
+stderr:
+
+
+Traceback (most recent call last):
+  File "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/docs/specs/0002-suffixed-artifacts-require-their-role-folder/qa/evidence/2026-11-06-cli/run-cli.py.txt", line 222, in main
+    functions[ROW](Path(temporary).resolve())
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/docs/specs/0002-suffixed-artifacts-require-their-role-folder/qa/evidence/2026-11-06-cli/run-cli.py.txt", line 181, in contracts
+    unclassified = stable(unsuffixed, 1)
+  File "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/docs/specs/0002-suffixed-artifacts-require-their-role-folder/qa/evidence/2026-11-06-cli/run-cli.py.txt", line 58, in stable
+    one = check(root, expected, *extra)
+  File "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/docs/specs/0002-suffixed-artifacts-require-their-role-folder/qa/evidence/2026-11-06-cli/run-cli.py.txt", line 51, in check
+    result = run(['check', '--format', 'json', *extra], root, expected)
+  File "/Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/docs/specs/0002-suffixed-artifacts-require-their-role-folder/qa/evidence/2026-11-06-cli/run-cli.py.txt", line 24, in run
+    assert result.returncode == expected, f'{args}: exit {result.returncode}, expected {expected}'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ['check', '--format', 'json']: exit 0, expected 1
+

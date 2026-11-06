@@ -1,0 +1,4 @@
+Command: rtk proxy roundfix spec check 0002-suffixed-artifacts-require-their-role-folder --strict
+Exit: 0
+No findings. Authored Verification commands were not executed.
+Skipped: SC-LOOP-ORDER-DIVERGENT (three optional autonomous-work assets absent); SC-ROLLUP-MEMBER (no rollup); SC-ARCHIVE-LICENSE (no docs/history/findings); SC-BACKLOG-UNMOVED (no docs/backlog); vocabulary documentation detector (no Vocabulary Contract); SC-SKILLS-MALFORMED and SC-SKILLS-UNTASKED (no docs/references/skill-coverage.json); SC-SURFACE-RECORD-UNTASKED (no docs/references/behavior-surfaces.json); SC-SKILL-VERSION-UNTASKED (no skills/testdata/owned-skill-versions.json); SC-REF-UNRESOLVED (no references/_index.md).

@@ -1,0 +1,359 @@
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": "src",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/artifact-placement": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "contexts/tax/application/probe.use-case.ts"
+      ],
+      "rules": {
+        "cleanarch/artifact-placement": "off"
+      }
+    }
+  ]
+}
+
+
+fixture src/contexts/tax/application/use-cases/probe.use-case.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/application/use-cases/billing/probe.use-case.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/infra/repositories/audit.repository.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/infra/repositories/billing/audit.repository.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/domain/entities/money.entity.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/domain/entities/billing/money.entity.ts:
+export const value = 1;
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json --fail-on warning
+exit: 0
+stdout:
+{
+  "status": "pass",
+  "summary": {
+    "fileCount": 6,
+    "warningCount": 0,
+    "errorCount": 0,
+    "violationCount": 0
+  },
+  "violations": []
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json --fail-on warning
+exit: 0
+stdout:
+{
+  "status": "pass",
+  "summary": {
+    "fileCount": 6,
+    "warningCount": 0,
+    "errorCount": 0,
+    "violationCount": 0
+  },
+  "violations": []
+}
+
+stderr:
+
+
+Independent confirmation: fresh process JSON identical; all fixture SHA-256 values unchanged.
+{
+  ".onioncryrc.jsonc": "6a63f5383030f58fb1ca0242da7f12afe2d07dc5bdecb5502b12b5893845faa1",
+  "src/contexts/tax/application/use-cases/billing/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/application/use-cases/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/domain/entities/billing/money.entity.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/domain/entities/money.entity.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/infra/repositories/audit.repository.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/infra/repositories/billing/audit.repository.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29"
+}
+
+fixture src/contexts/tax/application/probe.use-case.ts:
+export const value = 1;
+
+
+fixture src/contexts/tax/infra/audit.repository.ts:
+export const value = 1;
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 8,
+    "warningCount": 0,
+    "errorCount": 1,
+    "violationCount": 1
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"repositories\" should live in the infra boundary contexts/tax/infra/repositories",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7/src/contexts/tax/infra/audit.repository.ts",
+      "toLayer": "infra",
+      "suggestion": "move this repositories artifact to contexts/tax/infra/repositories or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 8,
+    "warningCount": 0,
+    "errorCount": 1,
+    "violationCount": 1
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"repositories\" should live in the infra boundary contexts/tax/infra/repositories",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-q3-kprvefu7/src/contexts/tax/infra/audit.repository.ts",
+      "toLayer": "infra",
+      "suggestion": "move this repositories artifact to contexts/tax/infra/repositories or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+Independent confirmation: fresh process JSON identical; all fixture SHA-256 values unchanged.
+{
+  ".onioncryrc.jsonc": "6a63f5383030f58fb1ca0242da7f12afe2d07dc5bdecb5502b12b5893845faa1",
+  "src/contexts/tax/application/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/application/use-cases/billing/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/application/use-cases/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/domain/entities/billing/money.entity.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/domain/entities/money.entity.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/infra/audit.repository.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/infra/repositories/audit.repository.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/contexts/tax/infra/repositories/billing/audit.repository.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29"
+}
+
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": ".",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/artifact-placement": "error"
+  },
+  "overrides": []
+}
+
+
+fixture src/application/base.use-case.ts:
+export const value = 1;
+
+
+fixture src/application/billing/create.use-case.ts:
+export const value = 1;
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 2,
+    "warningCount": 0,
+    "errorCount": 2,
+    "violationCount": 2
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary src/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem/src/application/base.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to src/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    },
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary src/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem/src/application/billing/create.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to src/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 1
+stdout:
+{
+  "status": "fail",
+  "summary": {
+    "fileCount": 2,
+    "warningCount": 0,
+    "errorCount": 2,
+    "violationCount": 2
+  },
+  "violations": [
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary src/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem/src/application/base.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to src/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    },
+    {
+      "rule": "cleanarch/artifact-placement",
+      "severity": "error",
+      "message": "cleanArchitecture artifact \"use-cases\" should live in the application boundary src/application/use-cases",
+      "file": "/private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-base-1x_xrrem/src/application/billing/create.use-case.ts",
+      "toLayer": "application",
+      "suggestion": "move this use-cases artifact to src/application/use-cases or turn cleanarch/artifact-placement off with an override while migrating"
+    }
+  ]
+}
+
+stderr:
+
+
+Independent confirmation: fresh process JSON identical; all fixture SHA-256 values unchanged.
+{
+  ".onioncryrc.jsonc": "f4409d567747c2171d40dd50929ce93e895cb0cf270cce204e804a7bc4e1a785",
+  "src/application/base.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29",
+  "src/application/billing/create.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29"
+}
+
+fixture .onioncryrc.jsonc:
+// Generic QA fixture; no consumer source.
+{
+  "version": 1,
+  "project": {
+    "root": ".",
+    "include": [
+      "**/*.ts"
+    ],
+    "exclude": []
+  },
+  "architecture": {
+    "mode": "cleanArchitecture",
+    "cleanArchitecture": {
+      "contextRoot": "src/contexts"
+    }
+  },
+  "rules": {
+    "cleanarch/artifact-placement": "error"
+  },
+  "overrides": []
+}
+
+
+fixture src/contexts/tax/application/use-cases/probe.use-case.ts:
+export const value = 1;
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-root-85n2alc7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 0
+stdout:
+{
+  "status": "pass",
+  "summary": {
+    "fileCount": 1,
+    "warningCount": 0,
+    "errorCount": 0,
+    "violationCount": 0
+  },
+  "violations": []
+}
+
+stderr:
+
+
+cwd: /private/var/folders/p7/wnjmrqxd6kzcb0zs8c958j7c0000gn/T/onioncry-qa-root-85n2alc7
+command: rtk proxy /Users/marcio/.roundfix/worktrees/roundfix-deliver-0002-suffixed-artifacts-require-their-role-folder-fb41be43ab24655b-2c2c9ab9-6805aada/run_20261106T110411Z_8808faa6b603c904/target/debug/onioncry check --format json
+exit: 0
+stdout:
+{
+  "status": "pass",
+  "summary": {
+    "fileCount": 1,
+    "warningCount": 0,
+    "errorCount": 0,
+    "violationCount": 0
+  },
+  "violations": []
+}
+
+stderr:
+
+
+Independent confirmation: fresh process JSON identical; all fixture SHA-256 values unchanged.
+{
+  ".onioncryrc.jsonc": "f4409d567747c2171d40dd50929ce93e895cb0cf270cce204e804a7bc4e1a785",
+  "src/contexts/tax/application/use-cases/probe.use-case.ts": "5d8f65d2774e206bc9f7a7a4ad39ca2dc563b5c31e46ab57ef4874961237ce29"
+}
+
+PASS: six direct/nested controls, isolated off override, contextless and layer-first findings, alternate root, repeat invocations and read-only persistence.
