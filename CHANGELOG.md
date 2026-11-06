@@ -4,6 +4,15 @@ All notable changes to OnionCry are documented in this file. Entries are
 generated from Conventional Commit history with
 [cocogitto](https://github.com/cocogitto/cocogitto).
 
+## v0.3.1 - 2026-11-06
+
+Removes the unused `miette` dependency, so installing from crates.io compiles
+fewer crates. No CLI behavior change.
+
+#### Build system
+
+- (**deps**) remove the unused miette dependency (#24) - (40070f0) - Marcio Altoé
+
 ## v0.3.0 - 2026-11-06
 
 `cleanarch/artifact-placement` now reports a file classified only by its
