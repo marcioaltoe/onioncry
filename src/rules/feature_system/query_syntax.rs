@@ -71,12 +71,15 @@ impl<'a> Visit<'a> for QuerySyntaxVisitor {
                     )
                 )
             })
-        }) && let Some(Argument::ObjectExpression(filter)) = call.arguments.first()
+        }) && let Some(Expression::ObjectExpression(filter)) = first_argument(call)
         {
             for property in &filter.properties {
                 if let ObjectPropertyKind::ObjectProperty(property) = property
                     && property.key.is_specific_static_name("queryKey")
-                    && !matches!(property.value, Expression::ArrayExpression(_))
+                    && !matches!(
+                        property.value.get_inner_expression(),
+                        Expression::ArrayExpression(_)
+                    )
                 {
                     self.filter_key_starts.insert(property.span.start);
                 }
@@ -96,8 +99,17 @@ impl<'a> Visit<'a> for QuerySyntaxVisitor {
     }
 }
 
+// TypeScript wrappers such as `as const` or `satisfies` never change what the
+// wrapped literal declares, so shape checks look through them.
+fn first_argument<'b, 'a>(call: &'b CallExpression<'a>) -> Option<&'b Expression<'a>> {
+    call.arguments
+        .first()
+        .and_then(Argument::as_expression)
+        .map(Expression::get_inner_expression)
+}
+
 fn mutation_has_invalidation_contract(call: &CallExpression<'_>) -> bool {
-    let Some(Argument::ObjectExpression(options)) = call.arguments.first() else {
+    let Some(Expression::ObjectExpression(options)) = first_argument(call) else {
         return false;
     };
     options.properties.iter().any(|property| {
@@ -107,7 +119,7 @@ fn mutation_has_invalidation_contract(call: &CallExpression<'_>) -> bool {
         if !property.key.is_specific_static_name("meta") {
             return false;
         }
-        let Expression::ObjectExpression(meta) = &property.value else {
+        let Expression::ObjectExpression(meta) = property.value.get_inner_expression() else {
             return false;
         };
         meta.properties.iter().any(|property| {
@@ -137,6 +149,9 @@ mod tests {
             "client.invalidateQueries({ nested: { queryKey: keys.list() } });",
             "client.invalidateQueries({ queryKey: factory({ queryKey: ['billing'] }) });",
             "client.invalidateQueries({ queryKey: keys.list() }); const options = { queryKey };",
+            "client.invalidateQueries({ queryKey: ['billing'] as const });",
+            "client.refetchQueries({ queryKey: (['billing']) satisfies QueryKey });",
+            "client.cancelQueries({ queryKey: <const>['billing'] });",
         ] {
             let facts = summarize_query_syntax(Path::new("hook.ts"), source).unwrap();
             assert!(facts.declares_query_key, "missed declaration: {source}");
@@ -148,6 +163,8 @@ mod tests {
             "client.resetQueries({ queryKey: keys.list() }, { nested: true });",
             "// queryKey: ['billing']\nconst label = 'queryKey';",
             "const queryKey = ['billing'];",
+            "client.invalidateQueries({ queryKey: keys.list() as QueryKey });",
+            "client.invalidateQueries({ queryKey: keys.list() } as const);",
         ] {
             let facts = summarize_query_syntax(Path::new("component.tsx"), source).unwrap();
             assert!(
@@ -168,6 +185,10 @@ mod tests {
             "useMutation({ meta: { invalidates: [] } }); useMutation({ meta: { invalidates: keys() } });",
             "// useMutation({})\nconst label = 'useMutation(';",
             "other({ meta: {} });",
+            "useMutation({ meta: { invalidates: [] } as const });",
+            "useMutation({ meta: { invalidates: [] } satisfies MutationMeta });",
+            "useMutation(({ meta: ({ invalidates: [] }) }));",
+            "useMutation({ meta: { invalidates: [] } } as const);",
         ] {
             let facts = summarize_query_syntax(Path::new("hook.ts"), source).unwrap();
             assert!(
@@ -190,6 +211,7 @@ mod tests {
             "useMutation({}); useMutation({ meta: { invalidates: [] } });",
             "useMutation({ meta: { invalidates: [] } }); useMutation({});",
             "useMutation({ /* meta: { invalidates: [] } */ });",
+            "useMutation({ meta: { toast: 'saved' } as const });",
         ] {
             let facts = summarize_query_syntax(Path::new("hook.ts"), source).unwrap();
             assert!(facts.has_uncontracted_mutation, "missed mutation: {source}");
