@@ -4,6 +4,26 @@ All notable changes to OnionCry are documented in this file. Entries are
 generated from Conventional Commit history with
 [cocogitto](https://github.com/cocogitto/cocogitto).
 
+## v0.3.2 - 2026-11-14
+
+`frontend/feature-system-query-contract` no longer reports a missing
+invalidation for a mutation called with type arguments, such as
+`useMutation<TData, Error, TInput>(...)`, when its `onSuccess` or `onSettled`
+calls `invalidateQueries`. Before 0.3.0 such calls were never checked; 0.3.0
+and 0.3.1 reported them as false warnings.
+
+#### Bug Fixes
+
+- (**diagnostics**) accept generic mutations that invalidate on settlement (#28) - (1df1368) - Marcio Altoé
+
+#### Refactoring
+
+- (**graph**) keep Tarjan node state in indexed vectors (#26) - (86b6fdc) - Marcio Altoé
+
+#### Miscellaneous Chores
+
+- (**repo**) add the ai-memory marker and refresh the Baseline (#27) - (6870597) - Marcio Altoé
+
 ## v0.3.1 - 2026-11-06
 
 Removes the unused `miette` dependency, so installing from crates.io compiles

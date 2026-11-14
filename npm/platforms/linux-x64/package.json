@@ -1,6 +1,6 @@
 {
   "name": "@onioncry/cli-linux-x64",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Prebuilt OnionCry binary for Linux x64",
   "license": "MIT",
   "repository": {
