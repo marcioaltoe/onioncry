@@ -70,7 +70,7 @@ shell configuration. Run `roundfix doctor` again after taking the next action.
 | `DR-LANE-IMAGE-MISSING` | warn | The image is not local; `docker pull <image>`. |
 | `DR-LANE-IMAGE-UNKNOWN` | warn | The image cannot be resolved from `go.mod`; set `delivery.linux_lane_image`. |
 | `DR-LIGHT-ACCESS-MODE` | warn | No light runtime offers a full-access mode; set `openrouter.light_models: []` in User Config, or `defaults.agent_full_access: false`. |
-| `DR-DISK-LOW` | warn | Less than 10,240 MiB free where worktrees or a Shared Build Cache live; `roundfix gc`, then free space on that filesystem. |
+| `DR-DISK-LOW` | warn | Less than 10,240 MiB free where worktrees, a Shared Build Cache or the temporary directory live; `roundfix gc`, then free space on that filesystem. |
 | `DR-DISK-UNREAD` | warn | The free space could not be read; check the path, then re-run `roundfix doctor`. |
 
 The supported adapters are official `@agentclientprotocol/codex-acp` version
@@ -93,6 +93,7 @@ Use `roundfix doctor` when you only need a read-only readiness report. It runs
 the Node.js, minimum-supported acpx, effective adapter check for every distinct
 runtime referenced by the effective required profiles, required Agent
 Selection Profiles, Repository Skill Set, process residue, storage, the
+Machine Verification Capacity and the
 conditional `light-tier`, `disk-space` and `linux-lane` checks, and codex runtime hygiene checks and
 exits nonzero if any check fails. Runtime entries on the aggregate `adapter:`
 line are deduplicated and sorted. Adapter failures name the effective command,
@@ -103,19 +104,49 @@ evidence, and the next `roundfix profiles configure` or
 recommend model-managed reasoning. The command has no flags and mutates
 nothing.
 
+A terminal Run whose recorded owner PID is alive with a different start identity
+adds nothing: its owner is gone and the PID was reused, so `partial` is left for
+a process table Doctor cannot read.
+
 - `light-tier:` — printed after `recommendations:` only when
   `openrouter.light_models` is not empty and `defaults.agent_full_access` is
   `true`; `warn` with `DR-LIGHT-ACCESS-MODE` when no light runtime offers a
   full-access mode, otherwise `ok`. It opens no Agent Session and never changes
   the exit code.
 - `disk-space:` — printed after `storage:` only when the filesystem holding
-  the worktree location (`worktree.location`) or a declared Shared Build Cache
-  has less than 10 GiB (10,240 MiB) free, or its free space cannot be read.
+  the worktree location (`worktree.location`), a declared Shared Build Cache
+  or the temporary directory has less than the Free-Space Floor of 10 GiB
+  (10,240 MiB) free, or its free space cannot be read.
   Each location is named on its own and read at its nearest existing
   directory: `DR-DISK-LOW` gives its free MiB with `next: roundfix gc`, and
   `DR-DISK-UNREAD` gives the read error. Findings are `warn` and never change
   the exit code; with enough free space everywhere the line is absent.
-- `linux-lane:` — printed after `storage:` and before `codex:` only when the
+- `verification-capacity:` — the read-only Machine Verification Capacity
+  check, printed after the `disk-space:` results and before `linux-lane:`.
+  It reports `ok (runs.max_verifying <n>; <held> held, <waiting> waiting)`,
+  or `ok (off; <held> held, <waiting> waiting)` at `0`. The detail adds
+  `; holding: <holder description>, <step>` per holder, then
+  `; waiting <n>: <holder description>, <step>` per waiter numbered from 1,
+  each in ticket order. An unreadable entry changes it to `warn`, adds
+  `; unreadable entry <path>` and the next action
+  `inspect <path> and remove it if no Roundfix process wrote it`.
+  A directory read error reports `warn (read Machine Verification Capacity: <error>)`.
+  Warnings keep the exit code, and the check writes nothing.
+- `verification-cores:` — the read-only Verification Core Budget check, printed
+  after `verification-capacity:`. It names the budget, its source and the count
+  of active Implement Runs across repositories (0 without a Run Database).
+  Its three forms are:
+  `ok (<cores> per Verification: <source>; <k> active Implement Runs)`;
+  `warn (<cores> per Verification: <source>; <k> active Implement Runs; <c> at once may take <total> of <cpus> logical CPUs; next: lower GOMAXPROCS in the environment or set runs.max_verifying in User Config)`;
+  and `warn (<cores> per Verification: <source>; active Implement Runs unknown: <error>; next: inspect the Run Database with roundfix runs list)`.
+  The source describes the positive whole-number `GOMAXPROCS` override or half
+  the logical CPUs divided by `runs.max_verifying`, then `runs.max_active`
+  while capacity is off, or undivided while both are 0; the budget is at least 1.
+  `<c>` is the positive `runs.max_verifying`, otherwise positive `runs.max_active`,
+  otherwise the active Run count, at least 1. Oversubscription warns only when
+  `<total>` (`<c>` times `<cores>`) exceeds the logical CPUs. The check writes
+  nothing and never changes the exit code.
+- `linux-lane:` — printed after `verification-cores:` and before `codex:` only when the
   checkout's effective `delivery.linux_lane` is `true`. It checks Docker on
   the command environment's PATH with `docker info`, then
   `docker image inspect <image>`, each with a ten-second limit that cancels
@@ -149,6 +180,8 @@ deliberately.
 Git repository, fails with exit `1` for each Missing Required Skill, naming it
 with `roundfix baseline skills restore --profile <id> --skill <name>`.
 
+`roundfix skills check`, `roundfix doctor` and `roundfix update check` also name each Stale User Skill Copy: they read the five user-level directories in the `skills check` order, follow symbolic links and name a folder once under the first directory that reaches it. `skills check` warns on stderr and keeps its exit code, Doctor adds `user-skills: warn` after `skills:`, and the Update Check adds `User skills:` and `userSkills`; each names the refresh command. None of them changes a copy; run a refresh only when the user asks, because it writes outside the repository and through the link the report names.
+
 The binary ships twelve Roundfix-owned skills: the operational `roundfix`
 skill and eleven authorial workflow skills.
 
@@ -158,6 +191,8 @@ other field is kept. No entry or lock is created when none exists, and the
 names are reported as `Updated skills-lock.json computedHash: <name>` followed
 by `Removed skills-lock.json ref: <name>` for each entry whose `ref` was
 removed.
+
+Roundfix reads a `skills-lock.json` of version 1 or 2, the version the skills CLI 1.8 writes; every `computedHash` it writes into the lock or compares with an installed folder follows the hash algorithm of the version the file declares, and it never changes that version.
 
 With a Setup Manifest, Doctor appends
 `DR-SKILL-LOCK-STALE: skills update would replace these Roundfix-owned skills
@@ -218,6 +253,16 @@ User Config at `~/.roundfix/config.yml`. With no scope, the command asks and
 defaults to Project Config. It checks whether the destination already exists;
 `--force` permits overwriting it.
 
+The User Config template written by Setup and `roundfix init --scope user`
+includes the Machine Verification Capacity key:
+
+```yaml
+runs:
+  max_verifying: 1
+```
+
+It defaults to `1`; `0` turns the bound off. Only User Config sets it.
+
 ## Config compatibility
 
 Roundfix treats registered removed config keys as migrations, not Preflight
@@ -248,6 +293,12 @@ exit code. With no declared cache, the storage line stays byte-identical.
 ```text
 storage: found (Runs reclaimable: 0; Run Database free bytes: 0; Worktree Build Caches reclaimable: 1 (11 bytes); next: roundfix gc)
 ```
+
+## Update check
+
+`roundfix update check [--refresh] [--format <text|json>]` is the read-only Update Check a session runs before its first task, as the Baseline's agent instructions say. It compares the installed Roundfix with the latest published release, lists the `### ` titles of each newer release's notes, newest first, and summarizes this repository's `roundfix baseline update` preview with the installed binary. The release listing is one `gh api` call cached for 24 hours in `~/.roundfix/update-check.json` and shared by every repository on the machine; `--refresh` reads it now, and a failed lookup is one line ending `the session continues.` and is cached for the same 24 hours. Every report exits `0`; a usage error or an invalid configuration exits `2`. `update.mode` (Project Config over User Config) selects `notify`, the default, or `auto`; the `Next:` line names the `--update` Skill Mode when a release is newer or the Baseline has a plan. JSON uses `roundfix/update-check/v1` with `state` (`update_available`, `current`, `unknown` or `development`), `next` (`apply` or `none`), `releases`, `lookup` and `baseline`.
+
+When a newer Roundfix wrote the repository's Baseline, the check warns on stderr and reports `Baseline: failed:` with the refusal; run `roundfix upgrade` before anything else in that repository. Doctor reports the refusal on its `baseline-version: failed` line. The Run readers and `roundfix stop` warn and continue without Project Config.
 
 ## Pending History after upgrade
 

@@ -8,7 +8,7 @@
   },
   "profile": "rust-cli",
   "profileDigest": "sha256:fc75ffb927a1294d65e7f7267771e9edfccf2fdda5da086c43ff27f3b04d52d4",
-  "catalogDigest": "sha256:a143bea7ff2eaf009fea9059ea9c0b7b8d8e1193d3c4e01fa176f4138a09c934",
+  "catalogDigest": "sha256:7473b8b2610e3fb10825dc9f7a2f8de171dfbd68d59e4ae19161777554d573d4",
   "modules": [
     "core",
     "context-workflow",
@@ -130,7 +130,7 @@
       "module": "core",
       "template": "template.guide.agent-instructions",
       "version": "0.0.1",
-      "digest": "34bd108f263f2af5a8f69ad92b4d52030600d55ab06b89972a0157ee076d819f"
+      "digest": "c57a4565be05da79f0c3df1ba8f2e489c8cde66042979b3dfcc1996564541847"
     },
     {
       "id": "root.cli-surface",
@@ -166,7 +166,7 @@
       "module": "spec-workflow",
       "template": "template.guide.spec-docs-layout",
       "version": "0.0.1",
-      "digest": "23d86fce6601fbf808965b2d328d4ea71680c8eb6448442cbb8d5c25b4c909be"
+      "digest": "5233d273a0f0c4427b3df89fdabe6ac659c3afb99fbe75d797eb33e38c8776cd"
     },
     {
       "id": "guide.domain",
@@ -225,5 +225,6 @@
       "declarationPath": "Makefile",
       "declarationDigest": "sha256:428c3e248a30069aa28f561ae9fc34015cfedc7f782d706a580dd17c7b60b96f"
     }
-  ]
+  ],
+  "roundfixVersion": "0.143.3"
 }

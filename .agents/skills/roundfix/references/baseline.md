@@ -79,6 +79,7 @@ other field is kept. No entry or lock is created when none exists. The result
 reports `skills.lockUpdated` and `skills.lockUnpinned` and prints `Skills lock
 updated: <count>` followed by one `- lock updated <name>` line for each name,
 then one `- lock ref removed <name>` line for each name whose `ref` was removed.
+Roundfix reads a `skills-lock.json` of version 1 or 2, the version the skills CLI 1.8 writes; every `computedHash` it writes into the lock or compares with an installed folder follows the hash algorithm of the version the file declares, and it never changes that version. Any other lock version stops the update with the next action `run roundfix upgrade, then rerun roundfix baseline update`.
 `--skills-source-dir <path>` selects an offline Git checkout or bare object store for external skill restoration. `--repo`
 defaults to the current directory, and `--format` accepts `text` or `json`.
 
@@ -106,7 +107,7 @@ The Retired Skills are `council` and `the-fool` since 0.52.0, and
 `design-patterns`, `diagnosing-bugs`, `fixing-metadata`,
 `game-changing-features`, `refactoring-analysis`, `tdd` and `to-prompt`
 since 0.127.0, which the catalog removed; and the Roundfix-owned
-`implement-spec` since 0.127.0. The TypeScript setup's
+`implement-spec` since 0.127.0. `inngest` joined them when the catalog replaced it with seven `inngest-*` skills, which the `backend` module requires instead. The TypeScript setup's
 `ui-ux-pro-max` searches need Python 3; the standard library is enough.
 Without Python, the skill still applies its `SKILL.md` rules and quick
 reference. No Baseline command checks for Python.
@@ -321,6 +322,12 @@ roundfix baseline skills reconcile --repo . --profile <profile-id> --source <own
 roundfix baseline assets sync --source-dir <canonical-setups> --check --format json
 ```
 
+A repository profile must list every decision a template it renders requires. When it does not, `baseline profile validate` exits `2` with `custom.profile.decision.template-required`, and `baseline plan` and `baseline update` exit `3` with category `decision`. Each names the decision, the template, the entry to add to the profile's `decisions` and a `--decision` flag with the suggested value, and none writes a byte or edits the profile. Once the profile lists the decision, `baseline update` asks for it as a new decision.
+
+A guide under `docs/agents/` that has no `setup-context-driven` marker line and sits at a path the Baseline does not manage belongs to the repository and raises no `baseline.inventory.nested-carrier-conflict`; naming the marker in its prose changes nothing. A nested `AGENTS.md` or `CLAUDE.md`, an unmarked guide at a managed path and a guide with an unknown marker still warn.
+
+A nested `AGENTS.md` or `CLAUDE.md` enters the inventory only when `git ls-files --cached --others --exclude-standard` lists it: a tracked one, or an untracked one Git does not ignore. A copy in a path Git ignores, and a carrier inside a linked worktree, a nested repository or a submodule, is not a file of the repository: it raises no `baseline.inventory.nested-carrier-conflict` and does not enter the Plan Digest.
+
 Restore and reconcile accept a repository profile, and
 `restore.profile-unresolved` names its searched
 `.roundfix/baseline/profiles/<profile-id>.json` path.
@@ -363,6 +370,10 @@ through `--confirm-plan`. Asset refresh without `--check` requires explicit
 maintainer intent. For Decision Documents, preservation, cross-clone safety,
 recovery, migration, security limits, and completion evidence, follow
 `docs/user-guide/context-driven-development.md#adopt-or-update-the-context-driven-baseline`.
+
+### Recorded Roundfix Version
+
+The Setup Manifest records as `roundfixVersion` the release of the Roundfix that last applied a Baseline change to the repository. A Baseline Plan records the running release only when it changes a file and that release is higher than the recorded release. An older Roundfix binary refuses every command that loads the repository's configuration, `roundfix init --scope project`, and the six Baseline commands (`roundfix baseline`, `baseline update`, `baseline plan`, `baseline apply`, `baseline skills restore` and `baseline skills reconcile`) with this refusal: `Setup Manifest "<path>" records Roundfix <recorded>, newer than this binary's <running>; a newer roundfix wrote this repository's Baseline, so use that binary or run 'roundfix upgrade'`. The remedy is `roundfix upgrade`; never edit the field.
 
 ## Vendored skills
 

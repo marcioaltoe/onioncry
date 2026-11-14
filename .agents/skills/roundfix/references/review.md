@@ -9,7 +9,15 @@ roundfix review dispose <finding-id> --fixed-by <commit>
 Runs the configured pre-Pull-Request reviewer over the current candidate. The
 workflow computes the candidate diff from the merge base of the current head
 and the selected base, then hands that diff to the configured reviewer in a
-read-only session; it does not ask the reviewer to discover the candidate. The
+read-only session; it does not ask the reviewer to discover the candidate. Every
+review prompt lets the reviewer open repository files and, right after that
+line, adds: `A diff hunk shows only the lines near a change. Before a finding
+states that an import, declaration, symbol or closing part of a block is missing
+or undefined, read the whole file in the repository, which holds the head
+commit, and raise the finding only if the file confirms it. Before a finding
+states that a file, ADR or other record the change names or links to does not
+exist, look for it in the repository, which holds files the diff leaves out, and
+raise the finding only if it is not there.` The
 resulting record names the repository, that merge base as `baseCommit`, the
 resolved base tip as `baseTipCommit`, the head commit, effective provider, and
 policy source. A head with no shared history with the selected base exits `2`
@@ -78,7 +86,7 @@ both `segments` and the finding's `segment` field. Verdict reuse,
 dispositions, convention validation and round accounting remain per candidate
 head: all segments are one round.
 
-Each diff the segment plan measures starts from the Effective Base of the commit it ends at, the merge base of that commit with the review's merge base. A commit cut from an older default branch is measured from that older commit, and a merge of the default branch from the earlier commit's change carried onto the merged base with `git merge-tree --write-tree`, so no segment shows the default branch's own work. A segment whose diff starts elsewhere than its base records `measuredFrom`, the commit or tree it starts from, and its prompt adds a second header line: `This segment's diff starts from <measuredFrom> instead of <segment base>, so it leaves out what the default branch changed.` A carry that conflicts measures the segment from its base.
+Each diff the segment plan measures starts from the Effective Base of the commit it ends at, the merge base of that commit with the review's merge base. A commit cut from an older default branch is measured from that older commit, and a merge of the default branch from the earlier commit's change carried onto the merged base with `git merge-tree --write-tree`, so no segment shows the default branch's own work. A segment whose diff starts elsewhere than its base records `measuredFrom`, the commit or tree it starts from, and its prompt adds a second header line: `This segment's diff starts from <measuredFrom> instead of <segment base>, so it leaves out what the default branch changed.` A carry that conflicts measures the segment from its Conflicted Carry, and the prompt adds, after that header line, `Carrying <segment base> onto the default branch conflicted; where tree <measuredFrom> holds Git's conflict markers, the diff shows how the candidate resolved the conflict.` and, when Git lists conflicted paths, `Conflicted paths: <path>, <path>.`
 
 A single commit above the bound, or an oversized round-2 or Correction Review
 delta, still blocks with exit `2` before any provider call, readiness probe or
@@ -166,8 +174,11 @@ A findings record keeps the reviewer's original `findings` text and also lists
 each finding as `F1`, `F2`, and so on in `findingItems`. The reviewer prompt
 asks for one `- ` list item per finding. Start each item with `path:line` or
 `path:start-end`, optionally backticked, naming a line of the candidate diff.
-For a comma-listed anchor, only the first range counts. Describe what breaks
-in a clause beginning with `Failure:`. An older record without `findingItems` derives the same identities from its findings text when
+For a comma-listed anchor, only the first range counts. An anchor followed by
+a period or a semicolon reads as one followed by a space when a space or the
+end of the finding comes next, so an anchor may end a sentence; `path:2.5` and
+`path:2.md` are not anchors. Describe what breaks in a clause beginning with
+`Failure:`. An older record without `findingItems` derives the same identities from its findings text when
 Roundfix reads it.
 
 The prompt carries Delivery Conventions version
@@ -242,7 +253,12 @@ dismissed this way reads `findings-dismissed`, and its `validator` stays
 Only anchored findings inside a convention region or lacking a failure
 clause, and not dismissed as a Result Status Note, are sent to the
 validator. It uses the review's selected runtime in a sealed
-session and may use no tools. The validator fails closed: an unavailable
+session and may use no tools. The session works in a new private directory
+outside every checkout. When the reviewed checkout's root holds a regular
+`.ai-memory.toml` of at most 64 KiB, Roundfix copies it into that
+directory, which holds nothing else, so a tool that names its project from
+the working directory records the session under the reviewed repository.
+The validator fails closed: an unavailable
 runner, timeout, tool use, malformed answer, missing or duplicate finding ID,
 ineligible rule or blank reason leaves every asked finding standing. The
 record's `validation` identifies the conventions version and reports
@@ -265,7 +281,10 @@ recorded anchor, or an anchor whose file is missing, whose lines no longer
 exist, or whose lines changed or moved. Dismiss before committing a fix that
 changes or moves those lines. A fix requires a resolving commit that differs
 from and descends from the reviewed head and is reachable from the current
-`HEAD`. Evidence is copied as text and is never executed.
+`HEAD`. Evidence is copied as text and is never executed. When the reviewed
+head is no longer in the repository, both forms refuse with `reviewed head
+"<commit>" is no longer in the repository; run roundfix review to open a new
+Reviewer Lineage`.
 
 Successful dispositions append one JSON line to
 `pre-pr-review-dispositions.jsonl` in the Artifact Directory and print that
@@ -300,23 +319,26 @@ clears that head; the fix belongs to a changed candidate. The `none` and
 
 Reviews in one checkout form a **Reviewer Lineage** when the provider stays the same,
 each reviewed head descends from the last, and the merge base stays the same or
-moves only by a conflict-free merge of the default branch.
+moves only by a merge of the default branch, with or without a conflict.
 Round 1 reviews the full candidate diff. Round 2 reviews only the delta from
 the round-1 head to the current head; its prompt always includes every round-1
 finding with its validation and operator disposition. A fixed or dismissed
 finding is raised again only if the delta reintroduces it. For a segmented round 1, anchors are validated against their own segment
 diff; otherwise they are validated against the full merge-base candidate
 diff in either round.
-A merge of the default branch keeps the lineage when every merge the head gained since the reviewed head brings in only commits the new merge base contains and the reviewed head merges onto the new merge base without conflict. The round-2 or Correction Review delta then starts from the reviewed head carried onto the new merge base, recorded as `lineage.deltaBase`, and the prompt adds: `The candidate merged the default branch since then; the diff starts from tree <deltaBase>, the reviewed head with the default branch's changes applied, so it holds only the candidate's own change.` A rebase, a changed provider, a head that does not descend, or any other move of the merge base starts a new lineage at round 1, and `roundfix deliver status` and `roundfix deliver retry` name the reason before the review runs. A blocked review retries its own round with its recorded previous data.
+A merge of the default branch keeps the lineage when every merge the head gained since the reviewed head brings in only commits the new merge base contains. The round-2 or Correction Review delta then starts from the reviewed head carried onto the new merge base, recorded as `lineage.deltaBase`, and the prompt adds: `The candidate merged the default branch since then; the diff starts from tree <deltaBase>, the reviewed head with the default branch's changes applied, so it holds only the candidate's own change.` When the reviewed head conflicts with the new merge base, the delta starts from its **Conflicted Carry**, the tree `git merge-tree --write-tree` writes, read with `merge.conflictStyle=merge`, whose conflicted files hold Git's conflict markers, so the diff shows how the candidate resolved the conflict; the prompt then adds `Carrying <reviewed head> onto the default branch conflicted; where tree <deltaBase> holds Git's conflict markers, the diff shows how the candidate resolved the conflict.` and, when Git lists conflicted paths, `Conflicted paths: <path>, <path>.` A rebase, a changed provider, a head that does not descend, or any other move of the merge base starts a new lineage at round 1, and `roundfix deliver status` and `roundfix deliver retry` name the reason before the review runs. A blocked review retries its own round with its recorded previous data.
 
 A restart names one of these reasons:
 
 - `the review provider changed from <prior provider> to <provider>`
 - `the head does not descend from the reviewed head <prior head>`
+- `the reviewed head <prior head> is no longer in the repository`
+- `the recorded merge base <prior base> is no longer in the repository`
 - `the merge base moved from <prior base> to <base> at the reviewed head`
 - `the merge base moved from <prior base> to <base>, which does not descend from it`
 - `the merge base moved from <prior base> to <base> through merge <merge> of <parent>, which the default branch does not contain`
-- `the merge base moved from <prior base> to <base> and the reviewed head <prior head> conflicts with it`
+
+A recorded commit is no longer in the repository only when the repository is neither shallow nor partial and `git cat-file -e` answers for its full object ID with exit `1` and no output. A complete repository holds every ancestor of every commit it holds, so a reviewed head it no longer holds is a head that does not descend. A shallow or partial clone cannot prove that, and Roundfix never asks a partial clone, because the question would fetch from its promisor remote; the review blocks with `check review lineage ancestry: a shallow or partial clone cannot prove that the recorded commit <commit> is gone; fetch the full history and try again`. Every other Git failure still blocks the review, so no failure resets the two-round ceiling.
 
 When round 2 ends with `findings`, a **Correction Review** reviews the fix once
 if the head moved and descends from the round-2 head, and every standing
