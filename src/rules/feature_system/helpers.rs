@@ -106,9 +106,10 @@ pub(super) fn source_passes_query_signal(source: &str) -> bool {
     source.contains("queryFn") && source.matches("signal").count() >= 2
 }
 
-pub(super) fn source_has_mutation_invalidation(source: &str) -> bool {
-    source.contains("useMutation(")
-        && (source.contains("onSuccess") || source.contains("onSettled"))
+// The parsed syntax already decides whether a mutation exists, including
+// `useMutation<TData, TError, TInput>(...)`, so this only checks settlement.
+pub(super) fn source_has_settlement_invalidation(source: &str) -> bool {
+    (source.contains("onSuccess") || source.contains("onSettled"))
         && source.contains("invalidateQueries")
 }
 

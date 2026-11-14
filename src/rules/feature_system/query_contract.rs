@@ -1,7 +1,8 @@
 use super::helpers::{
-    read_source_files, source_has_mutation_invalidation, source_has_optimistic_update_contract,
-    source_has_query_hook_read, source_has_query_ownership, source_imports_and_uses_query_options,
-    source_passes_query_signal, source_uses_query_options_surface,
+    read_source_files, source_has_optimistic_update_contract, source_has_query_hook_read,
+    source_has_query_ownership, source_has_settlement_invalidation,
+    source_imports_and_uses_query_options, source_passes_query_signal,
+    source_uses_query_options_surface,
 };
 use super::location::{is_file_in_area, is_route_file, system_location};
 use super::query_syntax::{QuerySyntaxFacts, summarize_query_syntax};
@@ -163,7 +164,7 @@ impl FeatureSystemQueryContractPolicy {
             ));
         }
 
-        if syntax.has_uncontracted_mutation && !source_has_mutation_invalidation(source) {
+        if syntax.has_uncontracted_mutation && !source_has_settlement_invalidation(source) {
             violations.push(Violation::feature_system_query_contract(
                 file,
                 severity,
