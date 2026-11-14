@@ -249,6 +249,17 @@ the largest carriable Task set, breaking ties with the newest Run.
    `QA Report evidence links do not resolve in the committed tree: <link> (line <n>, <reason>)`,
    publishes the `evidence_links` event and creates no QA Report commit.
 
+   The QA prompt names the Run Worktree, the audited head and the evidence
+   directory `qa/evidence/<report name>/`. The Daemon then checks the newest
+   QA Report for Borrowed Evidence, counting the QA Report Import's unchanged
+   copies as `imported`. On Borrowed Evidence the Daemon returns the QA turn once,
+   in the same turn as an unresolved link. A remaining item settles the QA Task
+   `failed` with
+   `QA Report evidence does not belong to this Run: <subject> (line <n>, <reason>)`,
+   publishes the `evidence_binding` event and creates no QA Report commit.
+
+   The QA prompt tells the gate to add each row directly below the last row of the seeded Results table, with no blank line before it. When a Results row of the newest QA Report lies outside every table, the Daemon returns the QA turn once, in the same turn as an unresolved link or Borrowed Evidence, naming the row's line and the repair, and publishes the `results_table` event. A `pass` or `partial` report with a row still outside settles the QA Task `failed` with `QA verdict <verdict> not accepted: QA Report <path>: Results row at line <n> is outside the Results table that starts at line <h>; <repair>`.
+
 6. Without `--spec`, Interactive Input lists the repository's active Specs
    from the resolved Spec Root under an `Active Specs:` picker that accepts a
    number or a slug, and the Agent field suggests the remembered Agent. Agent
@@ -285,6 +296,42 @@ the largest carriable Task set, breaking ties with the newest Run.
    limits concurrent Task Verification attempts. Both must be positive
    integers; Project Config overrides User Config, which overrides built-ins.
    Neither setting coordinates other Runs, CI, or external processes.
+   The Machine Verification Capacity, `runs.max_verifying`, bounds
+   Verifications across repositories sharing the Roundfix Home. It is User
+   Config only, defaults to `1`, and `0` disables the machine bound. Every
+   Daemon Verification takes the Run's own capacity first, then one machine
+   unit, and releases the machine unit first: the pre-work probe, repository
+   precondition, Task attempt with settlement Verification, exclusive retry,
+   Integrated Repository Verification and QA Task's repository Verification.
+   The exclusive retry takes the Run's whole capacity and one machine unit.
+   The Delivery Queue's repository gate takes one machine unit for repository
+   Verification and its Linux Lane together. Commands inside Agent sessions,
+   including QA suites and focused tests, remain ungated.
+
+   Every Verification and every Agent Session of an Implement Run receives
+   the Verification Core Budget as `GOMAXPROCS` and
+   `ROUNDFIX_VERIFICATION_CORES`: half of the logical CPUs, at least `1`,
+   divided by `runs.max_verifying`, or by `runs.max_active` while
+   `runs.max_verifying` is `0`, undivided when both are `0`, and never below
+   `1`. Integer division rounds down. A positive whole-number `GOMAXPROCS`
+   in the environment of the process that starts the Run takes its place.
+   The Implement Command computes it once from its loaded User Config and
+   environment; Agent Sessions inherit both variables beside the Run Marker,
+   so their focused tests and QA suites can use the same budget.
+
+   While any Verification waits for the Machine Verification Capacity, its
+   Run's `budget.max_run_duration` pauses until the last wait ends. A Stop
+   Request ends the wait without starting a command. Waiters take a unit in
+   arrival order. The first wait journals a `daemon.status` Run Event and
+   prints this summary to progress:
+
+   ```text
+   <step> waits for the Machine Verification Capacity: <held> of <capacity> held by <holders>.
+   ```
+
+   Each holder is `<DescribeMachineVerificationHolder>, <step>`, joined by
+   `; `. After acquisition a `daemon.status` Run Event records
+   `<step> took the Machine Verification Capacity after waiting <seconds>s.`
 
    The recommended split overlaps implementation while serializing the
    complete repository gate:

@@ -158,7 +158,7 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/06-review-repair/qa-gate/SKILL.md",
-      "computedHash": "c1894b512799b927f0e006aa0c0a588a33ce1ff3bfa62afae35ba3153256517e"
+      "computedHash": "dc1a3e99f0bd685a8f46df1ba0e246e48e3c9fdfff450b31df8e1179c7ec4b9b"
     },
     "rust-cli": {
       "source": "marcioaltoe/skills",
@@ -177,7 +177,7 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/00-setup/setup-context-driven/SKILL.md",
-      "computedHash": "cdb24381010c1526d094ef499eba17ebc10eff6e348d9d5948f24b8db32d5667"
+      "computedHash": "f0cfe53f97e3092aa79264194f6f57b76ab1d26f55d72b16c76f9f5eff29fbeb"
     },
     "solid": {
       "source": "marcioaltoe/skills",
@@ -235,13 +235,13 @@
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/04-issue-decomposition/write-tasks/SKILL.md",
-      "computedHash": "af3f29f031e676fe77f987b59bc93fe5e45a16f959fb4336943436970d31f6ef"
+      "computedHash": "07eb8c649e9782767738bb9537264fd3865bf92cd135929b346f6168650edc73"
     },
     "write-techspec": {
       "source": "marcioaltoe/skills",
       "sourceType": "github",
       "skillPath": "skills/03-engineering-design/write-techspec/SKILL.md",
-      "computedHash": "87b8032639e46968eebbf7245f6ee251082fe17cb2206ba9a1ca74b8e3408b8a"
+      "computedHash": "ca8cfe9a3a049e9c2dab9b50c84848cec2b0af85da1e39fc6ed561e9f37ddb32"
     }
   }
 }
