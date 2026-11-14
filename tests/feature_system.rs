@@ -1217,6 +1217,98 @@ export function useExportBilling() {{
 }
 
 #[test]
+fn feature_system_query_contract_accepts_generic_mutations_that_invalidate() {
+    for (name, settlement) in [
+        (
+            "factory-filter",
+            "onSuccess: async (_data, variables) => {\n      await queryClient.invalidateQueries(billingInvalidation(variables.id));\n    }",
+        ),
+        (
+            "literal-filter",
+            "onSuccess: () => queryClient.invalidateQueries({ queryKey: billingKeys.all() })",
+        ),
+        (
+            "on-settled",
+            "onSettled: () => queryClient.invalidateQueries(billingInvalidation('all'))",
+        ),
+        (
+            "promise-all",
+            "onSuccess: async (_data, variables) => {\n      await Promise.all([\n        queryClient.invalidateQueries(billingInvalidation(variables.id)),\n        queryClient.invalidateQueries(auditInvalidation(variables.id)),\n      ]);\n    }",
+        ),
+    ] {
+        let workspace = TempDir::new().expect("workspace should be creatable");
+        write_feature_system_query_contract_config(
+            &workspace.path().join(".onioncryrc.jsonc"),
+            r#""warn""#,
+        );
+        write_file(
+            &workspace
+                .path()
+                .join("packages/frontend/src/systems/billing/hooks/use-update-billing.ts"),
+            &format!(
+                r#"import {{ useMutation, useQueryClient }} from '@tanstack/react-query';
+import {{ auditInvalidation, billingInvalidation, billingKeys }} from '../lib/query-options';
+export function useUpdateBilling<TData, TInput extends {{ id: string }}>(
+  write: (input: TInput) => Promise<TData>,
+) {{
+  const queryClient = useQueryClient();
+  return useMutation<TData, Error, TInput>({{
+    mutationFn: (input) => write(input),
+    {settlement},
+  }});
+}}
+"#
+            ),
+        );
+
+        let result = run_json_check(
+            &workspace,
+            &["check", "--format", "json", "--fail-on", "warning"],
+        );
+
+        assert_eq!(result["status"], "pass", "settlement: {name}");
+        assert_eq!(result["summary"]["violationCount"], 0, "settlement: {name}");
+    }
+}
+
+#[test]
+fn feature_system_query_contract_reports_generic_mutations_without_invalidation() {
+    let workspace = TempDir::new().expect("workspace should be creatable");
+    write_feature_system_query_contract_config(
+        &workspace.path().join(".onioncryrc.jsonc"),
+        r#""warn""#,
+    );
+    write_file(
+        &workspace
+            .path()
+            .join("packages/frontend/src/systems/billing/hooks/use-update-billing.ts"),
+        r#"import { useMutation } from '@tanstack/react-query';
+export function useUpdateBilling() {
+  return useMutation<void, Error, { id: string }>({
+    mutationFn: async () => undefined,
+    onSuccess: () => undefined,
+  });
+}
+"#,
+    );
+
+    let result = run_json_check_failure(
+        &workspace,
+        &["check", "--format", "json", "--fail-on", "warning"],
+    );
+    let violations = result["violations"]
+        .as_array()
+        .expect("violations should be an array");
+
+    assert_eq!(result["status"], "fail");
+    assert!(violations.iter().any(|violation| {
+        violation["message"]
+            .as_str()
+            .is_some_and(|message| message.contains("invalidate relevant queries"))
+    }));
+}
+
+#[test]
 fn feature_system_query_contract_reports_mutations_without_invalidation_contract() {
     let workspace = TempDir::new().expect("workspace should be creatable");
     let config = serde_json::json!({
